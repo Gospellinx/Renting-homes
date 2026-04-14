@@ -1,0 +1,170 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Design System CSS Variables from JSON - Complete implementation */
+
+
+@layer base {
+:root {
+    /* Core shadcn vars - updated to match JSON where possible */
+    --background: 30 50% 97%; /* JSON background #F9F5F4 */
+    --foreground: 62 10% 8%; /* JSON textPrimary #12120D */
+    --card: 0 0% 100%; /* JSON surface */
+    --card-foreground: 62 10% 8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 62 10% 8%;
+    --primary: 167 45% 20%; /* JSON primary #1F3D2B */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 149 27% 32%; /* JSON primaryLight */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 48 44% 94%; /* JSON accentSoft */
+    --muted-foreground: 0 0% 43%; /* JSON textSecondary */
+    --accent: 44 34% 70%; /* JSON accent */
+    --accent-foreground: 62 10% 8%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 0 0% 90%; /* JSON border */
+    --input: 0 0% 90%;
+    --ring: 167 45% 20%;
+    --radius: 0.75rem; /* Close to JSON lg 20px */
+
+    /* JSON Colors - Direct */
+    --ds-primary: 167 45% 20%;
+    --ds-primary-light: 149 27% 32%;
+    --ds-accent: 44 34% 70%;
+    --ds-accent-soft: 48 44% 94%;
+    --ds-background: 30 50% 97%;
+    --ds-surface: 0 0% 100%;
+    --ds-text-primary: 62 10% 8%;
+    --ds-text-secondary: 0 0% 43%;
+    --ds-border: 0 0% 90%;
+    --ds-success: 93 59% 34%;
+
+    /* JSON Spacing */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --spacing-2xl: 48px;
+    --spacing-3xl: 64px;
+    --spacing-section: 100px;
+
+    /* JSON Radius */
+    --radius-sm: 6px;
+    --radius-md: 12px;
+    --radius-lg: 20px;
+    --radius-xl: 32px;
+    --radius-pill: 999px;
+
+    /* JSON Shadows */
+    --shadow-sm: 0 2px 8px 0 rgba(0,0,0,0.05);
+    --shadow-md: 0 8px 24px 0 rgba(0,0,0,0.08);
+    --shadow-lg: 0 16px 40px 0 rgba(0,0,0,0.12);
+
+    /* JSON Layout */
+    --container-width: 1200px;
+    --grid-gap: 24px;
+
+    /* JSON Typography */
+    --font-heading: 'Playfair Display', serif;
+    --font-body: 'Inter', sans-serif;
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --line-height-tight: 1.2;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.7;
+    --font-size-xs: 12px;
+    --font-size-sm: 14px;
+    --font-size-base: 16px;
+    --font-size-lg: 18px;
+    --font-size-xl: 24px;
+    --font-size-2xl: 32px;
+    --font-size-3xl: 48px;
+    --font-size-hero: 64px;
+
+    /* JSON Sections */
+    --hero-height: 90vh;
+    --hero-overlay: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.6));
+
+    /* JSON Animation */
+    --transition: all 0.3s ease;
+    --hover-scale: scale(1.03);
+    --fade-in: opacity 0.5s ease-in;
+
+    /* Legacy/Trust/Nigeria - preserved */
+    --trust: 167 45% 20%;
+    --trust-foreground: 0 0% 100%;
+    --nigeria-green: 167 45% 20%;
+    --nigeria-white: 0 0% 100%;
+    --hero-dark: 167 35% 12%; /* Adjusted for hero bg */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--font-body);
+  }
+
+  /* Custom font utilities */
+  .font-heading {
+    font-family: var(--font-heading);
+  }
+}
