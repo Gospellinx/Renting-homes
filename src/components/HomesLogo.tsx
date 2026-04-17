@@ -4,7 +4,7 @@ const HomesLogo = () => (
   <img
     src={homesLogo}
     alt="Homes"
-    className="w-full max-w-[280px] sm:max-w-[340px] h-auto"
+    className="mx-auto block h-auto w-full max-w-[280px] sm:max-w-[340px]"
   />
 );
 
