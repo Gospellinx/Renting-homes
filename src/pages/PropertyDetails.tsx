@@ -554,8 +554,8 @@ const PropertyDetails = () => {
                       {/* Transportation */}
                       <div>
                         <div className="flex items-center gap-2 mb-4">
-                          <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
-                            <Bus className="h-5 w-5 text-green-600 dark:text-green-400" />
+                          <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
+                            <Bus className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                           </div>
                           <h3 className="text-lg font-semibold">Transportation</h3>
                         </div>

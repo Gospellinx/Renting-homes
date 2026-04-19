@@ -62,7 +62,7 @@ const AdModerationTab = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'approved':
-        return <Badge className="gap-1 bg-green-100 text-green-800"><CheckCircle className="h-3 w-3" /> Approved</Badge>;
+        return <Badge className="gap-1 bg-indigo-100 text-indigo-800"><CheckCircle className="h-3 w-3" /> Approved</Badge>;
       case 'rejected':
         return <Badge className="gap-1 bg-red-100 text-red-800"><XCircle className="h-3 w-3" /> Rejected</Badge>;
       case 'pending_review':
@@ -100,9 +100,9 @@ const AdModerationTab = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Approved</p>
-                <p className="text-2xl font-bold text-green-600">{approvedCount}</p>
+                <p className="text-2xl font-bold text-indigo-600">{approvedCount}</p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
+              <CheckCircle className="h-8 w-8 text-indigo-600" />
             </div>
           </CardContent>
         </Card>

@@ -329,7 +329,7 @@ const Community = () => {
     switch (category) {
       case 'utilities': return 'bg-yellow-100 text-yellow-800';
       case 'safety': return 'bg-red-100 text-red-800';
-      case 'review': return 'bg-green-100 text-green-800';
+      case 'review': return 'bg-orange-100 text-orange-800';
       case 'management': return 'bg-blue-100 text-blue-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -338,11 +338,11 @@ const Community = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'approved':
-        return <Badge className="gap-1 bg-green-100 text-green-800"><CheckCircle className="h-3 w-3" /> Approved</Badge>;
+        return <Badge className="gap-1 bg-orange-100 text-orange-800"><CheckCircle className="h-3 w-3" /> Approved</Badge>;
       case 'rejected':
         return <Badge className="gap-1 bg-red-100 text-red-800"><XCircle className="h-3 w-3" /> Rejected</Badge>;
       case 'under_review':
-        return <Badge className="gap-1 bg-blue-100 text-blue-800"><Clock className="h-3 w-3" /> Under Review</Badge>;
+        return <Badge className="gap-1 bg-slate-100 text-slate-800"><Clock className="h-3 w-3" /> Under Review</Badge>;
       default:
         return <Badge className="gap-1 bg-yellow-100 text-yellow-800"><Clock className="h-3 w-3" /> Pending</Badge>;
     }
@@ -987,13 +987,13 @@ const Community = () => {
                         onChange={(e) => setOwnershipFile(e.target.files?.[0] || null)}
                       />
                       <div 
-                        className={`border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer ${ownershipFile ? 'border-green-500 bg-green-50' : ''}`}
+                        className={`border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer ${ownershipFile ? 'border-orange-500 bg-orange-50' : ''}`}
                         onClick={() => ownershipInputRef.current?.click()}
                       >
                         {ownershipFile ? (
                           <>
-                            <CheckCircle className="h-10 w-10 text-green-500 mx-auto mb-3" />
-                            <p className="text-sm font-medium text-green-700">{ownershipFile.name}</p>
+                            <CheckCircle className="h-10 w-10 text-orange-500 mx-auto mb-3" />
+                            <p className="text-sm font-medium text-orange-700">{ownershipFile.name}</p>
                             <p className="text-xs text-muted-foreground mt-1">Click to change</p>
                           </>
                         ) : (
@@ -1020,13 +1020,13 @@ const Community = () => {
                         onChange={(e) => setOccupancyFile(e.target.files?.[0] || null)}
                       />
                       <div 
-                        className={`border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer ${occupancyFile ? 'border-green-500 bg-green-50' : ''}`}
+                        className={`border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer ${occupancyFile ? 'border-orange-500 bg-orange-50' : ''}`}
                         onClick={() => occupancyInputRef.current?.click()}
                       >
                         {occupancyFile ? (
                           <>
-                            <CheckCircle className="h-10 w-10 text-green-500 mx-auto mb-3" />
-                            <p className="text-sm font-medium text-green-700">{occupancyFile.name}</p>
+                            <CheckCircle className="h-10 w-10 text-orange-500 mx-auto mb-3" />
+                            <p className="text-sm font-medium text-orange-700">{occupancyFile.name}</p>
                             <p className="text-xs text-muted-foreground mt-1">Click to change</p>
                           </>
                         ) : (

@@ -66,10 +66,10 @@ const AdsManager = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-500/10 text-green-600';
+      case 'active': return 'bg-orange-500/10 text-orange-600';
       case 'paused': return 'bg-yellow-500/10 text-yellow-600';
       case 'draft': return 'bg-muted text-muted-foreground';
-      case 'pending_review': return 'bg-blue-500/10 text-blue-600';
+      case 'pending_review': return 'bg-slate-500/10 text-slate-600';
       case 'rejected': return 'bg-red-500/10 text-red-600';
       case 'completed': return 'bg-muted text-muted-foreground';
       default: return 'bg-muted text-muted-foreground';

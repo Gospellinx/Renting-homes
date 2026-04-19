@@ -135,7 +135,7 @@ const AdminDashboard = () => {
     }
     switch (request.status) {
       case 'approved':
-        return <Badge className="gap-1 bg-green-100 text-green-800"><CheckCircle className="h-3 w-3" /> Approved</Badge>;
+        return <Badge className="gap-1 bg-orange-100 text-orange-800"><CheckCircle className="h-3 w-3" /> Approved</Badge>;
       case 'rejected':
         return <Badge className="gap-1 bg-red-100 text-red-800"><XCircle className="h-3 w-3" /> Rejected</Badge>;
       default:
@@ -237,9 +237,9 @@ const AdminDashboard = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Approved</p>
-                      <p className="text-2xl font-bold text-green-600">{approvedCount}</p>
+                      <p className="text-2xl font-bold text-orange-600">{approvedCount}</p>
                     </div>
-                    <CheckCircle className="h-8 w-8 text-green-600" />
+                    <CheckCircle className="h-8 w-8 text-orange-600" />
                   </div>
                 </CardContent>
               </Card>

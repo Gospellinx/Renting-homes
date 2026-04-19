@@ -267,7 +267,7 @@ const CompareProperties = () => {
                   {properties.map((property) => (
                     <div key={`feature-${property.type}-${property.id}-${feature}`}>
                       {property.features.includes(feature) ? (
-                        <Check className="h-5 w-5 text-green-500" />
+                        <Check className="h-5 w-5 text-orange-600" />
                       ) : (
                         <Minus className="h-5 w-5 text-muted-foreground/50" />
                       )}

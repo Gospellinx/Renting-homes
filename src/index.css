@@ -16,9 +16,9 @@
     --card-foreground: 62 10% 8%;
     --popover: 0 0% 100%;
     --popover-foreground: 62 10% 8%;
-    --primary: 167 45% 20%; /* JSON primary #1F3D2B */
+    --primary: 215 27.9% 16.9%; /* Dark Slate #1E293B */
     --primary-foreground: 0 0% 100%;
-    --secondary: 149 27% 32%; /* JSON primaryLight */
+    --secondary: 23 100% 50%; /* Warm Orange #EA580C */
     --secondary-foreground: 0 0% 100%;
     --muted: 48 44% 94%; /* JSON accentSoft */
     --muted-foreground: 0 0% 43%; /* JSON textSecondary */
@@ -28,12 +28,12 @@
     --destructive-foreground: 210 40% 98%;
     --border: 0 0% 90%; /* JSON border */
     --input: 0 0% 90%;
-    --ring: 167 45% 20%;
+    --ring: 215 27.9% 16.9%;
     --radius: 0.75rem; /* Close to JSON lg 20px */
 
     /* JSON Colors - Direct */
-    --ds-primary: 167 45% 20%;
-    --ds-primary-light: 149 27% 32%;
+    --ds-primary: 215 27.9% 16.9%;
+    --ds-primary-light: 23 100% 50%;
     --ds-accent: 44 34% 70%;
     --ds-accent-soft: 48 44% 94%;
     --ds-background: 30 50% 97%;
@@ -97,12 +97,12 @@
     --hover-scale: scale(1.03);
     --fade-in: opacity 0.5s ease-in;
 
-    /* Legacy/Trust/Nigeria - preserved */
-    --trust: 167 45% 20%;
+    /* Legacy/Trust/Nigeria colors - modern real estate palette */
+    --trust: 215 27.9% 16.9%;
     --trust-foreground: 0 0% 100%;
-    --nigeria-green: 167 45% 20%;
+    --nigeria-green: 215 27.9% 16.9%;
     --nigeria-white: 0 0% 100%;
-    --hero-dark: 167 35% 12%; /* Adjusted for hero bg */
+    --hero-dark: 215 27.9% 10%; /* Adjusted for hero bg */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;

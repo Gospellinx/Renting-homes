@@ -180,15 +180,15 @@ export const AnalyticsDashboard = ({ analytics }: AnalyticsDashboardProps) => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-50 to-green-100/50 border-green-200">
+        <Card className="bg-gradient-to-br from-orange-50 to-orange-100/50 border-orange-200">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-full bg-green-200">
-                <CheckCircle className="h-6 w-6 text-green-700" />
+              <div className="p-3 rounded-full bg-orange-200">
+                <CheckCircle className="h-6 w-6 text-orange-700" />
               </div>
               <div>
-                <p className="text-sm text-green-700 font-medium">Approved</p>
-                <p className="text-3xl font-bold text-green-800">{verificationStats.approved}</p>
+                <p className="text-sm text-orange-700 font-medium">Approved</p>
+                <p className="text-3xl font-bold text-orange-800">{verificationStats.approved}</p>
               </div>
             </div>
           </CardContent>

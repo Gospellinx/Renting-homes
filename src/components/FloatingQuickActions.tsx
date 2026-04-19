@@ -26,7 +26,7 @@ const FloatingQuickActions = () => {
     { icon: Upload, label: "Upload Property", href: "/upload-property", color: "bg-primary" },
     { icon: Home, label: "Rent Property", href: "/rental-properties", color: "bg-blue-500" },
     { icon: Store, label: "Rent a Shop", href: "/shop-rentals", color: "bg-amber-500" },
-    { icon: Building, label: "Buy Property", href: "/buy-property", color: "bg-green-500" },
+    { icon: Building, label: "Buy Property", href: "/buy-property", color: "bg-orange-500" },
     { icon: Shield, label: "Verify Property", href: "/verify-property", color: "bg-orange-500" },
     { icon: Handshake, label: "Joint Ventures", href: "/joint-ventures", color: "bg-purple-500" },
     { icon: Megaphone, label: "Ads Manager", href: "/ads-manager", color: "bg-pink-500" },
