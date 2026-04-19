@@ -131,11 +131,13 @@ const CompareProperties = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f2f4fb_0%,#f7f7fb_42%,#f4f1ec_100%)]">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(91,104,228,0.16),transparent_34%),radial-gradient(circle_at_top_right,rgba(72,153,255,0.16),transparent_28%),radial-gradient(circle_at_bottom,rgba(162,153,255,0.12),transparent_42%)] z-0" />
+      
       {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur sticky top-0 z-50">
+      <header className="relative z-40 border-b border-[#d7daf0] bg-white/80 backdrop-blur sticky top-0">
         <div className="container flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2 text-[#1f1a54] hover:text-[#26225f]">
             <ArrowLeft className="h-5 w-5" />
             <span className="text-lg font-semibold">Back to Home</span>
           </Link>

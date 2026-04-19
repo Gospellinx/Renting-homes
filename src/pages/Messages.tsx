@@ -101,22 +101,24 @@ const Messages = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-card sticky top-0 z-10">
+    <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f2f4fb_0%,#f7f7fb_42%,#f4f1ec_100%)]">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(91,104,228,0.16),transparent_34%),radial-gradient(circle_at_top_right,rgba(72,153,255,0.16),transparent_28%),radial-gradient(circle_at_bottom,rgba(162,153,255,0.12),transparent_42%)] z-0" />
+      
+      <header className="relative z-40 border-b border-[#d7daf0] bg-white/80 sticky top-0">
         <div className="container mx-auto px-4 py-4 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="text-[#1f1a54] hover:text-[#26225f] hover:bg-[#eef1ff]">
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-xl font-bold">Messages</h1>
+          <h1 className="text-xl font-bold text-[#1f1a54]">Messages</h1>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6">
+      <div className="relative z-10 container mx-auto px-4 py-6">
         <div className="grid md:grid-cols-3 gap-6 h-[calc(100vh-150px)]">
           {/* Conversations List */}
-          <div className="border rounded-lg overflow-hidden">
-            <div className="p-4 border-b bg-muted/50">
-              <h3 className="font-semibold">Conversations</h3>
+          <div className="border border-[#d7daf0] rounded-lg overflow-hidden bg-white/90">
+            <div className="p-4 border-b border-[#d7daf0] bg-[#eef1ff]">
+              <h3 className="font-semibold text-[#1f1a54]">Conversations</h3>
             </div>
             <ScrollArea className="h-full">
               {conversations.length === 0 ? (

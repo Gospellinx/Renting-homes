@@ -204,49 +204,51 @@ const ShopRentals = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+    <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f2f4fb_0%,#f7f7fb_42%,#f4f1ec_100%)]">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(91,104,228,0.16),transparent_34%),radial-gradient(circle_at_top_right,rgba(72,153,255,0.16),transparent_28%),radial-gradient(circle_at_bottom,rgba(162,153,255,0.12),transparent_42%)] z-0" />
+      
+      <header className="relative z-40 border-b border-[#d7daf0] bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0">
         <div className="container flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2 text-[#1f1a54] hover:text-[#26225f]">
             <ArrowLeft className="h-5 w-5" />
             <span className="text-lg font-semibold">Back to Home</span>
           </Link>
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm" asChild><Link to="/auth">Sign In</Link></Button>
-            <Button variant="hero" size="sm" asChild><Link to="/auth">Get Started</Link></Button>
+            <Button variant="ghost" size="sm" asChild className="text-[#1f1a54] hover:text-[#26225f] hover:bg-[#eef1ff]"><Link to="/auth">Sign In</Link></Button>
+            <Button size="sm" asChild className="bg-[#26225f] text-white hover:bg-[#1f1b50]"><Link to="/auth">Get Started</Link></Button>
           </div>
         </div>
       </header>
 
-      <section className="py-8 bg-muted/30">
+      <section className="relative z-10 py-8">
         <div className="container">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-medium mb-4">
+            <div className="inline-flex items-center gap-2 bg-[#eef1ff] text-[#26225f] px-4 py-1.5 rounded-full text-sm font-medium mb-4">
               <Store className="h-4 w-4" /> Shop Rentals
             </div>
-            <h1 className="text-3xl lg:text-4xl font-bold mb-4">Shops & Commercial Spaces</h1>
-            <p className="text-xl text-muted-foreground">Find the perfect shop or retail space for your business</p>
+            <h1 className="text-3xl lg:text-4xl font-bold mb-4 text-[#1f1a54]">Shops & Commercial Spaces</h1>
+            <p className="text-xl text-[#6f7599]">Find the perfect shop or retail space for your business</p>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-5 bg-card p-6 rounded-2xl border shadow-lg">
+          <div className="grid gap-3 md:grid-cols-5 bg-white/90 p-6 rounded-2xl border border-[#d7daf0] shadow-[0_20px_50px_rgba(31,26,84,0.12)]">
             <div className="relative md:col-span-2">
-              <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-              <Input placeholder="Search shops..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
+              <Search className="absolute left-3 top-3 h-5 w-5 text-[#7d84ad]" />
+              <Input placeholder="Search shops..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 border-[#d7daf0] text-[#1f1a54] placeholder:text-[#9ca2c6]" />
             </div>
             <Select value={selectedCity} onValueChange={handleCityChange}>
-              <SelectTrigger><SelectValue placeholder="City / State" /></SelectTrigger>
+              <SelectTrigger className="border-[#d7daf0] text-[#1f1a54]"><SelectValue placeholder="City / State" /></SelectTrigger>
               <SelectContent className="max-h-72">
                 {nigerianCities.map((city) => (<SelectItem key={city.value} value={city.value}>{city.label}</SelectItem>))}
               </SelectContent>
             </Select>
             <Select value={selectedArea} onValueChange={setSelectedArea} disabled={!selectedCity}>
-              <SelectTrigger><SelectValue placeholder={selectedCity ? "Town / Area" : "Select city first"} /></SelectTrigger>
+              <SelectTrigger className="border-[#d7daf0] text-[#1f1a54]"><SelectValue placeholder={selectedCity ? "Town / Area" : "Select city first"} /></SelectTrigger>
               <SelectContent className="max-h-72">
                 {availableAreas.map((area) => (<SelectItem key={area.value} value={area.value}>{area.label}</SelectItem>))}
               </SelectContent>
             </Select>
             <Select value={priceRange} onValueChange={setPriceRange}>
-              <SelectTrigger><SelectValue placeholder="Price Range" /></SelectTrigger>
+              <SelectTrigger className="border-[#d7daf0] text-[#1f1a54]"><SelectValue placeholder="Price Range" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="low">Under ₦200k</SelectItem>
                 <SelectItem value="medium">₦200k – ₦500k</SelectItem>
@@ -254,18 +256,18 @@ const ShopRentals = () => {
                 <SelectItem value="premium">₦1M+</SelectItem>
               </SelectContent>
             </Select>
-            <Button className="w-full md:col-span-5"><Filter className="h-4 w-4 mr-2" />Filter</Button>
+            <Button className="w-full md:col-span-5 bg-[#26225f] text-white hover:bg-[#1f1b50]"><Filter className="h-4 w-4 mr-2" />Filter</Button>
           </div>
         </div>
       </section>
 
       <section className="py-4"><div className="container"><AdBanner type="banner" /></div></section>
 
-      <section className="py-8">
+      <section className="relative z-10 py-8">
         <div className="container">
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold mb-2">Available Shops ({filteredProperties.length})</h2>
-            <p className="text-muted-foreground">Scroll down to explore commercial spaces</p>
+            <h2 className="text-2xl font-bold mb-2 text-[#1f1a54]">Available Shops ({filteredProperties.length})</h2>
+            <p className="text-[#6f7599]">Scroll down to explore commercial spaces</p>
           </div>
 
           <div className="relative">

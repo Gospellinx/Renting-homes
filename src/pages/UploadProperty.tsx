@@ -289,18 +289,20 @@ const UploadProperty = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+    <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f2f4fb_0%,#f7f7fb_42%,#f4f1ec_100%)]">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(91,104,228,0.16),transparent_34%),radial-gradient(circle_at_top_right,rgba(72,153,255,0.16),transparent_28%),radial-gradient(circle_at_bottom,rgba(162,153,255,0.12),transparent_42%)] z-0" />
+      
+      <header className="relative z-40 border-b border-[#d7daf0] bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0">
         <div className="container flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2 text-[#1f1a54] hover:text-[#26225f]">
             <ArrowLeft className="h-5 w-5" />
             <span className="text-lg font-semibold">Back to Home</span>
           </Link>
-          <Badge variant="outline">Step {currentStep} of 4</Badge>
+          <Badge variant="outline" className="border-[#d7daf0] text-[#26225f]">Step {currentStep} of 4</Badge>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="relative z-10 container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Upload Property Ad Banner */}
           <div className="mb-8">

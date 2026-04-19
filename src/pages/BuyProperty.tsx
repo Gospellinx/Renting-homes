@@ -256,50 +256,52 @@ const BuyProperty = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f2f4fb_0%,#f7f7fb_42%,#f4f1ec_100%)]">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(91,104,228,0.16),transparent_34%),radial-gradient(circle_at_top_right,rgba(72,153,255,0.16),transparent_28%),radial-gradient(circle_at_bottom,rgba(162,153,255,0.12),transparent_42%)] z-0" />
+      
       {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+      <header className="relative z-40 border-b border-[#d7daf0] bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Link to="/" className="flex items-center space-x-2">
+            <Link to="/" className="flex items-center space-x-2 text-[#1f1a54] hover:text-[#26225f]">
               <ArrowLeft className="h-5 w-5" />
               <span className="text-lg font-semibold">Back to Home</span>
             </Link>
           </div>
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm">Sign In</Button>
-            <Button variant="hero" size="sm">Get Started</Button>
+            <Button variant="ghost" size="sm" className="text-[#1f1a54] hover:text-[#26225f] hover:bg-[#eef1ff]">Sign In</Button>
+            <Button size="sm" className="bg-[#26225f] text-white hover:bg-[#1f1b50]">Get Started</Button>
           </div>
         </div>
       </header>
 
       {/* Search and Filters */}
-      <section className="py-8 bg-muted/30">
+      <section className="relative z-10 py-8">
         <div className="container">
           <div className="text-center mb-8">
-            <h1 className="text-3xl lg:text-4xl font-bold mb-4">
+            <h1 className="text-3xl lg:text-4xl font-bold mb-4 text-[#1f1a54]">
               Properties for Sale
             </h1>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-xl text-[#6f7599]">
               Find your dream home with verified listings
             </p>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-6 bg-card p-6 rounded-2xl border shadow-lg">
+          <div className="grid gap-3 md:grid-cols-6 bg-white/90 p-6 rounded-2xl border border-[#d7daf0] shadow-[0_20px_50px_rgba(31,26,84,0.12)]">
             {/* Search */}
             <div className="relative md:col-span-2">
-              <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+              <Search className="absolute left-3 top-3 h-5 w-5 text-[#7d84ad]" />
               <Input
                 placeholder="Search properties..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 border-[#d7daf0] text-[#1f1a54] placeholder:text-[#9ca2c6]"
               />
             </div>
 
             {/* City / State */}
             <Select value={selectedCity} onValueChange={handleCityChange}>
-              <SelectTrigger>
+              <SelectTrigger className="border-[#d7daf0] text-[#1f1a54]">
                 <SelectValue placeholder="City / State" />
               </SelectTrigger>
               <SelectContent className="max-h-72">

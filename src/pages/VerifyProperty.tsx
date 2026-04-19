@@ -35,27 +35,29 @@ const VerifyProperty = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f2f4fb_0%,#f7f7fb_42%,#f4f1ec_100%)]">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(91,104,228,0.16),transparent_34%),radial-gradient(circle_at_top_right,rgba(72,153,255,0.16),transparent_28%),radial-gradient(circle_at_bottom,rgba(162,153,255,0.12),transparent_42%)] z-0" />
+      
       {/* Header with Back Button */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+      <header className="relative z-40 border-b border-[#d7daf0] bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0">
         <div className="container flex h-16 items-center">
           <BackButton />
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary/10 to-accent/5 py-20">
+      <section className="relative z-10 bg-[linear-gradient(135deg,rgba(238,241,255,0.6)_0%,rgba(233,236,255,0.6)_100%)] py-20">
         <div className="container mx-auto px-4 text-center">
           <div className="flex justify-center mb-6">
-            <Shield className="h-16 w-16 text-primary" />
+            <Shield className="h-16 w-16 text-[#26225f]" />
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6">
+          <h1 className="text-4xl md:text-6xl font-bold text-[#1f1a54] mb-6">
             Don't Get Scammed
           </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground mb-4">
+          <p className="text-xl md:text-2xl text-[#6f7599] mb-4">
             Find out all you need to know about that property
           </p>
-          <div className="flex items-center justify-center gap-2 text-lg text-muted-foreground">
+          <div className="flex items-center justify-center gap-2 text-lg text-[#6f7599]">
             <Search className="h-5 w-5" />
             <span>You can search right from your home, office or during the meeting</span>
           </div>
@@ -63,13 +65,13 @@ const VerifyProperty = () => {
       </section>
 
       {/* Statement Section */}
-      <section className="py-16 bg-card">
+      <section className="relative z-10 py-16 bg-white/50">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-8 text-center">
             <div className="flex flex-col items-center">
-              <FileCheck className="h-12 w-12 text-primary mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Verify Documents</h3>
-              <p className="text-muted-foreground">
+              <FileCheck className="h-12 w-12 text-[#26225f] mb-4" />
+              <h3 className="text-xl font-semibold mb-2 text-[#1f1a54]">Verify Documents</h3>
+              <p className="text-[#6f7599]">
                 Authenticate property documents and ownership certificates
               </p>
             </div>

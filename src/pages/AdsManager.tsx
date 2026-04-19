@@ -85,19 +85,21 @@ const AdsManager = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f2f4fb_0%,#f7f7fb_42%,#f4f1ec_100%)]">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(91,104,228,0.16),transparent_34%),radial-gradient(circle_at_top_right,rgba(72,153,255,0.16),transparent_28%),radial-gradient(circle_at_bottom,rgba(162,153,255,0.12),transparent_42%)] z-0" />
+      
       {/* Header */}
-      <header className="border-b bg-card">
+      <header className="relative z-40 border-b border-[#d7daf0] bg-white/80">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <BackButton />
               <div>
-                <h1 className="text-2xl font-bold">Ads Manager</h1>
-                <p className="text-sm text-muted-foreground">Create and manage your advertising campaigns</p>
+                <h1 className="text-2xl font-bold text-[#1f1a54]">Ads Manager</h1>
+                <p className="text-sm text-[#6f7599]">Create and manage your advertising campaigns</p>
               </div>
             </div>
-            <Button onClick={() => setShowWizard(true)} className="gap-2">
+            <Button onClick={() => setShowWizard(true)} className="gap-2 bg-[#26225f] text-white hover:bg-[#1f1b50]">
               <Plus className="h-4 w-4" />
               Create Campaign
             </Button>

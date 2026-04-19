@@ -275,14 +275,16 @@ const PropertyDetails = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f2f4fb_0%,#f7f7fb_42%,#f4f1ec_100%)]">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(91,104,228,0.16),transparent_34%),radial-gradient(circle_at_top_right,rgba(72,153,255,0.16),transparent_28%),radial-gradient(circle_at_bottom,rgba(162,153,255,0.12),transparent_42%)] z-0" />
+      
       {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+      <header className="relative z-50 border-b border-[#d7daf0] bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0">
         <div className="container flex h-16 items-center justify-between">
           <Button 
             variant="ghost" 
             onClick={() => navigate(type === 'rent' ? '/rental-properties' : type === 'buy' ? '/buy-property' : '/')}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 text-[#1f1a54] hover:text-[#26225f] hover:bg-[#eef1ff]"
           >
             <ArrowLeft className="h-5 w-5" />
             <span className="hidden sm:inline">Back to Listings</span>
@@ -293,6 +295,7 @@ const PropertyDetails = () => {
               variant="ghost"
               onClick={() => setShowReport(true)}
               title="Report this property"
+              className="text-[#1f1a54] hover:text-[#26225f] hover:bg-[#eef1ff]"
             >
               <Flag className="h-5 w-5" />
             </Button>
@@ -300,10 +303,11 @@ const PropertyDetails = () => {
               size="icon" 
               variant="ghost"
               onClick={() => setIsFavorite(!isFavorite)}
+              className="text-[#1f1a54] hover:text-[#26225f] hover:bg-[#eef1ff]"
             >
               <Heart className={`h-5 w-5 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
             </Button>
-            <Button size="icon" variant="ghost" onClick={handleShare}>
+            <Button size="icon" variant="ghost" onClick={handleShare} className="text-[#1f1a54] hover:text-[#26225f] hover:bg-[#eef1ff]">
               <Share2 className="h-5 w-5" />
             </Button>
           </div>
@@ -338,7 +342,7 @@ const PropertyDetails = () => {
       </section>
 
       {/* Property Info */}
-      <section className="py-8">
+      <section className="relative z-10 py-8">
         <div className="container">
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Main Content */}
@@ -347,26 +351,26 @@ const PropertyDetails = () => {
               <div>
                 <div className="flex flex-wrap items-center gap-2 mb-3">
                   {property.verified && (
-                    <Badge className="bg-primary">✓ Verified</Badge>
+                    <Badge className="bg-[#26225f] text-white">✓ Verified</Badge>
                   )}
-                  <Badge variant="secondary">
+                  <Badge variant="secondary" className="bg-[#eef1ff] text-[#26225f]">
                     <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
                     {property.rating}
                   </Badge>
-                  <Badge variant="outline">{property.propertyType}</Badge>
+                  <Badge variant="outline" className="border-[#d7daf0] text-[#1f1a54]">{property.propertyType}</Badge>
                 </div>
                 
-                <h1 className="text-3xl md:text-4xl font-bold mb-2">{property.title}</h1>
+                <h1 className="text-3xl md:text-4xl font-bold mb-2 text-[#1f1a54]">{property.title}</h1>
                 
-                <div className="flex items-center text-muted-foreground mb-4">
+                <div className="flex items-center text-[#6f7599] mb-4">
                   <MapPin className="h-5 w-5 mr-2" />
                   <span>{property.address}</span>
                 </div>
 
-                <div className="text-3xl md:text-4xl font-bold text-primary">
+                <div className="text-3xl md:text-4xl font-bold text-[#26225f]">
                   {type === "rent" ? property.price : property.salePrice}
                   {type === "rent" && (
-                    <span className="text-lg font-normal text-muted-foreground ml-2">
+                    <span className="text-lg font-normal text-[#6f7599] ml-2">
                       per month
                     </span>
                   )}
@@ -374,43 +378,43 @@ const PropertyDetails = () => {
               </div>
 
               {/* Key Details */}
-              <Card>
+              <Card className="border-[#d7daf0] bg-white shadow-[0_10px_25px_rgba(31,26,84,0.08)]">
                 <CardContent className="p-6">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                     <div className="flex items-center gap-3">
-                      <div className="p-3 rounded-lg bg-primary/10">
-                        <Bed className="h-6 w-6 text-primary" />
+                      <div className="p-3 rounded-lg bg-[#eef1ff]">
+                        <Bed className="h-6 w-6 text-[#26225f]" />
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Bedrooms</p>
-                        <p className="text-xl font-bold">{property.bedrooms}</p>
+                        <p className="text-sm text-[#6f7599]">Bedrooms</p>
+                        <p className="text-xl font-bold text-[#1f1a54]">{property.bedrooms}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="p-3 rounded-lg bg-primary/10">
-                        <Bath className="h-6 w-6 text-primary" />
+                      <div className="p-3 rounded-lg bg-[#eef1ff]">
+                        <Bath className="h-6 w-6 text-[#26225f]" />
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Bathrooms</p>
-                        <p className="text-xl font-bold">{property.bathrooms}</p>
+                        <p className="text-sm text-[#6f7599]">Bathrooms</p>
+                        <p className="text-xl font-bold text-[#1f1a54]">{property.bathrooms}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="p-3 rounded-lg bg-primary/10">
-                        <Square className="h-6 w-6 text-primary" />
+                      <div className="p-3 rounded-lg bg-[#eef1ff]">
+                        <Square className="h-6 w-6 text-[#26225f]" />
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Area</p>
-                        <p className="text-xl font-bold">{addStepCount(property.area)}</p>
+                        <p className="text-sm text-[#6f7599]">Area</p>
+                        <p className="text-xl font-bold text-[#1f1a54]">{addStepCount(property.area)}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="p-3 rounded-lg bg-primary/10">
-                        <Home className="h-6 w-6 text-primary" />
+                      <div className="p-3 rounded-lg bg-[#eef1ff]">
+                        <Home className="h-6 w-6 text-[#26225f]" />
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Built</p>
-                        <p className="text-xl font-bold">{property.yearBuilt}</p>
+                        <p className="text-sm text-[#6f7599]">Built</p>
+                        <p className="text-xl font-bold text-[#1f1a54]">{property.yearBuilt}</p>
                       </div>
                     </div>
                   </div>
@@ -418,26 +422,26 @@ const PropertyDetails = () => {
               </Card>
 
               {/* Description */}
-              <Card>
+              <Card className="border-[#d7daf0] bg-white shadow-[0_10px_25px_rgba(31,26,84,0.08)]">
                 <CardContent className="p-6">
-                  <h2 className="text-2xl font-bold mb-4">About This Property</h2>
-                  <p className="text-muted-foreground leading-relaxed">
+                  <h2 className="text-2xl font-bold mb-4 text-[#1f1a54]">About This Property</h2>
+                  <p className="text-[#6f7599] leading-relaxed">
                     {property.description}
                   </p>
                 </CardContent>
               </Card>
 
               {/* Amenities */}
-              <Card>
+              <Card className="border-[#d7daf0] bg-white shadow-[0_10px_25px_rgba(31,26,84,0.08)]">
                 <CardContent className="p-6">
-                  <h2 className="text-2xl font-bold mb-6">Amenities & Features</h2>
+                  <h2 className="text-2xl font-bold mb-6 text-[#1f1a54]">Amenities & Features</h2>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {property.amenities.map((amenity: any, index: number) => {
                       const IconComponent = iconMap[amenity.icon];
                       return (
-                        <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                          {IconComponent && <IconComponent className="h-5 w-5 text-primary" />}
-                          <span className="font-medium">{amenity.label}</span>
+                        <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-[#eef1ff]">
+                          {IconComponent && <IconComponent className="h-5 w-5 text-[#26225f]" />}
+                          <span className="font-medium text-[#1f1a54]">{amenity.label}</span>
                         </div>
                       );
                     })}

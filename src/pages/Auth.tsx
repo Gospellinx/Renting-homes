@@ -252,10 +252,14 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background flex flex-col">
+    <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f2f4fb_0%,#f7f7fb_42%,#f4f1ec_100%)] px-4 py-4 sm:px-6 sm:py-6 flex flex-col">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(91,104,228,0.16),transparent_34%),radial-gradient(circle_at_top_right,rgba(72,153,255,0.16),transparent_28%),radial-gradient(circle_at_bottom,rgba(162,153,255,0.12),transparent_42%)]" />
+      <div className="pointer-events-none absolute -left-16 top-28 h-48 w-48 rounded-full bg-[#eef1ff] blur-3xl sm:h-72 sm:w-72" />
+      <div className="pointer-events-none absolute -right-14 bottom-16 h-44 w-44 rounded-full bg-[#e9ecff] blur-3xl sm:h-64 sm:w-64" />
+
       {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
+      <header className="relative z-10 border-0 bg-transparent">
+        <div className="flex h-16 items-center justify-between px-1">
           <Link to="/" className="flex items-center space-x-2">
             <img src={logo} alt="Homes" className="h-10 w-auto" />
           </Link>
@@ -263,11 +267,11 @@ const Auth = () => {
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md shadow-xl border-0 bg-card/95 backdrop-blur">
+      <div className="relative z-10 flex-1 flex items-center justify-center">
+        <Card className="w-full max-w-md shadow-[0_20px_50px_rgba(31,26,84,0.12)] border-[#d7daf0] bg-white/90 backdrop-blur">
           <CardHeader className="text-center pb-2">
-            <CardTitle className="text-2xl font-bold">Welcome to Homes</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-2xl font-bold text-[#1f1a54]">Welcome to Homes</CardTitle>
+            <CardDescription className="text-[#6f7599]">
               {activeTab === "signin" 
                 ? "Sign in to access your account" 
                 : "Create an account to get started"}

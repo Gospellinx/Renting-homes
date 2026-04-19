@@ -195,20 +195,22 @@ const SearchResults = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f2f4fb_0%,#f7f7fb_42%,#f4f1ec_100%)]">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(91,104,228,0.16),transparent_34%),radial-gradient(circle_at_top_right,rgba(72,153,255,0.16),transparent_28%),radial-gradient(circle_at_bottom,rgba(162,153,255,0.12),transparent_42%)] z-0" />
+      
       {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+      <header className="relative z-40 border-b border-[#d7daf0] bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0">
         <div className="container flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center space-x-2">
-            <Home className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold text-foreground">Homes</span>
+          <Link to="/" className="flex items-center space-x-2 text-[#1f1a54] hover:text-[#26225f]">
+            <Home className="h-8 w-8" />
+            <span className="text-2xl font-bold">Homes</span>
           </Link>
           <nav className="hidden md:flex items-center space-x-6">
-            <Link to="/rental-properties" className="text-sm font-medium hover:text-primary transition-colors">Rent</Link>
-            <Link to="/buy-property" className="text-sm font-medium hover:text-primary transition-colors">Buy</Link>
-            <Link to="/verify-property" className="text-sm font-medium hover:text-primary transition-colors">Verify</Link>
+            <Link to="/rental-properties" className="text-sm font-medium text-[#1f1a54] hover:text-[#26225f] transition-colors">Rent</Link>
+            <Link to="/buy-property" className="text-sm font-medium text-[#1f1a54] hover:text-[#26225f] transition-colors">Buy</Link>
+            <Link to="/verify-property" className="text-sm font-medium text-[#1f1a54] hover:text-[#26225f] transition-colors">Verify</Link>
           </nav>
-          <Button variant="ghost" size="sm" asChild>
+          <Button variant="ghost" size="sm" asChild className="text-[#1f1a54] hover:text-[#26225f] hover:bg-[#eef1ff]">
             <Link to="/">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back Home
@@ -217,22 +219,22 @@ const SearchResults = () => {
         </div>
       </header>
 
-      <div className="container py-8">
+      <div className="relative z-10 container py-8">
         {/* Search Header */}
         <div className="mb-8">
-          <Button variant="ghost" size="sm" className="mb-4" onClick={() => navigate(-1)}>
+          <Button variant="ghost" size="sm" className="mb-4 text-[#1f1a54] hover:text-[#26225f] hover:bg-[#eef1ff]" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
           
-          <h1 className="text-3xl font-bold mb-2">
+          <h1 className="text-3xl font-bold mb-2 text-[#1f1a54]">
             {locationFilter 
               ? `Properties in ${locationFilter}${propertyTypeFilter ? ` - ${propertyTypeFilter}` : ''}`
               : query 
                 ? `Search Results for "${query}"` 
                 : "Search Properties"}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-[#6f7599]">
             {sortedProperties.length} {sortedProperties.length === 1 ? "property" : "properties"} found
             {locationFilter && ` in ${locationFilter}`}
             {bedroomsFilter && ` with ${bedroomsFilter}+ bedrooms`}
@@ -240,22 +242,22 @@ const SearchResults = () => {
         </div>
 
         {/* Search & Filter Bar */}
-        <form onSubmit={handleSearch} className="flex flex-col gap-3 mb-8 p-4 bg-card rounded-xl border">
+        <form onSubmit={handleSearch} className="flex flex-col gap-3 mb-8 p-4 bg-white/90 rounded-xl border border-[#d7daf0] shadow-[0_20px_50px_rgba(31,26,84,0.12)]">
           {/* Row 1: search + type + sort + button */}
           <div className="flex flex-col md:flex-row gap-3">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+              <Search className="absolute left-3 top-3 h-5 w-5 text-[#7d84ad]" />
               <Input
                 placeholder="Search by location, property type..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="pl-10 h-12"
+                className="pl-10 h-12 border-[#d7daf0] text-[#1f1a54] placeholder:text-[#9ca2c6]"
               />
               {searchInput && (
                 <button
                   type="button"
                   onClick={clearSearch}
-                  className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                  className="absolute right-3 top-3 text-[#7d84ad] hover:text-[#1f1a54]"
                 >
                   <X className="h-5 w-5" />
                 </button>
