@@ -13,17 +13,27 @@ const FloatingCommunityButton = () => {
   return (
     <TooltipProvider>
       <motion.div
-        className="fixed bottom-6 right-6 z-40"
+        className="fixed bottom-6 right-6 z-40 flex items-center gap-3"
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3, delay: 0.2 }}
       >
+        {/* Community label */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="bg-white text-[#26225f] px-4 py-2 rounded-full font-semibold text-sm shadow-lg"
+        >
+          Community
+        </motion.div>
+
         <Tooltip>
           <TooltipTrigger asChild>
             <Link to="/community">
               <Button
                 size="lg"
-                className="h-16 w-16 rounded-full shadow-lg bg-indigo-500 hover:bg-indigo-600 text-white border-0 transition-all duration-300 hover:shadow-xl hover:scale-110 relative group"
+                className="h-16 w-16 rounded-full shadow-lg bg-[#EA580C] hover:bg-[#d94a0a] text-white border-0 transition-all duration-300 hover:shadow-xl hover:scale-110"
               >
                 <motion.div
                   animate={{ scale: [1, 1.1, 1] }}
@@ -31,15 +41,6 @@ const FloatingCommunityButton = () => {
                   className="flex flex-col items-center justify-center"
                 >
                   <Users className="h-6 w-6" />
-                </motion.div>
-                
-                {/* Community label on hover */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  whileHover={{ opacity: 1, scale: 1 }}
-                  className="absolute right-full mr-3 px-3 py-2 bg-indigo-500 text-white text-sm font-semibold rounded-lg whitespace-nowrap pointer-events-none"
-                >
-                  Community
                 </motion.div>
               </Button>
             </Link>
