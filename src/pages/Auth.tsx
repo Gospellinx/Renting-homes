@@ -11,7 +11,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Mail, Lock, User, Briefcase } from "lucide-react";
 import logo from "@/assets/homes-logo.png";
 import { z } from "zod";
-import { lovable } from "@/integrations/lovable";
 
 const userTypes = [
   { value: "property_owner", label: "Property Owner" },
@@ -141,8 +140,10 @@ const Auth = () => {
           title: "Welcome back!",
           description: "You have successfully signed in.",
         });
+        // Navigation will happen automatically via the useEffect that listens to auth state changes
       }
     } catch (error) {
+      console.error("Sign in error:", error);
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
@@ -159,7 +160,7 @@ const Auth = () => {
 
     setIsLoading(true);
     try {
-      const redirectUrl = `${window.location.origin}/`;
+      const redirectUrl = `${window.location.origin}/auth/callback`;
       
       const { error } = await supabase.auth.signUp({
         email: email.trim(),
@@ -193,8 +194,10 @@ const Auth = () => {
           title: "Account created!",
           description: "Welcome to Homes! You are now signed in.",
         });
+        // Navigation will happen automatically via the useEffect that listens to auth state changes
       }
     } catch (error) {
+      console.error("Sign up error:", error);
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
@@ -216,18 +219,28 @@ const Auth = () => {
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
       });
 
-      if (result?.error) {
+      if (error) {
+        console.error("Google OAuth error:", error);
         toast({
           title: "Google sign in failed",
-          description: result.error.message || "An error occurred",
+          description: error.message || "An error occurred",
           variant: "destructive",
         });
       }
+      // Supabase automatically handles the redirect to Google
     } catch (error) {
+      console.error("Google sign in error:", error);
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",

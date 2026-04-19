@@ -8,17 +8,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthContext } from "@/context/AuthContext";
 import { NotificationBell } from "@/components/NotificationBell";
 import { User, LogOut, MessageCircle } from "lucide-react";
 
 export const AuthHeader = () => {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading, signOut } = useAuthContext();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate("/");
+    try {
+      await signOut();
+      navigate("/");
+    } catch (error) {
+      console.error("Sign out failed:", error);
+    }
   };
 
   const getInitials = (name: string | null | undefined, email: string | undefined) => {
@@ -98,6 +102,24 @@ export const AuthHeader = () => {
             >
               <LogOut className="mr-2 h-4 w-4" />
               <span>Sign Out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center space-x-4">
+      <Button variant="ghost" size="sm" asChild>
+        <Link to="/auth">Sign In</Link>
+      </Button>
+      <Button variant="hero" size="sm" asChild>
+        <Link to="/auth">Get Started</Link>
+      </Button>
+    </div>
+  );
+};
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
