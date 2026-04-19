@@ -29,6 +29,7 @@ import GroupChats from "./pages/GroupChats";
 import AdsManager from "./pages/AdsManager";
 import ShopRentals from "./pages/ShopRentals";
 import FloatingQuickActions from "./components/FloatingQuickActions";
+import FloatingCommunityButton from "./components/FloatingCommunityButton";
 import ChatBot from "./components/ChatBot";
 
 const queryClient = new QueryClient();
@@ -102,6 +103,7 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
           <FloatingQuickActions />
+          <FloatingCommunityButton />
           <ChatBot />
         </BrowserRouter>
       </AuthProvider>
