@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { User, Mail, Phone, MapPin, FileText, Loader2, ArrowLeft, Shield, Briefcase, Building, Home, Search } from "lucide-react";
+import { User, Mail, Phone, MapPin, FileText, Loader2, ArrowLeft, Shield, Briefcase, Building, Home, Search, ExternalLink, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import logo from "@/assets/homes-logo.png";
 import PushNotificationSettings from "@/components/PushNotificationSettings";
@@ -34,6 +34,7 @@ const Profile = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [tableNotFound, setTableNotFound] = useState(false);
   
   // Form states
   const [fullName, setFullName] = useState("");
@@ -52,13 +53,23 @@ const Profile = () => {
       if (!user) return;
 
       try {
+        setTableNotFound(false);
         const { data, error } = await supabase
           .from("profiles")
           .select("*")
           .eq("user_id", user.id)
           .maybeSingle();
 
-        if (error) throw error;
+        if (error) {
+          // Check if error is about missing table
+          if (error.code === 'PGRST205' || error.message?.includes('Could not find the table')) {
+            setTableNotFound(true);
+            console.error("Profiles table not found. Please run the SQL migration in Supabase Dashboard.");
+            setLoading(false);
+            return;
+          }
+          throw error;
+        }
 
         if (data) {
           setProfile(data);
@@ -66,6 +77,24 @@ const Profile = () => {
           setPhone(data.phone || "");
           setBio(data.bio || "");
           setLocation(data.location || "");
+        } else {
+          // Profile doesn't exist, create one
+          const { data: newProfile, error: createError } = await supabase
+            .from("profiles")
+            .insert({
+              user_id: user.id,
+              full_name: user.user_metadata?.full_name || "",
+              user_type: user.user_metadata?.user_type || "",
+            })
+            .select()
+            .single();
+
+          if (createError) throw createError;
+          
+          if (newProfile) {
+            setProfile(newProfile);
+            setFullName(newProfile.full_name || "");
+          }
         }
       } catch (error) {
         console.error("Error fetching profile:", error);
@@ -92,7 +121,8 @@ const Profile = () => {
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({
+        .upsert({
+          user_id: user.id,
           full_name: fullName.trim() || null,
           phone: phone.trim() || null,
           bio: bio.trim() || null,
@@ -150,6 +180,15 @@ const Profile = () => {
             <img src={logo} alt="Homes" className="h-10 w-auto" />
           </Link>
           <div className="flex items-center space-x-4">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => window.open("https://supabase.com/dashboard/projects", "_blank")}
+              className="gap-2"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Dashboard
+            </Button>
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
               Sign Out
             </Button>
@@ -167,6 +206,39 @@ const Profile = () => {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
+
+        {/* Error message if table not found */}
+        {tableNotFound && (
+          <Card className="mb-6 border-red-200 bg-red-50 dark:bg-red-950 dark:border-red-800">
+            <CardContent className="pt-6">
+              <div className="flex gap-4">
+                <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-red-900 dark:text-red-100">Database Setup Required</h3>
+                  <p className="text-sm text-red-800 dark:text-red-200">
+                    The profiles table hasn't been created yet. Please run the SQL migration in your Supabase dashboard.
+                  </p>
+                  <ol className="list-decimal list-inside text-sm text-red-800 dark:text-red-200 space-y-1">
+                    <li>Go to <a href="https://supabase.com/dashboard/projects" target="_blank" rel="noopener noreferrer" className="underline font-semibold">Supabase Dashboard</a></li>
+                    <li>Open your project (hggjukqgjxcypokjguwv)</li>
+                    <li>Click SQL Editor → New Query</li>
+                    <li>Paste and run the SQL from <code className="bg-red-200 dark:bg-red-900 px-2 py-1 rounded">supabase/migrations/profiles_table.sql</code></li>
+                    <li>Refresh this page</li>
+                  </ol>
+                  <Button 
+                    size="sm" 
+                    variant="default"
+                    onClick={() => window.open("https://supabase.com/dashboard/projects", "_blank")}
+                    className="mt-2 gap-2"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    Open Supabase Dashboard
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Card className="shadow-xl border-0 bg-card/95 backdrop-blur">
           <CardHeader className="text-center pb-2">
@@ -196,7 +268,7 @@ const Profile = () => {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     className="pl-10"
-                    disabled={saving}
+                    disabled={saving || tableNotFound}
                   />
                 </div>
               </div>
@@ -227,7 +299,7 @@ const Profile = () => {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     className="pl-10"
-                    disabled={saving}
+                    disabled={saving || tableNotFound}
                   />
                 </div>
               </div>
@@ -243,7 +315,7 @@ const Profile = () => {
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     className="pl-10"
-                    disabled={saving}
+                    disabled={saving || tableNotFound}
                   />
                 </div>
               </div>
@@ -258,17 +330,19 @@ const Profile = () => {
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
                     className="pl-10 min-h-[100px] resize-none"
-                    disabled={saving}
+                    disabled={saving || tableNotFound}
                   />
                 </div>
               </div>
 
-              <Button type="submit" className="w-full" disabled={saving}>
+              <Button type="submit" className="w-full" disabled={saving || tableNotFound}>
                 {saving ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     Saving...
                   </>
+                ) : tableNotFound ? (
+                  "Complete Setup First"
                 ) : (
                   "Save Changes"
                 )}
