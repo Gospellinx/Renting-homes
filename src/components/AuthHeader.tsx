@@ -120,21 +120,3 @@ export const AuthHeader = () => {
     </div>
   );
 };
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex items-center space-x-4">
-      <Button variant="ghost" size="sm" asChild>
-        <Link to="/auth">Sign In</Link>
-      </Button>
-      <Button variant="hero" size="sm" asChild>
-        <Link to="/auth">Get Started</Link>
-      </Button>
-    </div>
-  );
-};
