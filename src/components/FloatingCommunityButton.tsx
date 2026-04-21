@@ -13,7 +13,7 @@ const FloatingCommunityButton = () => {
   return (
     <TooltipProvider>
       <motion.div
-        className="fixed bottom-6 right-6 z-40 flex items-center gap-3"
+        className="fixed top-1/2 right-6 z-40 flex items-center gap-3 -translate-y-1/2"
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3, delay: 0.2 }}
