@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "./useAuth";
+import { useAuth } from "@/context/AuthContext";
 
 const VAPID_PUBLIC_KEY = "BIpEPYQ1cNb2gT3RG4R9fxz9c8LNdxZlKpSQxnBQm8qp0d_8uLBgqNJKzXGzZ0qWY5cMaQzXZrKxCQ6wJaF6fxw";
 
