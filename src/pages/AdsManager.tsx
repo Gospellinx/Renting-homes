@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Plus, BarChart3, TrendingUp, Eye, MousePointerClick, DollarSign, Megaphone } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 import { useAdsManager, Campaign } from '@/hooks/useAdsManager';
 import { useWallet } from '@/hooks/useWallet';
 import CampaignWizard from '@/components/ads/CampaignWizard';

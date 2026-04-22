@@ -13,7 +13,7 @@ import { toast } from '@/hooks/use-toast';
 import AdBanner from '@/components/AdBanner';
 import BackButton from '@/components/BackButton';
 import JVPropertyViewModal from '@/components/JVPropertyViewModal';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 import ScrollAuthGate from '@/components/ScrollAuthGate';
 
 const JointVentures = () => {

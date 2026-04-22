@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Search, Mic, Camera, Shield, Upload, Handshake, Home, Megaphone, Building, Loader2, ArrowRight, Key, TrendingUp, Store, MapPin } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/context/AuthContext";
 import { useAISearch } from "@/hooks/useAISearch";
 import { toast } from "@/hooks/use-toast";
 import HomesLogo from "@/components/HomesLogo";

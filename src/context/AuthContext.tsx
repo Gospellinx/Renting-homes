@@ -77,3 +77,7 @@ export const useAuthContext = (): AuthContextType => {
   }
   return context;
 };
+
+// Convenience hook - replaces duplicate src/hooks/useAuth.ts
+export const useAuth = useAuthContext;
+

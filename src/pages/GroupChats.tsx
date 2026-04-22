@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import BackButton from "@/components/BackButton";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/context/AuthContext";
 import { useGroupChats, useGroupMessages, GroupChat } from "@/hooks/useGroupChats";
 import { 
   MessageSquare, 

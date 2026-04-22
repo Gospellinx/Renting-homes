@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/hooks/use-toast";
 import AdBanner from "@/components/AdBanner";
 import BackButton from "@/components/BackButton";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/context/AuthContext";
 import { useVerification } from "@/hooks/useVerification";
 import { useConnections } from "@/hooks/useConnections";
 import { 

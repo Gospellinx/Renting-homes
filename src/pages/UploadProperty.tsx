@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/context/AuthContext";
 import AdBanner from '@/components/AdBanner';
 import AuthPrompt from '@/components/AuthPrompt';
 import { 

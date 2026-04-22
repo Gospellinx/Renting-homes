@@ -11,7 +11,7 @@ import { useCompareProperties, CompareProperty } from "@/hooks/useComparePropert
 import CompareFloatingButton from "@/components/CompareFloatingButton";
 import { useToast } from "@/hooks/use-toast";
 import { nigerianCities, getAreasForCity } from "@/data/nigerianLocations";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/context/AuthContext";
 import ScrollAuthGate from "@/components/ScrollAuthGate";
 
 // Combined property data from rentals and sales

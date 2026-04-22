@@ -22,7 +22,7 @@ import cardInvest from "@/assets/card-invest.jpg";
 import cardLand from "@/assets/card-land.jpg";
 import cardRent from "@/assets/card-rent.jpg";
 import cardShop from "@/assets/card-shop.jpg";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/context/AuthContext";
 import { useAISearch } from "@/hooks/useAISearch";
 import { toast } from "@/hooks/use-toast";
 
@@ -86,10 +86,11 @@ const Index = () => {
   const { user } = useAuth();
   const { parseSearchQuery, isProcessing } = useAISearch();
 
-  const firstName =
-    user?.user_metadata?.full_name?.split(" ")[0] ||
-    user?.email?.split("@")[0] ||
-    "Peter";
+  const firstName = user 
+    ? (user?.user_metadata?.full_name?.split(" ")[0] || 
+       user?.email?.split("@")[0] || 
+       "User")
+    : "Visitor";
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -176,7 +177,7 @@ const Index = () => {
               Welcome Home
             </p>
             <p className="mt-2 text-base font-semibold text-[#1f1a54] sm:text-xl">
-              Welcome {firstName}
+              {user ? `Welcome ${firstName}` : "Welcome to Homes Nigeria"}
             </p>
           </div>
 

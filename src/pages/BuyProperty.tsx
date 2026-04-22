@@ -15,7 +15,7 @@ import CompareFloatingButton from "@/components/CompareFloatingButton";
 import { useCompareProperties } from "@/hooks/useCompareProperties";
 import { nigerianCities, getAreasForCity } from "@/data/nigerianLocations";
 import LiveViewModal from "@/components/LiveViewModal";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/context/AuthContext";
 import { useIntendedAction } from "@/hooks/useIntendedAction";
 import ScrollAuthGate from "@/components/ScrollAuthGate";
 
