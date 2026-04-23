@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,21 +22,51 @@ const userTypes = [
 
 const emailSchema = z.string().email("Please enter a valid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
+const normalizeEmail = (value: string) => value.trim().toLowerCase();
+
+type AuthTab = "signin" | "signup";
+type FormErrors = {
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+  fullName?: string;
+  userType?: string;
+};
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [activeTab, setActiveTab] = useState<"signin" | "signup">("signin");
+  const modeParam = searchParams.get("mode");
+  const authError = searchParams.get("error");
+  const [activeTab, setActiveTab] = useState<AuthTab>(modeParam === "signup" ? "signup" : "signin");
   
   // Form states
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [userType, setUserType] = useState("");
-  const [errors, setErrors] = useState<{ email?: string; password?: string; fullName?: string; userType?: string }>({});
+  const [errors, setErrors] = useState<FormErrors>({});
+
+  useEffect(() => {
+    if (modeParam === "signin" || modeParam === "signup") {
+      setActiveTab(modeParam);
+    }
+  }, [modeParam]);
+
+  useEffect(() => {
+    if (!authError) return;
+
+    toast({
+      title: "Authentication failed",
+      description: authError,
+      variant: "destructive",
+    });
+  }, [authError, toast]);
 
   useEffect(() => {
     const getRedirectPath = () => {
@@ -79,10 +109,11 @@ const Auth = () => {
   }, [navigate]);
 
   const validateForm = () => {
-    const newErrors: { email?: string; password?: string; fullName?: string; userType?: string } = {};
+    const newErrors: FormErrors = {};
+    const normalizedEmail = normalizeEmail(email);
     
     try {
-      emailSchema.parse(email);
+      emailSchema.parse(normalizedEmail);
     } catch (e) {
       if (e instanceof z.ZodError) {
         newErrors.email = e.issues[0].message;
@@ -104,10 +135,18 @@ const Auth = () => {
       if (!userType) {
         newErrors.userType = "Please select your account type";
       }
+      if (password !== confirmPassword) {
+        newErrors.confirmPassword = "Passwords do not match";
+      }
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as AuthTab);
+    resetForm();
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -116,16 +155,25 @@ const Auth = () => {
 
     setIsLoading(true);
     try {
+      const normalizedEmail = normalizeEmail(email);
       const { error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+        email: normalizedEmail,
         password,
       });
 
       if (error) {
-        if (error.message.includes("Invalid login credentials")) {
+        const errorMessage = error.message.toLowerCase();
+
+        if (errorMessage.includes("invalid login credentials")) {
           toast({
             title: "Sign in failed",
             description: "Invalid email or password. Please try again.",
+            variant: "destructive",
+          });
+        } else if (errorMessage.includes("email not confirmed")) {
+          toast({
+            title: "Email confirmation required",
+            description: "Please confirm your email address from your inbox before signing in.",
             variant: "destructive",
           });
         } else {
@@ -160,10 +208,11 @@ const Auth = () => {
 
     setIsLoading(true);
     try {
+      const normalizedEmail = normalizeEmail(email);
       const redirectUrl = `${window.location.origin}/auth/callback`;
       
-      const { error } = await supabase.auth.signUp({
-        email: email.trim(),
+      const { data, error } = await supabase.auth.signUp({
+        email: normalizedEmail,
         password,
         options: {
           emailRedirectTo: redirectUrl,
@@ -175,7 +224,9 @@ const Auth = () => {
       });
 
       if (error) {
-        if (error.message.includes("User already registered")) {
+        const errorMessage = error.message.toLowerCase();
+
+        if (errorMessage.includes("user already registered")) {
           toast({
             title: "Account exists",
             description: "An account with this email already exists. Please sign in instead.",
@@ -190,11 +241,39 @@ const Auth = () => {
           });
         }
       } else {
+        const existingUserDetected =
+          !data.session &&
+          data.user &&
+          Array.isArray(data.user.identities) &&
+          data.user.identities.length === 0;
+
+        if (existingUserDetected) {
+          toast({
+            title: "Account already exists",
+            description: "This email is already registered. Please sign in with your existing password.",
+            variant: "destructive",
+          });
+          setActiveTab("signin");
+          setPassword("");
+          setConfirmPassword("");
+          return;
+        }
+
+        if (data.session) {
+          toast({
+            title: "Account created!",
+            description: "Welcome to Homes. You are now signed in.",
+          });
+          return;
+        }
+
         toast({
-          title: "Account created!",
-          description: "Welcome to Homes! You are now signed in.",
+          title: "Check your email",
+          description: "Your account was created. Please confirm your email before signing in.",
         });
-        // Navigation will happen automatically via the useEffect that listens to auth state changes
+        setActiveTab("signin");
+        setPassword("");
+        setConfirmPassword("");
       }
     } catch (error) {
       console.error("Sign up error:", error);
@@ -211,6 +290,7 @@ const Auth = () => {
   const resetForm = () => {
     setEmail("");
     setPassword("");
+    setConfirmPassword("");
     setFullName("");
     setUserType("");
     setErrors({});
@@ -278,7 +358,7 @@ const Auth = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v as "signin" | "signup"); resetForm(); }}>
+            <Tabs value={activeTab} onValueChange={handleTabChange}>
               <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="signin">Sign In</TabsTrigger>
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -454,6 +534,23 @@ const Auth = () => {
                       </button>
                     </div>
                     {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-confirm-password">Confirm Password</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="signup-confirm-password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Re-enter your password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="pl-10"
+                        disabled={isLoading}
+                      />
+                    </div>
+                    {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
                   </div>
 
                   <Button type="submit" className="w-full" disabled={isLoading || isGoogleLoading}>

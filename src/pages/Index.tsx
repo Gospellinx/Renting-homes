@@ -2,15 +2,19 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
+  BarChart3,
   Camera,
+  CheckCircle2,
   Home,
   Key,
   Loader2,
   MapPin,
+  Megaphone,
   Mic,
   Search,
   Store,
   TrendingUp,
+  Upload,
   UserRound,
 } from "lucide-react";
 
@@ -80,17 +84,62 @@ const propertyCards = [
   },
 ];
 
+const quickActionCards = [
+  {
+    href: "/upload-property",
+    icon: Upload,
+    eyebrow: "For owners and agents",
+    title: "Upload your property",
+    description:
+      "Create a polished listing with photos, documents, pricing, and verification details in one guided flow.",
+    cta: "Start listing",
+    highlights: ["Guided 4-step form", "Built for land, rentals, sales"],
+    cardClass:
+      "border-[#d7daf0] bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(236,241,255,0.95))]",
+    glowClass: "bg-[#dfe5ff]",
+    iconClass: "bg-[#26225f] text-white shadow-[0_14px_30px_rgba(38,34,95,0.22)]",
+    eyebrowClass: "bg-white/80 text-[#2b2770]",
+    chipClass: "border-[#cfd5fb] bg-white/80 text-[#33407b]",
+    buttonClass: "bg-[#26225f] text-white hover:bg-[#1f1b50]",
+  },
+  {
+    href: "/ads-manager",
+    icon: Megaphone,
+    eyebrow: "For promoters and sellers",
+    title: "Open ads manager",
+    description:
+      "Launch campaigns, monitor budget, and keep your best listings in front of buyers and renters nationwide.",
+    cta: "Manage ads",
+    highlights: ["Campaign insights", "Reach and spend tracking"],
+    cardClass:
+      "border-[#f0dcc1] bg-[linear-gradient(135deg,rgba(255,248,239,0.98),rgba(255,255,255,0.96))]",
+    glowClass: "bg-[#ffe5c7]",
+    iconClass: "bg-[#f59e0b] text-[#1f1a54] shadow-[0_14px_30px_rgba(245,158,11,0.2)]",
+    eyebrowClass: "bg-white/85 text-[#8a4b14]",
+    chipClass: "border-[#f3d7b3] bg-white/85 text-[#8a4b14]",
+    buttonClass: "bg-[#f59e0b] text-[#1f1a54] hover:bg-[#e89205]",
+  },
+];
+
 const Index = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
   const { parseSearchQuery, isProcessing } = useAISearch();
 
-  const firstName = user 
-    ? (user?.user_metadata?.full_name?.split(" ")[0] || 
-       user?.email?.split("@")[0] || 
-       "User")
+  const displayName = user
+    ? user.user_metadata?.user_name?.trim() ||
+      user.email ||
+      user.user_metadata?.full_name?.trim() ||
+      user.user_metadata?.name?.trim() ||
+      "there"
     : "Visitor";
+
+  const handleQuickActionClick = (href: string) => {
+    if (!user) {
+      sessionStorage.setItem("auth_return_url", href);
+    }
+  };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -176,8 +225,8 @@ const Index = () => {
             <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#767ca8]">
               Welcome Home
             </p>
-            <p className="mt-2 text-base font-semibold text-[#1f1a54] sm:text-xl">
-              {user ? `Welcome ${firstName}` : "Welcome to Homes Nigeria"}
+            <p className="mt-2 max-w-[16rem] break-words text-base font-semibold text-[#1f1a54] sm:max-w-none sm:text-xl">
+              {user ? `Welcome ${displayName}` : "Welcome to Homes Nigeria"}
             </p>
           </div>
 
@@ -299,6 +348,75 @@ const Index = () => {
                 <span className="h-2 w-2 rounded-full bg-[#8d79ff]" />
                 Nationwide coverage
               </div>
+            </div>
+
+            <div className="mt-8 grid w-full max-w-5xl grid-cols-1 gap-4 text-left md:grid-cols-2">
+              {quickActionCards.map((card) => {
+                const Icon = card.icon;
+
+                return (
+                  <Link
+                    key={card.href}
+                    to={user ? card.href : "/auth?mode=signin"}
+                    onClick={() => handleQuickActionClick(card.href)}
+                    className={`group relative overflow-hidden rounded-[28px] border p-6 shadow-[0_18px_42px_rgba(31,26,84,0.1)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_24px_56px_rgba(31,26,84,0.14)] sm:p-7 ${card.cardClass}`}
+                  >
+                    <div className={`pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full opacity-90 blur-3xl ${card.glowClass}`} />
+                    <div className="relative flex h-full flex-col">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <span
+                            className={`inline-flex rounded-full border border-white/60 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] shadow-sm backdrop-blur ${card.eyebrowClass}`}
+                          >
+                            {card.eyebrow}
+                          </span>
+                          <h3 className="mt-4 text-2xl font-semibold tracking-[-0.04em] text-[#1f1a54] sm:text-[2rem]">
+                            {card.title}
+                          </h3>
+                        </div>
+
+                        <div
+                          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-105 ${card.iconClass}`}
+                        >
+                          <Icon className="h-5 w-5" />
+                        </div>
+                      </div>
+
+                      <p className="mt-4 text-sm leading-7 text-[#5f658d] sm:text-base">
+                        {card.description}
+                      </p>
+
+                      <div className="mt-5 flex flex-wrap gap-2">
+                        {card.highlights.map((highlight) => (
+                          <span
+                            key={highlight}
+                            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium shadow-sm ${card.chipClass}`}
+                          >
+                            {card.href === "/upload-property" ? (
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                            ) : (
+                              <BarChart3 className="h-3.5 w-3.5" />
+                            )}
+                            {highlight}
+                          </span>
+                        ))}
+                      </div>
+
+                      <div className="mt-6 flex items-center justify-between gap-4">
+                        <span className="text-sm font-medium text-[#26225f]">
+                          {card.cta}
+                        </span>
+                        <span
+                          className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium shadow-[0_12px_26px_rgba(31,26,84,0.14)] transition-all duration-300 group-hover:gap-3 ${card.buttonClass}`}
+                        >
+                          Continue
+                          <ArrowRight className="h-4 w-4" />
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </main>
