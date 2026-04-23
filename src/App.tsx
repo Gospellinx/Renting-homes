@@ -2,14 +2,13 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import RentalProperties from "./pages/RentalProperties";
 import BuyProperty from "./pages/BuyProperty";
 import BuyLand from "./pages/BuyLand";
-import VerifyProperty from "./pages/VerifyProperty";
 import Community from "./pages/Community";
 import JointVentures from "./pages/JointVentures";
 import UploadProperty from "./pages/UploadProperty";
@@ -48,7 +47,7 @@ const App = () => (
             <Route path="/rental-properties" element={<RentalProperties />} />
             <Route path="/buy-property" element={<BuyProperty />} />
             <Route path="/buy-land" element={<BuyLand />} />
-            <Route path="/verify-property" element={<VerifyProperty />} />
+            <Route path="/verify-property" element={<Navigate to="/" replace />} />
             <Route path="/community" element={<Community />} />
             <Route path="/joint-ventures" element={<JointVentures />} />
             <Route path="/upload-property" element={<UploadProperty />} />

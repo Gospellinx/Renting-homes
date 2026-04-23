@@ -7,11 +7,11 @@ import {
   X, 
   Upload, 
   Home, 
-  Shield, 
   Handshake, 
   Building, 
   Megaphone,
-  Store
+  Store,
+  LayoutDashboard
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -21,11 +21,11 @@ const FloatingQuickActions = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const actions = [
+    { icon: LayoutDashboard, label: "Dashboard", href: "/profile", color: "bg-slate-700", requiresAuth: true },
     { icon: Upload, label: "Upload Property", href: "/upload-property", color: "bg-primary" },
     { icon: Home, label: "Rent Property", href: "/rental-properties", color: "bg-blue-500" },
     { icon: Store, label: "Rent a Shop", href: "/shop-rentals", color: "bg-amber-500" },
     { icon: Building, label: "Buy Property", href: "/buy-property", color: "bg-orange-500" },
-    { icon: Shield, label: "Verify Property", href: "/verify-property", color: "bg-orange-500" },
     { icon: Handshake, label: "Joint Ventures", href: "/joint-ventures", color: "bg-purple-500" },
     { icon: Megaphone, label: "Ads Manager", href: "/ads-manager", color: "bg-pink-500", requiresAuth: true },
   ];
@@ -34,7 +34,8 @@ const FloatingQuickActions = () => {
     setIsOpen(false);
 
     if (requiresAuth && !user) {
-      navigate("/auth");
+      sessionStorage.setItem("auth_return_url", href);
+      navigate("/auth?mode=signin");
       return;
     }
 

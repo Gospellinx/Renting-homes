@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Mail, Lock, User, Briefcase } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Mail, Lock, User, Briefcase } from "lucide-react";
 import logo from "@/assets/homes-logo.png";
 import { z } from "zod";
 
@@ -343,6 +343,16 @@ const Auth = () => {
           <Link to="/" className="flex items-center space-x-2">
             <img src={logo} alt="Homes" className="h-10 w-auto" />
           </Link>
+          <Button
+            asChild
+            variant="outline"
+            className="rounded-full border-[#d7daf0] bg-white/85 px-4 text-[#241f66] shadow-[0_10px_25px_rgba(31,26,84,0.08)] backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:border-[#bfc6f5] hover:bg-white"
+          >
+            <Link to="/" className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              <span>Back to Home</span>
+            </Link>
+          </Button>
         </div>
       </header>
 
@@ -453,6 +463,13 @@ const Auth = () => {
                       </>
                     )}
                   </Button>
+
+                  <div className="text-center text-sm text-[#6f7599]">
+                    Prefer to keep browsing?{" "}
+                    <Link to="/" className="font-medium text-[#26225f] hover:text-[#1f1a54]">
+                      Go back home
+                    </Link>
+                  </div>
                 </form>
               </TabsContent>
 
@@ -599,6 +616,13 @@ const Auth = () => {
                       </>
                     )}
                   </Button>
+
+                  <div className="text-center text-sm text-[#6f7599]">
+                    Want to explore first?{" "}
+                    <Link to="/" className="font-medium text-[#26225f] hover:text-[#1f1a54]">
+                      Go back home
+                    </Link>
+                  </div>
                 </form>
               </TabsContent>
             </Tabs>

@@ -208,7 +208,9 @@ const SearchResults = () => {
           <nav className="hidden md:flex items-center space-x-6">
             <Link to="/rental-properties" className="text-sm font-medium text-[#1f1a54] hover:text-[#26225f] transition-colors">Rent</Link>
             <Link to="/buy-property" className="text-sm font-medium text-[#1f1a54] hover:text-[#26225f] transition-colors">Buy</Link>
-            <Link to="/verify-property" className="text-sm font-medium text-[#1f1a54] hover:text-[#26225f] transition-colors">Verify</Link>
+            <Link to={user ? "/profile" : "/auth?mode=signin"} className="text-sm font-medium text-[#1f1a54] hover:text-[#26225f] transition-colors">
+              {user ? "Dashboard" : "Sign In"}
+            </Link>
           </nav>
           <Button variant="ghost" size="sm" asChild className="text-[#1f1a54] hover:text-[#26225f] hover:bg-[#eef1ff]">
             <Link to="/">

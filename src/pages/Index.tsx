@@ -3,10 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   BarChart3,
-  Camera,
   CheckCircle2,
   Home,
   Key,
+  LayoutDashboard,
   Loader2,
   MapPin,
   Megaphone,
@@ -158,9 +158,7 @@ const Index = () => {
       if (parsed.priceMin) params.set("priceMin", parsed.priceMin.toString());
       if (parsed.priceMax) params.set("priceMax", parsed.priceMax.toString());
 
-      if (parsed.intent === "verify") {
-        navigate("/verify-property");
-      } else if (parsed.intent === "rent") {
+      if (parsed.intent === "rent") {
         navigate(`/rental-properties?${params.toString()}`);
       } else if (parsed.intent === "buy") {
         navigate(`/buy-property?${params.toString()}`);
@@ -248,7 +246,7 @@ const Index = () => {
               ) : (
                 <UserRound className="h-4 w-4" />
               )}
-              <span>Profile</span>
+              <span>{user ? "Dashboard" : "Sign In"}</span>
             </Link>
           </Button>
         </header>
@@ -266,7 +264,7 @@ const Index = () => {
             </p>
 
             <h1 className="mx-auto mt-5 max-w-4xl text-balance text-center text-4xl font-semibold tracking-[-0.04em] text-[#1f1a54] sm:text-5xl lg:text-6xl">
-              Looking to rent, buy, verify or develop?
+              Looking to rent, buy, list, or develop?
             </h1>
 
             <p className="mx-auto mt-5 max-w-2xl text-center text-sm leading-7 text-[#6f7599] sm:text-lg">
@@ -303,11 +301,15 @@ const Index = () => {
                   </button>
 
                   <Link
-                    to="/verify-property"
-                    className="flex h-10 w-10 items-center justify-center rounded-full text-[#5c6494] transition-all duration-300 hover:bg-[#eef1ff] hover:text-[#2b2770]"
-                    aria-label="Verify property"
+                    to={user ? "/profile" : "/auth?mode=signin"}
+                    onClick={() => handleQuickActionClick("/profile")}
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full px-3 text-[#5c6494] transition-all duration-300 hover:bg-[#eef1ff] hover:text-[#2b2770]"
+                    aria-label={user ? "Open dashboard" : "Sign in"}
                   >
-                    <Camera className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <span className="hidden text-sm font-medium sm:inline">
+                      {user ? "Dashboard" : "Sign in"}
+                    </span>
                   </Link>
 
                   <Button

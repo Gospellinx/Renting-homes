@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Search, Mic, Camera, Shield, Upload, Handshake, Home, Megaphone, Building, Loader2, ArrowRight, Key, TrendingUp, Store, MapPin } from "lucide-react";
+import { Search, Mic, Upload, Handshake, Home, Megaphone, Building, Loader2, ArrowRight, Key, TrendingUp, Store, MapPin, LayoutDashboard } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useAISearch } from "@/hooks/useAISearch";
@@ -20,6 +20,12 @@ const Index = () => {
   const { user } = useAuth();
   const { parseSearchQuery, isProcessing } = useAISearch();
 
+  const handleProtectedLink = (href: string) => {
+    if (!user) {
+      sessionStorage.setItem("auth_return_url", href);
+    }
+  };
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
@@ -37,9 +43,7 @@ const Index = () => {
       if (parsed.priceMin) params.set('priceMin', parsed.priceMin.toString());
       if (parsed.priceMax) params.set('priceMax', parsed.priceMax.toString());
       
-      if (parsed.intent === 'verify') {
-        navigate('/verify-property');
-      } else if (parsed.intent === 'rent') {
+      if (parsed.intent === 'rent') {
         navigate(`/rental-properties?${params.toString()}`);
       } else if (parsed.intent === 'buy') {
         navigate(`/buy-property?${params.toString()}`);
@@ -82,7 +86,7 @@ const Index = () => {
   };
 
   const shortcuts = [
-    { id: "verify", label: "Verify property", icon: Shield, href: "/verify-property" },
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, href: user ? "/profile" : "/auth?mode=signin" },
     { id: "upload", label: "Upload property", icon: Upload, href: "/upload-property" },
     { id: "jv", label: "JV opportunities", icon: Handshake, href: "/joint-ventures" },
     { id: "buy", label: "Buy property", icon: Home, href: "/buy-property" },
@@ -154,7 +158,7 @@ const Index = () => {
                   {user.user_metadata?.full_name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-white font-medium text-sm hidden sm:inline">Profile</span>
+              <span className="text-white font-medium text-sm hidden sm:inline">Dashboard</span>
             </Link>
           ) : (
             <div className="flex items-center gap-3">
@@ -175,7 +179,7 @@ const Index = () => {
         {/* Hero content */}
         <main className="relative z-10 flex flex-col items-center px-4 pb-20 pt-6">
           <h1 className="text-white text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-3">
-            Looking to rent, buy, verify, or develop?
+            Looking to rent, buy, list, or develop?
           </h1>
 
           {user && (
@@ -212,11 +216,12 @@ const Index = () => {
                   <Mic className="h-5 w-5 text-muted-foreground" />
                 </button>
                 <Link
-                  to="/verify-property"
+                  to={user ? "/profile" : "/auth?mode=signin"}
+                  onClick={() => handleProtectedLink("/profile")}
                   className="p-2 hover:bg-muted rounded-full transition-colors"
-                  aria-label="Verify property"
+                  aria-label={user ? "Open dashboard" : "Sign in"}
                 >
-                  <Camera className="h-5 w-5 text-muted-foreground" />
+                  <LayoutDashboard className="h-5 w-5 text-muted-foreground" />
                 </Link>
                 <Link
                   to="/ads-manager"
@@ -237,6 +242,7 @@ const Index = () => {
                 <Link
                   key={shortcut.id}
                   to={shortcut.href}
+                  onClick={() => shortcut.id === "dashboard" && handleProtectedLink("/profile")}
                   className="flex flex-col items-center gap-2 p-3 rounded-xl transition-all hover:bg-white/10 hover:scale-105"
                 >
                   <div className="w-12 h-12 rounded-full border-2 border-white/40 bg-white/10 backdrop-blur-sm flex items-center justify-center">
