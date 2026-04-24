@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { consumePostAuthRedirectPath } from "@/lib/authRedirect";
 
 /**
  * OAuth Callback Handler
@@ -27,15 +28,8 @@ export default function AuthCallback() {
     // If user is logged in, redirect to home or intended page
     if (!loading && user) {
       console.log("OAuth callback successful, redirecting user:", user.email);
-      
-      // Check for return URL in session storage (set by auth flow)
-      const returnUrl = sessionStorage.getItem("auth_return_url");
-      if (returnUrl) {
-        sessionStorage.removeItem("auth_return_url");
-        navigate(returnUrl);
-      } else {
-        navigate("/");
-      }
+
+      navigate(consumePostAuthRedirectPath(), { replace: true });
     }
   }, [user, loading, navigate, searchParams]);
 

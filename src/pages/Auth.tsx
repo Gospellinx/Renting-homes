@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,10 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Eye, EyeOff, Mail, Lock, User, Briefcase } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ArrowLeft, Briefcase, CircleAlert, Eye, EyeOff, Lock, Mail, User } from "lucide-react";
 import logo from "@/assets/homes-logo.png";
-import { getAuthCallbackUrl } from "@/lib/authRedirect";
+import { consumePostAuthRedirectPath, getAuthCallbackUrl } from "@/lib/authRedirect";
 import { z } from "zod";
 
 const userTypes = [
@@ -32,6 +32,7 @@ const authPasswordToggleClassName =
 const authLabelClassName = "text-[11px] font-semibold uppercase tracking-[0.22em] text-[#5d648d]";
 
 type AuthTab = "signin" | "signup";
+
 type FormErrors = {
   email?: string;
   password?: string;
@@ -40,24 +41,39 @@ type FormErrors = {
   userType?: string;
 };
 
+type InlineNotice = {
+  title: string;
+  description: string;
+  tone: "warning" | "error" | "success";
+};
+
+const inlineNoticeStyles: Record<InlineNotice["tone"], string> = {
+  warning:
+    "border-[#f0dcc1] bg-[linear-gradient(135deg,rgba(255,249,239,0.98),rgba(255,255,255,0.94))] text-[#7a4b16] [&>svg]:text-[#d97706]",
+  error:
+    "border-[#f6c9cf] bg-[linear-gradient(135deg,rgba(255,244,246,0.98),rgba(255,255,255,0.94))] text-[#9f1239] [&>svg]:text-[#e11d48]",
+  success:
+    "border-[#c8ead6] bg-[linear-gradient(135deg,rgba(240,253,244,0.98),rgba(255,255,255,0.94))] text-[#166534] [&>svg]:text-[#16a34a]",
+};
+
 const Auth = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const modeParam = searchParams.get("mode");
-  const authError = searchParams.get("error");
-  const [activeTab, setActiveTab] = useState<AuthTab>(modeParam === "signup" ? "signup" : "signin");
-  
-  // Form states
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [userType, setUserType] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
+  const [inlineNotice, setInlineNotice] = useState<InlineNotice | null>(null);
+  const passwordInputRef = useRef<HTMLInputElement | null>(null);
+  const modeParam = searchParams.get("mode");
+  const authError = searchParams.get("error");
+  const authErrorMessage = authError?.replace(/\+/g, " ").trim() || null;
+  const [activeTab, setActiveTab] = useState<AuthTab>(modeParam === "signup" ? "signup" : "signin");
   const authCallbackUrl = getAuthCallbackUrl();
 
   useEffect(() => {
@@ -67,72 +83,71 @@ const Auth = () => {
   }, [modeParam]);
 
   useEffect(() => {
-    if (!authError) return;
+    if (!authErrorMessage) {
+      return;
+    }
 
-    toast({
-      title: "Authentication failed",
-      description: authError,
-      variant: "destructive",
+    setActiveTab("signin");
+    setInlineNotice({
+      title: "We couldn't complete that sign-in",
+      description: authErrorMessage,
+      tone: "error",
     });
-  }, [authError, toast]);
+  }, [authErrorMessage]);
 
   useEffect(() => {
-    const getRedirectPath = () => {
-      // First check for scroll-gate return URL
-      const returnUrl = sessionStorage.getItem('auth_return_url');
-      if (returnUrl) {
-        sessionStorage.removeItem('auth_return_url');
-        return returnUrl;
+    const checkUser = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session) {
+        navigate(consumePostAuthRedirectPath(), { replace: true });
       }
-      // Then check for intended action
-      const intended = sessionStorage.getItem('intended_action');
-      if (intended) {
-        try {
-          const action = JSON.parse(intended);
-          return action.page || '/';
-        } catch {
-          return '/';
-        }
-      }
-      return '/';
     };
 
-    // Check if user is already logged in
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate(getRedirectPath());
-      }
-    };
     checkUser();
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        navigate(getRedirectPath());
+        navigate(consumePostAuthRedirectPath(), { replace: true });
       }
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  useEffect(() => {
+    if (activeTab !== "signin" || inlineNotice?.tone !== "warning") {
+      return;
+    }
+
+    const frame = requestAnimationFrame(() => {
+      passwordInputRef.current?.focus();
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [activeTab, inlineNotice]);
+
   const validateForm = () => {
     const newErrors: FormErrors = {};
     const normalizedEmail = normalizeEmail(email);
-    
+
     try {
       emailSchema.parse(normalizedEmail);
-    } catch (e) {
-      if (e instanceof z.ZodError) {
-        newErrors.email = e.issues[0].message;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        newErrors.email = error.issues[0].message;
       }
     }
 
     try {
       passwordSchema.parse(password);
-    } catch (e) {
-      if (e instanceof z.ZodError) {
-        newErrors.password = e.issues[0].message;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        newErrors.password = error.issues[0].message;
       }
     }
 
@@ -152,9 +167,38 @@ const Auth = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const resetForm = ({ preserveEmail = false } = {}) => {
+    if (!preserveEmail) {
+      setEmail("");
+    }
+
+    setPassword("");
+    setConfirmPassword("");
+    setFullName("");
+    setUserType("");
+    setShowPassword(false);
+    setErrors({});
+  };
+
   const handleTabChange = (value: string) => {
     setActiveTab(value as AuthTab);
-    resetForm();
+    setInlineNotice(null);
+    resetForm({ preserveEmail: true });
+  };
+
+  const guideReturningUser = (description: string) => {
+    setActiveTab("signin");
+    setPassword("");
+    setConfirmPassword("");
+    setFullName("");
+    setUserType("");
+    setShowPassword(false);
+    setErrors({});
+    setInlineNotice({
+      title: "Welcome back",
+      description,
+      tone: "warning",
+    });
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -173,37 +217,34 @@ const Auth = () => {
         const errorMessage = error.message.toLowerCase();
 
         if (errorMessage.includes("invalid login credentials")) {
-          toast({
-            title: "Sign in failed",
-            description: "Invalid email or password. Please try again.",
-            variant: "destructive",
+          setInlineNotice({
+            title: "Check your details",
+            description:
+              "That email and password did not match an account. Try again, or use Google if that's how you registered.",
+            tone: "error",
           });
         } else if (errorMessage.includes("email not confirmed")) {
-          toast({
-            title: "Email confirmation required",
+          setInlineNotice({
+            title: "Check your inbox",
             description: "Please confirm your email address from your inbox before signing in.",
-            variant: "destructive",
+            tone: "warning",
           });
         } else {
-          toast({
-            title: "Sign in failed",
+          setInlineNotice({
+            title: "We couldn't sign you in",
             description: error.message,
-            variant: "destructive",
+            tone: "error",
           });
         }
       } else {
-        toast({
-          title: "Welcome back!",
-          description: "You have successfully signed in.",
-        });
-        // Navigation will happen automatically via the useEffect that listens to auth state changes
+        setInlineNotice(null);
       }
     } catch (error) {
       console.error("Sign in error:", error);
-      toast({
-        title: "Error",
+      setInlineNotice({
+        title: "We couldn't sign you in",
         description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
+        tone: "error",
       });
     } finally {
       setIsLoading(false);
@@ -217,13 +258,11 @@ const Auth = () => {
     setIsLoading(true);
     try {
       const normalizedEmail = normalizeEmail(email);
-      const redirectUrl = authCallbackUrl;
-      
       const { data, error } = await supabase.auth.signUp({
         email: normalizedEmail,
         password,
         options: {
-          emailRedirectTo: redirectUrl,
+          emailRedirectTo: authCallbackUrl,
           data: {
             full_name: fullName.trim(),
             user_type: userType,
@@ -235,80 +274,65 @@ const Auth = () => {
         const errorMessage = error.message.toLowerCase();
 
         if (errorMessage.includes("user already registered")) {
-          toast({
-            title: "Account exists",
-            description: "An account with this email already exists. Please sign in instead.",
-            variant: "destructive",
-          });
-          setActiveTab("signin");
+          guideReturningUser(
+            "This email is already on Homes Nigeria. Sign in with your password or continue with Google if that's how you registered."
+          );
         } else {
-          toast({
-            title: "Sign up failed",
+          setInlineNotice({
+            title: "We couldn't create your account",
             description: error.message,
-            variant: "destructive",
+            tone: "error",
           });
         }
-      } else {
-        const existingUserDetected =
-          !data.session &&
-          data.user &&
-          Array.isArray(data.user.identities) &&
-          data.user.identities.length === 0;
 
-        if (existingUserDetected) {
-          toast({
-            title: "Account already exists",
-            description: "This email is already registered. Please sign in with your existing password.",
-            variant: "destructive",
-          });
-          setActiveTab("signin");
-          setPassword("");
-          setConfirmPassword("");
-          return;
-        }
-
-        if (data.session) {
-          toast({
-            title: "Account created!",
-            description: "Welcome to Homes. You are now signed in.",
-          });
-          return;
-        }
-
-        toast({
-          title: "Check your email",
-          description: "Your account was created. Please confirm your email before signing in.",
-        });
-        setActiveTab("signin");
-        setPassword("");
-        setConfirmPassword("");
+        return;
       }
+
+      const existingUserDetected =
+        !data.session &&
+        data.user &&
+        Array.isArray(data.user.identities) &&
+        data.user.identities.length === 0;
+
+      if (existingUserDetected) {
+        guideReturningUser(
+          "We found an existing account for this email. Sign in to continue, or use Google if you originally joined with Google."
+        );
+        return;
+      }
+
+      if (data.session) {
+        setInlineNotice(null);
+        return;
+      }
+
+      setActiveTab("signin");
+      setPassword("");
+      setConfirmPassword("");
+      setShowPassword(false);
+      setErrors({});
+      setInlineNotice({
+        title: "Check your email",
+        description: "Your account was created. Confirm your email, then come back here to sign in.",
+        tone: "success",
+      });
     } catch (error) {
       console.error("Sign up error:", error);
-      toast({
-        title: "Error",
+      setInlineNotice({
+        title: "We couldn't create your account",
         description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
+        tone: "error",
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const resetForm = () => {
-    setEmail("");
-    setPassword("");
-    setConfirmPassword("");
-    setFullName("");
-    setUserType("");
-    setErrors({});
-  };
-
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
+        provider: "google",
         options: {
           redirectTo: authCallbackUrl,
         },
@@ -316,19 +340,18 @@ const Auth = () => {
 
       if (error) {
         console.error("Google OAuth error:", error);
-        toast({
-          title: "Google sign in failed",
-          description: error.message || "An error occurred",
-          variant: "destructive",
+        setInlineNotice({
+          title: "Google sign-in didn't start",
+          description: error.message || "An error occurred.",
+          tone: "error",
         });
       }
-      // Supabase automatically handles the redirect to Google
     } catch (error) {
       console.error("Google sign in error:", error);
-      toast({
-        title: "Error",
+      setInlineNotice({
+        title: "Google sign-in didn't start",
         description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
+        tone: "error",
       });
     } finally {
       setIsGoogleLoading(false);
@@ -341,7 +364,6 @@ const Auth = () => {
       <div className="pointer-events-none absolute -left-16 top-28 h-48 w-48 rounded-full bg-[#eef1ff] blur-3xl sm:h-72 sm:w-72" />
       <div className="pointer-events-none absolute -right-14 bottom-16 h-44 w-44 rounded-full bg-[#e9ecff] blur-3xl sm:h-64 sm:w-64" />
 
-      {/* Header */}
       <header className="relative z-10 border-0 bg-transparent">
         <div className="flex h-16 items-center justify-between px-1">
           <Link to="/" className="flex items-center space-x-2">
@@ -360,7 +382,6 @@ const Auth = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <div className="relative z-10 flex-1 flex items-center justify-center">
         <Card className="w-full max-w-md overflow-hidden border-[#d7daf0] bg-white/90 shadow-[0_20px_50px_rgba(31,26,84,0.12)] backdrop-blur">
           <div className="h-1.5 w-full bg-[linear-gradient(90deg,#1f1a54_0%,#5564d8_55%,#d8a95b_100%)]" />
@@ -370,12 +391,24 @@ const Auth = () => {
             </div>
             <CardTitle className="text-2xl font-bold text-[#1f1a54]">Welcome to Homes</CardTitle>
             <CardDescription className="text-[#6f7599]">
-              {activeTab === "signin" 
-                ? "Sign in to access your account" 
+              {activeTab === "signin"
+                ? "Sign in to access your account"
                 : "Create an account to get started"}
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {inlineNotice && (
+              <Alert
+                className={`mb-5 rounded-2xl border shadow-[0_16px_32px_rgba(31,26,84,0.08)] ${inlineNoticeStyles[inlineNotice.tone]}`}
+              >
+                <CircleAlert className="h-4 w-4" />
+                <AlertTitle className="text-sm font-semibold">{inlineNotice.title}</AlertTitle>
+                <AlertDescription className="pr-2 text-sm leading-6">
+                  {inlineNotice.description}
+                </AlertDescription>
+              </Alert>
+            )}
+
             <Tabs value={activeTab} onValueChange={handleTabChange}>
               <TabsList className="mb-6 grid w-full grid-cols-2 rounded-2xl border border-[#e0e4f6] bg-[#f6f7ff] p-1">
                 <TabsTrigger
@@ -395,7 +428,9 @@ const Auth = () => {
               <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email" className={authLabelClassName}>Email</Label>
+                    <Label htmlFor="signin-email" className={authLabelClassName}>
+                      Email
+                    </Label>
                     <div className="relative">
                       <Mail className={authIconClassName} />
                       <Input
@@ -413,11 +448,14 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password" className={authLabelClassName}>Password</Label>
+                    <Label htmlFor="signin-password" className={authLabelClassName}>
+                      Password
+                    </Label>
                     <div className="relative">
                       <Lock className={authIconClassName} />
                       <Input
                         id="signin-password"
+                        ref={passwordInputRef}
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter your password"
                         value={password}
@@ -504,7 +542,9 @@ const Auth = () => {
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-name" className={authLabelClassName}>Full Name</Label>
+                    <Label htmlFor="signup-name" className={authLabelClassName}>
+                      Full Name
+                    </Label>
                     <div className="relative">
                       <User className={authIconClassName} />
                       <Input
@@ -522,7 +562,9 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-type" className={authLabelClassName}>Account Type</Label>
+                    <Label htmlFor="signup-type" className={authLabelClassName}>
+                      Account Type
+                    </Label>
                     <div className="relative">
                       <Briefcase className={`${authIconClassName} z-10`} />
                       <Select value={userType} onValueChange={setUserType} disabled={isLoading}>
@@ -542,7 +584,9 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email" className={authLabelClassName}>Email</Label>
+                    <Label htmlFor="signup-email" className={authLabelClassName}>
+                      Email
+                    </Label>
                     <div className="relative">
                       <Mail className={authIconClassName} />
                       <Input
@@ -560,7 +604,9 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password" className={authLabelClassName}>Password</Label>
+                    <Label htmlFor="signup-password" className={authLabelClassName}>
+                      Password
+                    </Label>
                     <div className="relative">
                       <Lock className={authIconClassName} />
                       <Input
@@ -585,7 +631,9 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-confirm-password" className={authLabelClassName}>Confirm Password</Label>
+                    <Label htmlFor="signup-confirm-password" className={authLabelClassName}>
+                      Confirm Password
+                    </Label>
                     <div className="relative">
                       <Lock className={authIconClassName} />
                       <Input
