@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Eye, EyeOff, Mail, Lock, User, Briefcase } from "lucide-react";
 import logo from "@/assets/homes-logo.png";
+import { getAuthCallbackUrl } from "@/lib/authRedirect";
 import { z } from "zod";
 
 const userTypes = [
@@ -23,6 +24,12 @@ const userTypes = [
 const emailSchema = z.string().email("Please enter a valid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
 const normalizeEmail = (value: string) => value.trim().toLowerCase();
+const authInputClassName =
+  "h-12 rounded-2xl border-[#d9ddf4] bg-[linear-gradient(180deg,#ffffff_0%,#f8f9ff_100%)] pl-11 text-[#1f1a54] placeholder:text-[#98a0c4] shadow-[inset_0_1px_0_rgba(255,255,255,0.78),0_10px_24px_rgba(31,26,84,0.05)] transition-all duration-300 focus-visible:border-[#b8c1fb] focus-visible:ring-2 focus-visible:ring-[#d7ddff] focus-visible:ring-offset-0";
+const authIconClassName = "absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6f7599]";
+const authPasswordToggleClassName =
+  "absolute right-3 top-1/2 -translate-y-1/2 text-[#7c82ab] transition-colors hover:text-[#1f1a54]";
+const authLabelClassName = "text-[11px] font-semibold uppercase tracking-[0.22em] text-[#5d648d]";
 
 type AuthTab = "signin" | "signup";
 type FormErrors = {
@@ -51,6 +58,7 @@ const Auth = () => {
   const [fullName, setFullName] = useState("");
   const [userType, setUserType] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
+  const authCallbackUrl = getAuthCallbackUrl();
 
   useEffect(() => {
     if (modeParam === "signin" || modeParam === "signup") {
@@ -209,7 +217,7 @@ const Auth = () => {
     setIsLoading(true);
     try {
       const normalizedEmail = normalizeEmail(email);
-      const redirectUrl = `${window.location.origin}/auth/callback`;
+      const redirectUrl = authCallbackUrl;
       
       const { data, error } = await supabase.auth.signUp({
         email: normalizedEmail,
@@ -299,14 +307,10 @@ const Auth = () => {
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
+          redirectTo: authCallbackUrl,
         },
       });
 
@@ -358,8 +362,12 @@ const Auth = () => {
 
       {/* Main Content */}
       <div className="relative z-10 flex-1 flex items-center justify-center">
-        <Card className="w-full max-w-md shadow-[0_20px_50px_rgba(31,26,84,0.12)] border-[#d7daf0] bg-white/90 backdrop-blur">
+        <Card className="w-full max-w-md overflow-hidden border-[#d7daf0] bg-white/90 shadow-[0_20px_50px_rgba(31,26,84,0.12)] backdrop-blur">
+          <div className="h-1.5 w-full bg-[linear-gradient(90deg,#1f1a54_0%,#5564d8_55%,#d8a95b_100%)]" />
           <CardHeader className="text-center pb-2">
+            <div className="mx-auto mb-4 inline-flex items-center rounded-full border border-[#e4e7f7] bg-[#f8f9ff] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#5d648d] shadow-sm">
+              Homes Nigeria Secure Access
+            </div>
             <CardTitle className="text-2xl font-bold text-[#1f1a54]">Welcome to Homes</CardTitle>
             <CardDescription className="text-[#6f7599]">
               {activeTab === "signin" 
@@ -369,24 +377,35 @@ const Auth = () => {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={handleTabChange}>
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="signin">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsList className="mb-6 grid w-full grid-cols-2 rounded-2xl border border-[#e0e4f6] bg-[#f6f7ff] p-1">
+                <TabsTrigger
+                  value="signin"
+                  className="rounded-[14px] text-[#5d648d] data-[state=active]:bg-white data-[state=active]:text-[#1f1a54] data-[state=active]:shadow-[0_10px_24px_rgba(31,26,84,0.08)]"
+                >
+                  Sign In
+                </TabsTrigger>
+                <TabsTrigger
+                  value="signup"
+                  className="rounded-[14px] text-[#5d648d] data-[state=active]:bg-white data-[state=active]:text-[#1f1a54] data-[state=active]:shadow-[0_10px_24px_rgba(31,26,84,0.08)]"
+                >
+                  Sign Up
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email</Label>
+                    <Label htmlFor="signin-email" className={authLabelClassName}>Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Mail className={authIconClassName} />
                       <Input
                         id="signin-email"
                         type="email"
                         placeholder="Enter your email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="pl-10"
+                        autoComplete="email"
+                        className={authInputClassName}
                         disabled={isLoading}
                       />
                     </div>
@@ -394,22 +413,23 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
+                    <Label htmlFor="signin-password" className={authLabelClassName}>Password</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Lock className={authIconClassName} />
                       <Input
                         id="signin-password"
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter your password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10 pr-10"
+                        autoComplete="current-password"
+                        className={`${authInputClassName} pr-10`}
                         disabled={isLoading}
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                        className={authPasswordToggleClassName}
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
@@ -417,7 +437,11 @@ const Auth = () => {
                     {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
                   </div>
 
-                  <Button type="submit" className="w-full" disabled={isLoading || isGoogleLoading}>
+                  <Button
+                    type="submit"
+                    className="h-12 w-full rounded-2xl bg-[#26225f] text-white shadow-[0_16px_32px_rgba(38,34,95,0.18)] hover:bg-[#1f1b50]"
+                    disabled={isLoading || isGoogleLoading}
+                  >
                     {isLoading ? "Signing in..." : "Sign In"}
                   </Button>
 
@@ -433,7 +457,7 @@ const Auth = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full"
+                    className="h-12 w-full rounded-2xl border-[#d9ddf4] bg-[#fbfbff] text-[#1f1a54] shadow-[0_10px_24px_rgba(31,26,84,0.05)] hover:bg-white"
                     onClick={handleGoogleSignIn}
                     disabled={isLoading || isGoogleLoading}
                   >
@@ -464,6 +488,10 @@ const Auth = () => {
                     )}
                   </Button>
 
+                  <p className="text-center text-xs leading-6 text-[#7a81a8]">
+                    Secure Google sign-in returns you to Homes Nigeria after account verification or 2-step confirmation.
+                  </p>
+
                   <div className="text-center text-sm text-[#6f7599]">
                     Prefer to keep browsing?{" "}
                     <Link to="/" className="font-medium text-[#26225f] hover:text-[#1f1a54]">
@@ -476,16 +504,17 @@ const Auth = () => {
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-name">Full Name</Label>
+                    <Label htmlFor="signup-name" className={authLabelClassName}>Full Name</Label>
                     <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <User className={authIconClassName} />
                       <Input
                         id="signup-name"
                         type="text"
                         placeholder="Enter your full name"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
-                        className="pl-10"
+                        autoComplete="name"
+                        className={authInputClassName}
                         disabled={isLoading}
                       />
                     </div>
@@ -493,11 +522,11 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-type">Account Type</Label>
+                    <Label htmlFor="signup-type" className={authLabelClassName}>Account Type</Label>
                     <div className="relative">
-                      <Briefcase className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
+                      <Briefcase className={`${authIconClassName} z-10`} />
                       <Select value={userType} onValueChange={setUserType} disabled={isLoading}>
-                        <SelectTrigger className="pl-10">
+                        <SelectTrigger className={`${authInputClassName} pl-11`}>
                           <SelectValue placeholder="Select account type" />
                         </SelectTrigger>
                         <SelectContent>
@@ -513,16 +542,17 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
+                    <Label htmlFor="signup-email" className={authLabelClassName}>Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Mail className={authIconClassName} />
                       <Input
                         id="signup-email"
                         type="email"
                         placeholder="Enter your email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="pl-10"
+                        autoComplete="email"
+                        className={authInputClassName}
                         disabled={isLoading}
                       />
                     </div>
@@ -530,22 +560,23 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
+                    <Label htmlFor="signup-password" className={authLabelClassName}>Password</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Lock className={authIconClassName} />
                       <Input
                         id="signup-password"
                         type={showPassword ? "text" : "password"}
                         placeholder="Create a password (min. 6 characters)"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10 pr-10"
+                        autoComplete="new-password"
+                        className={`${authInputClassName} pr-10`}
                         disabled={isLoading}
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                        className={authPasswordToggleClassName}
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
@@ -554,23 +585,28 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-confirm-password">Confirm Password</Label>
+                    <Label htmlFor="signup-confirm-password" className={authLabelClassName}>Confirm Password</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Lock className={authIconClassName} />
                       <Input
                         id="signup-confirm-password"
                         type={showPassword ? "text" : "password"}
                         placeholder="Re-enter your password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="pl-10"
+                        autoComplete="new-password"
+                        className={authInputClassName}
                         disabled={isLoading}
                       />
                     </div>
                     {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
                   </div>
 
-                  <Button type="submit" className="w-full" disabled={isLoading || isGoogleLoading}>
+                  <Button
+                    type="submit"
+                    className="h-12 w-full rounded-2xl bg-[#26225f] text-white shadow-[0_16px_32px_rgba(38,34,95,0.18)] hover:bg-[#1f1b50]"
+                    disabled={isLoading || isGoogleLoading}
+                  >
                     {isLoading ? "Creating account..." : "Create Account"}
                   </Button>
 
@@ -586,7 +622,7 @@ const Auth = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full"
+                    className="h-12 w-full rounded-2xl border-[#d9ddf4] bg-[#fbfbff] text-[#1f1a54] shadow-[0_10px_24px_rgba(31,26,84,0.05)] hover:bg-white"
                     onClick={handleGoogleSignIn}
                     disabled={isLoading || isGoogleLoading}
                   >
@@ -616,6 +652,10 @@ const Auth = () => {
                       </>
                     )}
                   </Button>
+
+                  <p className="text-center text-xs leading-6 text-[#7a81a8]">
+                    If Google asks you to confirm your account or finish 2-step verification, Homes Nigeria will bring you back here automatically.
+                  </p>
 
                   <div className="text-center text-sm text-[#6f7599]">
                     Want to explore first?{" "}
