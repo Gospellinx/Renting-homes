@@ -213,10 +213,20 @@ const ShopRentals = () => {
             <ArrowLeft className="h-5 w-5" />
             <span className="text-lg font-semibold">Back to Home</span>
           </Link>
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm" asChild className="text-[#1f1a54] hover:text-[#26225f] hover:bg-[#eef1ff]"><Link to="/auth">Sign In</Link></Button>
-            <Button size="sm" asChild className="bg-[#26225f] text-white hover:bg-[#1f1b50]"><Link to="/auth">Get Started</Link></Button>
-          </div>
+          {user ? (
+            <Button size="sm" asChild className="bg-[#26225f] text-white hover:bg-[#1f1b50]">
+              <Link to="/profile">Dashboard</Link>
+            </Button>
+          ) : !loading ? (
+            <div className="flex items-center space-x-4">
+              <Button variant="ghost" size="sm" asChild className="text-[#1f1a54] hover:text-[#26225f] hover:bg-[#eef1ff]">
+                <Link to="/auth?mode=signin">Sign In</Link>
+              </Button>
+              <Button size="sm" asChild className="bg-[#26225f] text-white hover:bg-[#1f1b50]">
+                <Link to="/auth?mode=signup">Get Started</Link>
+              </Button>
+            </div>
+          ) : null}
         </div>
       </header>
 

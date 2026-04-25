@@ -66,6 +66,7 @@ const UploadProperty = () => {
   const [uploadedDocuments, setUploadedDocuments] = useState<string[]>([]);
   const [isCheckingDuplicate, setIsCheckingDuplicate] = useState(false);
   const [duplicateWarning, setDuplicateWarning] = useState<{ isDuplicate: boolean; reason: string; matches: any[] } | null>(null);
+  const [submissionIssue, setSubmissionIssue] = useState<{ title: string; description: string; hint?: string } | null>(null);
   const { toast } = useToast();
 
   const form = useForm<PropertyFormData>();
@@ -159,6 +160,8 @@ const UploadProperty = () => {
   };
 
   const onSubmit = async (data: PropertyFormData) => {
+    setSubmissionIssue(null);
+
     const isDuplicate = await checkForDuplicate(data);
     if (isDuplicate) return;
 
@@ -175,10 +178,13 @@ const UploadProperty = () => {
         lga: data.lga,
         price: data.price,
         size: data.size,
+        amenities: data.amenities ?? [],
+        images: uploadedImages,
         owner_name: data.ownerName,
         owner_phone: data.ownerPhone,
         owner_email: data.ownerEmail,
         verification_type: data.verificationType,
+        status: "pending_review",
       });
 
       if (error) throw error;
@@ -189,9 +195,35 @@ const UploadProperty = () => {
         description: "Your property is now under review. You'll be notified within 2-3 business days.",
       });
     } catch (err: any) {
+      const errorMessage = String(err?.message || "");
+      const isPropertiesTableMissing =
+        err?.code === "PGRST205" ||
+        errorMessage.toLowerCase().includes("public.properties") ||
+        errorMessage.toLowerCase().includes("schema cache");
+
+      if (isPropertiesTableMissing) {
+        setSubmissionIssue({
+          title: "Property submission is not ready yet",
+          description:
+            "Property review could not start because the listing database has not been configured on this environment yet.",
+          hint:
+            "If you're setting up the project, run the SQL in supabase/migrations/properties_table.sql, then refresh and try again.",
+        });
+        toast({
+          title: "Submission unavailable",
+          description: "Property listing setup is incomplete on this environment.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setSubmissionIssue({
+        title: "We couldn't submit this property",
+        description: errorMessage || "Could not submit property. Please try again.",
+      });
       toast({
         title: "Submission Failed",
-        description: err.message || "Could not submit property. Please try again.",
+        description: errorMessage || "Could not submit property. Please try again.",
         variant: "destructive",
       });
     }
@@ -360,7 +392,8 @@ const UploadProperty = () => {
                     </div>
 
                     <div className="flex justify-end mt-6">
-                      <Button 
+                      <Button
+                        type="button"
                         onClick={nextStep} 
                         disabled={!selectedPropertyType}
                         className="w-full md:w-auto"
@@ -618,10 +651,10 @@ const UploadProperty = () => {
                     )}
 
                     <div className="flex justify-between mt-6">
-                      <Button variant="outline" onClick={prevStep}>
+                      <Button type="button" variant="outline" onClick={prevStep}>
                         Previous
                       </Button>
-                      <Button onClick={nextStep}>
+                      <Button type="button" onClick={nextStep}>
                         Continue to Media
                       </Button>
                     </div>
@@ -743,10 +776,10 @@ const UploadProperty = () => {
                     </Tabs>
 
                     <div className="flex justify-between mt-6">
-                      <Button variant="outline" onClick={prevStep}>
+                      <Button type="button" variant="outline" onClick={prevStep}>
                         Previous
                       </Button>
-                      <Button onClick={nextStep}>
+                      <Button type="button" onClick={nextStep}>
                         Continue to Contact
                       </Button>
                     </div>
@@ -842,8 +875,23 @@ const UploadProperty = () => {
                       </div>
                     )}
 
+                    {submissionIssue && (
+                      <div className="bg-destructive/10 border border-destructive/30 p-4 rounded-lg">
+                        <div className="flex items-start space-x-3">
+                          <AlertTriangle className="h-5 w-5 text-destructive mt-0.5" />
+                          <div>
+                            <h4 className="font-medium text-destructive">{submissionIssue.title}</h4>
+                            <p className="text-sm text-muted-foreground mt-1">{submissionIssue.description}</p>
+                            {submissionIssue.hint && (
+                              <p className="text-sm text-muted-foreground mt-2">{submissionIssue.hint}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex justify-between mt-6">
-                      <Button variant="outline" onClick={prevStep}>
+                      <Button type="button" variant="outline" onClick={prevStep}>
                         Previous
                       </Button>
                       <Button type="submit" className="bg-primary hover:bg-primary/90" disabled={isCheckingDuplicate}>
