@@ -29,7 +29,6 @@ import AdsManager from "./pages/AdsManager";
 import ShopRentals from "./pages/ShopRentals";
 import FloatingQuickActions from "./components/FloatingQuickActions";
 import FloatingCommunityButton from "./components/FloatingCommunityButton";
-import ChatBot from "./components/ChatBot";
 
 const queryClient = new QueryClient();
 
@@ -103,7 +102,6 @@ const App = () => (
           </Routes>
           <FloatingQuickActions />
           <FloatingCommunityButton />
-          <ChatBot />
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>

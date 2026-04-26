@@ -13,27 +13,17 @@ const FloatingCommunityButton = () => {
   return (
     <TooltipProvider>
       <motion.div
-        className="fixed top-1/2 right-6 z-40 flex items-center gap-3 -translate-y-1/2"
+        className="fixed bottom-6 left-6 z-50 flex items-center gap-3"
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3, delay: 0.2 }}
       >
-        {/* Community label */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="bg-white text-[#26225f] px-4 py-2 rounded-full font-semibold text-sm shadow-lg"
-        >
-          Community
-        </motion.div>
-
         <Tooltip>
           <TooltipTrigger asChild>
             <Link to="/community">
               <Button
                 size="lg"
-                className="h-16 w-16 rounded-full shadow-lg bg-[#EA580C] hover:bg-[#d94a0a] text-white border-0 transition-all duration-300 hover:shadow-xl hover:scale-110"
+                className="h-14 w-14 rounded-full shadow-lg bg-[#1f2b44] hover:bg-[#162033] text-white border-0 transition-all duration-300 hover:shadow-xl hover:scale-110"
               >
                 <motion.div
                   animate={{ scale: [1, 1.1, 1] }}
@@ -45,11 +35,20 @@ const FloatingCommunityButton = () => {
               </Button>
             </Link>
           </TooltipTrigger>
-          <TooltipContent side="left" className="bg-slate-900 text-white border-slate-700">
+          <TooltipContent side="right" className="bg-slate-900 text-white border-slate-700">
             <p className="text-sm font-semibold">Join Our Community</p>
             <p className="text-xs text-slate-300">Connect & Engage</p>
           </TooltipContent>
         </Tooltip>
+
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="bg-white text-[#26225f] px-4 py-2 rounded-full font-semibold text-sm shadow-lg"
+        >
+          Community
+        </motion.div>
       </motion.div>
     </TooltipProvider>
   );
