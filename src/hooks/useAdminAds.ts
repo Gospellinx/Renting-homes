@@ -69,11 +69,37 @@ export const useAdminAds = () => {
         .single();
       
       if (error) throw error;
+
+      const approvedAd = data as AdminAd;
+
+      const { data: adSet, error: adSetError } = await supabase
+        .from('ad_sets')
+        .select('id, campaign_id')
+        .eq('id', approvedAd.ad_set_id)
+        .single();
+
+      if (adSetError) throw adSetError;
+
+      const { error: adSetStatusError } = await supabase
+        .from('ad_sets')
+        .update({ status: 'active' })
+        .eq('id', approvedAd.ad_set_id);
+
+      if (adSetStatusError) throw adSetStatusError;
+
+      const { error: campaignStatusError } = await supabase
+        .from('ad_campaigns')
+        .update({ status: 'active' })
+        .eq('id', adSet.campaign_id);
+
+      if (campaignStatusError) throw campaignStatusError;
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-ads'] });
       queryClient.invalidateQueries({ queryKey: ['approved-ads'] });
+      queryClient.invalidateQueries({ queryKey: ['ad-campaigns'] });
     },
   });
 
@@ -91,10 +117,49 @@ export const useAdminAds = () => {
         .single();
       
       if (error) throw error;
+
+      const rejectedAd = data as AdminAd;
+
+      const { data: adSet, error: adSetError } = await supabase
+        .from('ad_sets')
+        .select('id, campaign_id')
+        .eq('id', rejectedAd.ad_set_id)
+        .single();
+
+      if (adSetError) throw adSetError;
+
+      const { data: siblingAds, error: siblingAdsError } = await supabase
+        .from('ads')
+        .select('status')
+        .eq('ad_set_id', rejectedAd.ad_set_id);
+
+      if (siblingAdsError) throw siblingAdsError;
+
+      const hasApprovedSibling = (siblingAds || []).some((ad) => ad.status === 'approved');
+      const hasPendingSibling = (siblingAds || []).some((ad) => ad.status === 'pending_review');
+
+      if (!hasApprovedSibling && !hasPendingSibling) {
+        const { error: adSetStatusError } = await supabase
+          .from('ad_sets')
+          .update({ status: 'rejected' })
+          .eq('id', rejectedAd.ad_set_id);
+
+        if (adSetStatusError) throw adSetStatusError;
+
+        const { error: campaignStatusError } = await supabase
+          .from('ad_campaigns')
+          .update({ status: 'rejected' })
+          .eq('id', adSet.campaign_id);
+
+        if (campaignStatusError) throw campaignStatusError;
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-ads'] });
+      queryClient.invalidateQueries({ queryKey: ['approved-ads'] });
+      queryClient.invalidateQueries({ queryKey: ['ad-campaigns'] });
     },
   });
 
