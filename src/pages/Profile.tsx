@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
@@ -14,6 +16,7 @@ import { User, Mail, Phone, MapPin, FileText, Loader2, ArrowLeft, Shield, Briefc
 import { Badge } from "@/components/ui/badge";
 import logo from "@/assets/homes-logo.png";
 import PushNotificationSettings from "@/components/PushNotificationSettings";
+import { z } from "zod";
 
 interface Profile {
   id: string;
@@ -26,6 +29,46 @@ interface Profile {
   user_type: string | null;
 }
 
+type ProfileFormField = "fullName" | "phone" | "location" | "bio";
+type ProfileFormErrors = Partial<Record<ProfileFormField, string>>;
+type ProfileFormValues = Record<ProfileFormField, string>;
+
+const phoneCharactersPattern = /^[+\d\s()-]+$/;
+const locationCharactersPattern = /^[\p{L}\d\s,.'-]+$/u;
+
+const profileFieldSchemas: Record<ProfileFormField, z.ZodType<string>> = {
+  fullName: z
+    .string()
+    .min(2, "Full name must be at least 2 characters")
+    .max(80, "Full name must be 80 characters or less")
+    .refine((value) => /\p{L}/u.test(value), "Full name must contain letters"),
+  phone: z
+    .string()
+    .refine(
+      (value) => phoneCharactersPattern.test(value),
+      "Use only numbers, spaces, hyphens, parentheses, or a leading +"
+    )
+    .refine((value) => {
+      const digitsOnly = value.replace(/\D/g, "");
+      return digitsOnly.length >= 10 && digitsOnly.length <= 15;
+    }, "Phone number must contain 10 to 15 digits"),
+  location: z
+    .string()
+    .min(2, "Location must be at least 2 characters")
+    .max(100, "Location must be 100 characters or less")
+    .refine(
+      (value) => locationCharactersPattern.test(value),
+      "Location can include letters, numbers, spaces, commas, periods, apostrophes, and hyphens"
+    ),
+  bio: z
+    .string()
+    .max(300, "Bio must be 300 characters or less")
+    .refine(
+      (value) => value.length === 0 || value.length >= 10,
+      "Bio must be at least 10 characters or left blank"
+    ),
+};
+
 const Profile = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading, signOut } = useAuth();
@@ -35,12 +78,162 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [tableNotFound, setTableNotFound] = useState(false);
+  const [errors, setErrors] = useState<ProfileFormErrors>({});
+  const [touchedFields, setTouchedFields] = useState<Partial<Record<ProfileFormField, boolean>>>({});
+  const [dirtyFields, setDirtyFields] = useState<Partial<Record<ProfileFormField, boolean>>>({});
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [initialValues, setInitialValues] = useState<ProfileFormValues>({
+    fullName: "",
+    phone: "",
+    location: "",
+    bio: "",
+  });
   
   // Form states
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [bio, setBio] = useState("");
   const [location, setLocation] = useState("");
+
+  const applyProfileToForm = (profileData: Profile) => {
+    const nextValues = {
+      fullName: profileData.full_name || "",
+      phone: profileData.phone || "",
+      bio: profileData.bio || "",
+      location: profileData.location || "",
+    };
+
+    setProfile(profileData);
+    setFullName(nextValues.fullName);
+    setPhone(nextValues.phone);
+    setBio(nextValues.bio);
+    setLocation(nextValues.location);
+    setInitialValues(nextValues);
+    setErrors({});
+    setTouchedFields({});
+    setDirtyFields({});
+    setHasSubmitted(false);
+    setFormError(null);
+  };
+
+  const validateField = (field: ProfileFormField, value: string) => {
+    const normalizedValue = value.trim();
+
+    if (!normalizedValue) {
+      return undefined;
+    }
+
+    const result = profileFieldSchemas[field].safeParse(normalizedValue);
+    return result.success ? undefined : result.error.issues[0]?.message;
+  };
+
+  const getNormalizedValues = (): ProfileFormValues => ({
+    fullName: fullName.trim(),
+    phone: phone.trim(),
+    location: location.trim(),
+    bio: bio.trim(),
+  });
+
+  const hasProfileChanges = () => {
+    const normalizedValues = getNormalizedValues();
+
+    return (Object.keys(normalizedValues) as ProfileFormField[]).some(
+      (field) => normalizedValues[field] !== initialValues[field].trim()
+    );
+  };
+
+  const getFriendlyErrorMessage = (error: unknown) => {
+    if (typeof error === "object" && error !== null && "message" in error) {
+      const message = typeof error.message === "string" ? error.message : "";
+
+      if (message.includes("duplicate key value")) {
+        return "We could not save your profile because a duplicate record was detected. Please refresh and try again.";
+      }
+
+      if (message) {
+        return message;
+      }
+    }
+
+    return "Failed to update profile. Please try again.";
+  };
+
+  const setFieldError = (field: ProfileFormField, value: string) => {
+    const message = validateField(field, value);
+
+    setErrors((currentErrors) => {
+      if (!message) {
+        const { [field]: _removedError, ...remainingErrors } = currentErrors;
+        return remainingErrors;
+      }
+
+      if (currentErrors[field] === message) {
+        return currentErrors;
+      }
+
+      return {
+        ...currentErrors,
+        [field]: message,
+      };
+    });
+  };
+
+  const handleFieldBlur = (field: ProfileFormField, value: string) => {
+    setTouchedFields((currentFields) => ({
+      ...currentFields,
+      [field]: true,
+    }));
+
+    if (dirtyFields[field] || hasSubmitted) {
+      setFieldError(field, value);
+    }
+  };
+
+  const maybeValidateField = (field: ProfileFormField, value: string, isDirty = dirtyFields[field]) => {
+    if ((touchedFields[field] && isDirty) || hasSubmitted) {
+      setFieldError(field, value);
+    }
+  };
+
+  const validateProfileForm = () => {
+    const nextErrors: ProfileFormErrors = {};
+    const values: ProfileFormValues = {
+      fullName,
+      phone,
+      location,
+      bio,
+    };
+
+    (Object.keys(values) as ProfileFormField[]).forEach((field) => {
+      const message = validateField(field, values[field]);
+      if (message) {
+        nextErrors[field] = message;
+      }
+    });
+
+    setErrors(nextErrors);
+    setTouchedFields({
+      fullName: true,
+      phone: true,
+      location: true,
+      bio: true,
+    });
+    setDirtyFields({
+      fullName: true,
+      phone: true,
+      location: true,
+      bio: true,
+    });
+
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const getInputClassName = (field: ProfileFormField, baseClassName = "") =>
+    cn(
+      baseClassName,
+      errors[field] && "border-destructive focus-visible:ring-destructive"
+    );
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -72,28 +265,26 @@ const Profile = () => {
         }
 
         if (data) {
-          setProfile(data);
-          setFullName(data.full_name || "");
-          setPhone(data.phone || "");
-          setBio(data.bio || "");
-          setLocation(data.location || "");
+          applyProfileToForm(data);
         } else {
-          // Profile doesn't exist, create one
-          const { data: newProfile, error: createError } = await supabase
+          // Handle cases where the signup trigger hasn't created the row yet.
+          const { data: ensuredProfile, error: ensureError } = await supabase
             .from("profiles")
-            .insert({
-              user_id: user.id,
-              full_name: user.user_metadata?.full_name || "",
-              user_type: user.user_metadata?.user_type || "",
-            })
+            .upsert(
+              {
+                user_id: user.id,
+                full_name: user.user_metadata?.full_name || null,
+                user_type: user.user_metadata?.user_type || null,
+              },
+              { onConflict: "user_id" }
+            )
             .select()
             .single();
 
-          if (createError) throw createError;
-          
-          if (newProfile) {
-            setProfile(newProfile);
-            setFullName(newProfile.full_name || "");
+          if (ensureError) throw ensureError;
+
+          if (ensuredProfile) {
+            applyProfileToForm(ensuredProfile);
           }
         }
       } catch (error) {
@@ -116,31 +307,59 @@ const Profile = () => {
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    setHasSubmitted(true);
 
+    if (!validateProfileForm()) {
+      setFormError("Please correct the highlighted fields before saving.");
+      return;
+    }
+
+    if (!hasProfileChanges()) {
+      setFormError(null);
+      toast({
+        title: "No changes to save",
+        description: "Your profile is already up to date.",
+      });
+      return;
+    }
+
+    setFormError(null);
     setSaving(true);
     try {
-      const { error } = await supabase
+      const normalizedValues = getNormalizedValues();
+      const { data: updatedProfile, error } = await supabase
         .from("profiles")
-        .upsert({
-          user_id: user.id,
-          full_name: fullName.trim() || null,
-          phone: phone.trim() || null,
-          bio: bio.trim() || null,
-          location: location.trim() || null,
-        })
-        .eq("user_id", user.id);
+        .upsert(
+          {
+            user_id: user.id,
+            full_name: normalizedValues.fullName || null,
+            phone: normalizedValues.phone || null,
+            bio: normalizedValues.bio || null,
+            location: normalizedValues.location || null,
+            user_type: profile?.user_type ?? user.user_metadata?.user_type ?? null,
+          },
+          { onConflict: "user_id" }
+        )
+        .select()
+        .single();
 
       if (error) throw error;
+
+      if (updatedProfile) {
+        applyProfileToForm(updatedProfile);
+      }
 
       toast({
         title: "Profile updated",
         description: "Your profile has been saved successfully.",
       });
     } catch (error) {
+      const message = getFriendlyErrorMessage(error);
       console.error("Error updating profile:", error);
+      setFormError(message);
       toast({
-        title: "Error",
-        description: "Failed to update profile. Please try again.",
+        title: "Profile update failed",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -266,11 +485,26 @@ const Profile = () => {
                     type="text"
                     placeholder="Enter your full name"
                     value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="pl-10"
+                    onChange={(e) => {
+                      const nextValue = e.target.value;
+                      const isDirty = nextValue !== initialValues.fullName;
+                      setFormError(null);
+                      setFullName(nextValue);
+                      setDirtyFields((currentFields) => ({
+                        ...currentFields,
+                        fullName: isDirty,
+                      }));
+                      maybeValidateField("fullName", nextValue, isDirty);
+                    }}
+                    onBlur={(e) => handleFieldBlur("fullName", e.target.value)}
+                    className={getInputClassName("fullName", "pl-10")}
+                    autoComplete="name"
+                    maxLength={80}
                     disabled={saving || tableNotFound}
+                    aria-invalid={!!errors.fullName}
                   />
                 </div>
+                {errors.fullName && <p className="text-sm text-destructive">{errors.fullName}</p>}
               </div>
 
               <div className="space-y-2">
@@ -297,11 +531,30 @@ const Profile = () => {
                     type="tel"
                     placeholder="Enter your phone number"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="pl-10"
+                    onChange={(e) => {
+                      const nextValue = e.target.value;
+                      const isDirty = nextValue !== initialValues.phone;
+                      setFormError(null);
+                      setPhone(nextValue);
+                      setDirtyFields((currentFields) => ({
+                        ...currentFields,
+                        phone: isDirty,
+                      }));
+                      maybeValidateField("phone", nextValue, isDirty);
+                    }}
+                    onBlur={(e) => handleFieldBlur("phone", e.target.value)}
+                    className={getInputClassName("phone", "pl-10")}
+                    autoComplete="tel"
+                    maxLength={20}
                     disabled={saving || tableNotFound}
+                    aria-invalid={!!errors.phone}
                   />
                 </div>
+                {errors.phone ? (
+                  <p className="text-sm text-destructive">{errors.phone}</p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">Use a valid Nigerian or international phone number.</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -313,11 +566,26 @@ const Profile = () => {
                     type="text"
                     placeholder="e.g., Lagos, Nigeria"
                     value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    className="pl-10"
+                    onChange={(e) => {
+                      const nextValue = e.target.value;
+                      const isDirty = nextValue !== initialValues.location;
+                      setFormError(null);
+                      setLocation(nextValue);
+                      setDirtyFields((currentFields) => ({
+                        ...currentFields,
+                        location: isDirty,
+                      }));
+                      maybeValidateField("location", nextValue, isDirty);
+                    }}
+                    onBlur={(e) => handleFieldBlur("location", e.target.value)}
+                    className={getInputClassName("location", "pl-10")}
+                    autoComplete="address-level2"
+                    maxLength={100}
                     disabled={saving || tableNotFound}
+                    aria-invalid={!!errors.location}
                   />
                 </div>
+                {errors.location && <p className="text-sm text-destructive">{errors.location}</p>}
               </div>
 
               <div className="space-y-2">
@@ -328,12 +596,36 @@ const Profile = () => {
                     id="bio"
                     placeholder="Tell us a bit about yourself..."
                     value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    className="pl-10 min-h-[100px] resize-none"
+                    onChange={(e) => {
+                      const nextValue = e.target.value;
+                      const isDirty = nextValue !== initialValues.bio;
+                      setFormError(null);
+                      setBio(nextValue);
+                      setDirtyFields((currentFields) => ({
+                        ...currentFields,
+                        bio: isDirty,
+                      }));
+                      maybeValidateField("bio", nextValue, isDirty);
+                    }}
+                    onBlur={(e) => handleFieldBlur("bio", e.target.value)}
+                    className={getInputClassName("bio", "pl-10 min-h-[100px] resize-none")}
+                    maxLength={300}
                     disabled={saving || tableNotFound}
+                    aria-invalid={!!errors.bio}
                   />
                 </div>
+                {errors.bio ? (
+                  <p className="text-sm text-destructive">{errors.bio}</p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">{bio.trim().length}/300 characters</p>
+                )}
               </div>
+
+              {formError && (
+                <Alert variant="destructive">
+                  <AlertDescription>{formError}</AlertDescription>
+                </Alert>
+              )}
 
               <Button type="submit" className="w-full" disabled={saving || tableNotFound}>
                 {saving ? (
