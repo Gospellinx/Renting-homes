@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,14 +9,15 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldPath } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import AdBanner from '@/components/AdBanner';
 import AuthPrompt from '@/components/AuthPrompt';
+import { getLgasForState, nigerianStates } from "@/data/nigerianStateLgas";
 import { 
   Upload, 
-  MapPin, 
   FileText, 
   Camera, 
   CheckCircle, 
@@ -34,6 +35,7 @@ import {
   Briefcase
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { z } from "zod";
 
 interface PropertyFormData {
   propertyType: string;
@@ -57,19 +59,159 @@ interface PropertyFormData {
   proposedDevelopment: string;
 }
 
+interface DuplicateMatch {
+  title: string;
+  location: string;
+}
+
+interface DuplicateWarning {
+  isDuplicate: boolean;
+  reason: string;
+  matches: DuplicateMatch[];
+}
+
+const phoneCharactersPattern = /^[+\d\s()-]+$/;
+
+const uploadPropertySchema = z
+  .object({
+    propertyType: z.string().min(1, "Select a property type"),
+    title: z.string().trim().min(5, "Enter a clearer property title").max(120, "Title is too long"),
+    description: z.string().trim().min(20, "Description must be at least 20 characters").max(2000, "Description is too long"),
+    location: z.string().trim().min(5, "Enter the detailed property address").max(200, "Address is too long"),
+    state: z.string().min(1, "Select a state"),
+    lga: z.string().min(1, "Select an LGA"),
+    price: z
+      .string()
+      .trim()
+      .min(2, "Enter the property price")
+      .max(60, "Price is too long")
+      .refine((value) => /\d/.test(value), "Price must include a number"),
+    size: z.string().trim().min(2, "Enter the property size").max(80, "Size is too long"),
+    amenities: z.array(z.string()),
+    ownerName: z.string().trim().min(2, "Enter the contact full name").max(100, "Name is too long"),
+    ownerPhone: z
+      .string()
+      .trim()
+      .min(1, "Enter a phone number")
+      .refine(
+        (value) => phoneCharactersPattern.test(value),
+        "Use only numbers, spaces, hyphens, parentheses, or a leading +"
+      )
+      .refine((value) => {
+        const digitsOnly = value.replace(/\D/g, "");
+        return digitsOnly.length >= 10 && digitsOnly.length <= 15;
+      }, "Phone number must contain 10 to 15 digits"),
+    ownerEmail: z.string().trim().email("Enter a valid email address"),
+    verificationType: z.string().min(1, "Select a document type"),
+    expectedInvestment: z.string(),
+    partnershipTerms: z.string(),
+    developerRequirements: z.string(),
+    landSize: z.string(),
+    proposedDevelopment: z.string(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.propertyType !== "joint_venture") {
+      return;
+    }
+
+    if (!data.landSize.trim()) {
+      ctx.addIssue({ code: "custom", path: ["landSize"], message: "Enter the land size" });
+    }
+
+    if (!data.expectedInvestment.trim()) {
+      ctx.addIssue({ code: "custom", path: ["expectedInvestment"], message: "Enter the expected investment amount" });
+    }
+
+    if (!data.proposedDevelopment.trim()) {
+      ctx.addIssue({ code: "custom", path: ["proposedDevelopment"], message: "Enter the proposed development type" });
+    }
+
+    if (data.partnershipTerms.trim().length < 10) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["partnershipTerms"],
+        message: "Partnership terms must be at least 10 characters",
+      });
+    }
+
+    if (data.developerRequirements.trim().length < 10) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["developerRequirements"],
+        message: "Developer requirements must be at least 10 characters",
+      });
+    }
+  });
+
+const stepTwoBaseFields: FieldPath<PropertyFormData>[] = ["title", "price", "description", "state", "lga", "size", "location"];
+const jointVentureFields: FieldPath<PropertyFormData>[] = [
+  "landSize",
+  "expectedInvestment",
+  "proposedDevelopment",
+  "partnershipTerms",
+  "developerRequirements",
+];
+
+const getStateLabel = (state: string) =>
+  state === "Federal Capital Territory" ? "Abuja (FCT)" : state;
+
 const UploadProperty = () => {
   const { user, loading } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [selectedPropertyType, setSelectedPropertyType] = useState("");
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [uploadedDocuments, setUploadedDocuments] = useState<string[]>([]);
   const [isCheckingDuplicate, setIsCheckingDuplicate] = useState(false);
-  const [duplicateWarning, setDuplicateWarning] = useState<{ isDuplicate: boolean; reason: string; matches: any[] } | null>(null);
+  const [duplicateWarning, setDuplicateWarning] = useState<DuplicateWarning | null>(null);
+  const [mediaErrors, setMediaErrors] = useState<{ images?: string; documents?: string }>({});
   const [submissionIssue, setSubmissionIssue] = useState<{ title: string; description: string; hint?: string } | null>(null);
   const { toast } = useToast();
 
-  const form = useForm<PropertyFormData>();
+  const form = useForm<PropertyFormData>({
+    resolver: zodResolver(uploadPropertySchema),
+    mode: "onTouched",
+    reValidateMode: "onChange",
+    defaultValues: {
+      propertyType: "",
+      title: "",
+      description: "",
+      location: "",
+      state: "",
+      lga: "",
+      price: "",
+      size: "",
+      amenities: [],
+      ownerName: "",
+      ownerPhone: "",
+      ownerEmail: "",
+      verificationType: "",
+      expectedInvestment: "",
+      partnershipTerms: "",
+      developerRequirements: "",
+      landSize: "",
+      proposedDevelopment: "",
+    },
+  });
+  const selectedPropertyType = form.watch("propertyType");
+  const selectedState = form.watch("state");
+  const availableLgas = getLgasForState(selectedState);
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    if (!form.getValues("ownerEmail") && user.email) {
+      form.setValue("ownerEmail", user.email, { shouldDirty: false });
+    }
+
+    const fullName =
+      typeof user.user_metadata?.full_name === "string" ? user.user_metadata.full_name : "";
+
+    if (!form.getValues("ownerName") && fullName) {
+      form.setValue("ownerName", fullName, { shouldDirty: false });
+    }
+  }, [form, user]);
 
   // Show auth prompt for unauthenticated users
   if (!loading && !user) {
@@ -90,14 +232,6 @@ const UploadProperty = () => {
     { id: "joint_venture", label: "Joint Venture", icon: Handshake, desc: "Partnership opportunities for developers" }
   ];
 
-  const nigerianStates = [
-    "Abuja", "Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa", 
-    "Benue", "Borno", "Cross River", "Delta", "Ebonyi", "Edo", "Ekiti", "Enugu", 
-    "Gombe", "Imo", "Jigawa", "Kaduna", "Kano", "Katsina", "Kebbi", "Kogi", 
-    "Kwara", "Lagos", "Nasarawa", "Niger", "Ogun", "Ondo", "Osun", "Oyo", 
-    "Plateau", "Rivers", "Sokoto", "Taraba", "Yobe", "Zamfara"
-  ];
-
   const verificationTypes = [
     { id: "certificate", label: "Certificate of Occupancy (C of O)" },
     { id: "deed", label: "Deed of Assignment" },
@@ -108,13 +242,41 @@ const UploadProperty = () => {
 
   const handleFileUpload = (type: 'image' | 'document', files: FileList | null) => {
     if (!files) return;
-    
-    const fileArray = Array.from(files).map(file => URL.createObjectURL(file));
-    
+
+    const fileList = Array.from(files);
+    const maxFileSize = type === "image" ? 5 * 1024 * 1024 : 10 * 1024 * 1024;
+    const validFiles = fileList.filter((file) => {
+      const isCorrectType =
+        type === "image"
+          ? file.type.startsWith("image/")
+          : file.type === "application/pdf" || file.type.startsWith("image/");
+
+      return isCorrectType && file.size <= maxFileSize;
+    });
+
+    if (validFiles.length !== fileList.length) {
+      toast({
+        title: "Some files were skipped",
+        description:
+          type === "image"
+            ? "Only image files up to 5MB were accepted."
+            : "Only PDF or image files up to 10MB were accepted.",
+        variant: "destructive",
+      });
+    }
+
+    if (validFiles.length === 0) {
+      return;
+    }
+
+    const fileArray = validFiles.map((file) => URL.createObjectURL(file));
+
     if (type === 'image') {
       setUploadedImages(prev => [...prev, ...fileArray]);
+      setMediaErrors((current) => ({ ...current, images: undefined }));
     } else {
       setUploadedDocuments(prev => [...prev, ...fileArray]);
+      setMediaErrors((current) => ({ ...current, documents: undefined }));
     }
   };
 
@@ -136,15 +298,19 @@ const UploadProperty = () => {
             location: data.location,
             state: data.state,
             lga: data.lga,
-            property_type: selectedPropertyType,
+            property_type: data.propertyType,
           }),
         }
       );
-      const result = await response.json();
+      if (!response.ok) {
+        throw new Error("We could not complete the duplicate check right now.");
+      }
+
+      const result = (await response.json()) as DuplicateWarning;
       if (result.isDuplicate) {
         setDuplicateWarning(result);
         toast({
-          title: "⚠️ Possible Duplicate Detected",
+          title: "âš ï¸ Possible Duplicate Detected",
           description: result.reason || "A similar property already exists on the platform.",
           variant: "destructive",
         });
@@ -172,7 +338,7 @@ const UploadProperty = () => {
         user_id: user!.id,
         title: data.title,
         description: data.description,
-        property_type: selectedPropertyType,
+        property_type: data.propertyType,
         location: data.location,
         state: data.state,
         lga: data.lga,
@@ -194,10 +360,12 @@ const UploadProperty = () => {
         title: "Property Submitted Successfully!",
         description: "Your property is now under review. You'll be notified within 2-3 business days.",
       });
-    } catch (err: any) {
-      const errorMessage = String(err?.message || "");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "";
+      const errorCode =
+        typeof err === "object" && err !== null && "code" in err ? String(err.code) : "";
       const isPropertiesTableMissing =
-        err?.code === "PGRST205" ||
+        errorCode === "PGRST205" ||
         errorMessage.toLowerCase().includes("public.properties") ||
         errorMessage.toLowerCase().includes("schema cache");
 
@@ -231,6 +399,44 @@ const UploadProperty = () => {
 
   const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, 4));
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
+  const handleStepOneContinue = () => {
+    if (!selectedPropertyType) {
+      form.setError("propertyType", {
+        type: "manual",
+        message: "Select a property type to continue",
+      });
+      return;
+    }
+
+    nextStep();
+  };
+
+  const handleStepTwoContinue = async () => {
+    const fieldsToValidate =
+      selectedPropertyType === "joint_venture"
+        ? [...stepTwoBaseFields, ...jointVentureFields]
+        : stepTwoBaseFields;
+
+    const isValid = await form.trigger(fieldsToValidate, { shouldFocus: true });
+
+    if (isValid) {
+      nextStep();
+    }
+  };
+
+  const handleStepThreeContinue = async () => {
+    const isVerificationValid = await form.trigger("verificationType", { shouldFocus: true });
+    const nextMediaErrors = {
+      images: uploadedImages.length > 0 ? undefined : "Upload at least one property photo.",
+      documents: uploadedDocuments.length > 0 ? undefined : "Upload at least one legal document.",
+    };
+
+    setMediaErrors(nextMediaErrors);
+
+    if (isVerificationValid && !nextMediaErrors.images && !nextMediaErrors.documents) {
+      nextStep();
+    }
+  };
 
   const getStepProgress = () => (currentStep / 4) * 100;
 
@@ -367,7 +573,17 @@ const UploadProperty = () => {
                           className={`cursor-pointer transition-all hover:shadow-md ${
                             selectedPropertyType === type.id ? 'ring-2 ring-primary border-primary' : ''
                           }`}
-                          onClick={() => setSelectedPropertyType(type.id)}
+                          onClick={() => {
+                            form.setValue("propertyType", type.id, {
+                              shouldDirty: true,
+                              shouldTouch: true,
+                              shouldValidate: true,
+                            });
+                            if (type.id !== "joint_venture") {
+                              form.clearErrors(jointVentureFields);
+                            }
+                            form.clearErrors("propertyType");
+                          }}
                         >
                           <CardContent className="pt-6 text-center">
                             <type.icon className="h-12 w-12 mx-auto mb-4 text-primary" />
@@ -394,7 +610,7 @@ const UploadProperty = () => {
                     <div className="flex justify-end mt-6">
                       <Button
                         type="button"
-                        onClick={nextStep} 
+                        onClick={handleStepOneContinue}
                         disabled={!selectedPropertyType}
                         className="w-full md:w-auto"
                       >
@@ -436,7 +652,7 @@ const UploadProperty = () => {
                             <FormLabel>Price *</FormLabel>
                             <FormControl>
                               <Input 
-                                placeholder={selectedPropertyType === 'rental' ? 'e.g., ₦500,000/month' : 'e.g., ₦25,000,000'} 
+                                placeholder={selectedPropertyType === 'rental' ? 'e.g., â‚¦500,000/month' : 'e.g., â‚¦25,000,000'} 
                                 {...field} 
                               />
                             </FormControl>
@@ -471,7 +687,14 @@ const UploadProperty = () => {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>State *</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select
+                              value={field.value || undefined}
+                              onValueChange={(value) => {
+                                field.onChange(value);
+                                form.setValue("lga", "", { shouldDirty: true });
+                                form.clearErrors("lga");
+                              }}
+                            >
                               <FormControl>
                                 <SelectTrigger>
                                   <SelectValue placeholder="Select state" />
@@ -479,8 +702,8 @@ const UploadProperty = () => {
                               </FormControl>
                               <SelectContent>
                                 {nigerianStates.map((state) => (
-                                  <SelectItem key={state} value={state.toLowerCase()}>
-                                    {state}
+                                  <SelectItem key={state} value={state}>
+                                    {getStateLabel(state)}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -496,9 +719,24 @@ const UploadProperty = () => {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>LGA *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Local Government Area" {...field} />
-                            </FormControl>
+                            <Select
+                              value={field.value || undefined}
+                              onValueChange={field.onChange}
+                              disabled={!selectedState}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder={selectedState ? "Select LGA" : "Select state first"} />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {availableLgas.map((lga) => (
+                                  <SelectItem key={lga} value={lga}>
+                                    {lga}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -569,7 +807,7 @@ const UploadProperty = () => {
                                   <div className="relative">
                                     <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                     <FormControl>
-                                      <Input className="pl-10" placeholder="e.g., ₦500,000,000" {...field} />
+                                      <Input className="pl-10" placeholder="e.g., â‚¦500,000,000" {...field} />
                                     </FormControl>
                                   </div>
                                   <FormMessage />
@@ -654,7 +892,7 @@ const UploadProperty = () => {
                       <Button type="button" variant="outline" onClick={prevStep}>
                         Previous
                       </Button>
-                      <Button type="button" onClick={nextStep}>
+                      <Button type="button" onClick={handleStepTwoContinue}>
                         Continue to Media
                       </Button>
                     </div>
@@ -698,6 +936,9 @@ const UploadProperty = () => {
                             </label>
                           </Button>
                         </div>
+                        {mediaErrors.images && (
+                          <p className="text-sm font-medium text-destructive">{mediaErrors.images}</p>
+                        )}
                         
                         {uploadedImages.length > 0 && (
                           <div className="grid grid-cols-3 gap-4">
@@ -720,7 +961,7 @@ const UploadProperty = () => {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Document Type *</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <Select value={field.value || undefined} onValueChange={field.onChange}>
                                 <FormControl>
                                   <SelectTrigger>
                                     <SelectValue placeholder="Select document type" />
@@ -760,6 +1001,9 @@ const UploadProperty = () => {
                             </label>
                           </Button>
                         </div>
+                        {mediaErrors.documents && (
+                          <p className="text-sm font-medium text-destructive">{mediaErrors.documents}</p>
+                        )}
 
                         {uploadedDocuments.length > 0 && (
                           <div className="space-y-2">
@@ -779,7 +1023,7 @@ const UploadProperty = () => {
                       <Button type="button" variant="outline" onClick={prevStep}>
                         Previous
                       </Button>
-                      <Button type="button" onClick={nextStep}>
+                      <Button type="button" onClick={handleStepThreeContinue}>
                         Continue to Contact
                       </Button>
                     </div>
@@ -861,8 +1105,8 @@ const UploadProperty = () => {
                             <p className="text-sm text-muted-foreground mt-1">{duplicateWarning.reason}</p>
                             {duplicateWarning.matches.length > 0 && (
                               <ul className="mt-2 text-sm space-y-1">
-                                {duplicateWarning.matches.map((m: any, i: number) => (
-                                  <li key={i} className="text-muted-foreground">• {m.title} — {m.location}</li>
+                                {duplicateWarning.matches.map((match, index) => (
+                                  <li key={`${match.title}-${index}`} className="text-muted-foreground">• {match.title} - {match.location}</li>
                                 ))}
                               </ul>
                             )}
@@ -911,3 +1155,5 @@ const UploadProperty = () => {
 };
 
 export default UploadProperty;
+
+
