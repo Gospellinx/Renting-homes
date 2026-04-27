@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
+import { notifyUser } from "@/lib/notifications";
 
 export interface AdminVerificationRequest {
   id: string;
@@ -90,12 +91,14 @@ export const useAdminVerifications = () => {
       // Create notification for user
       const request = requests.find((r) => r.id === requestId);
       if (request) {
-        await supabase.from("notifications").insert({
-          user_id: request.user_id,
-          title: "Verification Approved",
-          message: `Your verification for ${request.property_address} has been approved!`,
-          type: "verification",
-          related_id: requestId,
+        await notifyUser({
+          userId: request.user_id,
+          title: "Verification approved",
+          message: `Your verification for ${request.property_address} has been approved.`,
+          type: "verification_approved",
+          relatedId: requestId,
+          actionUrl: "/community",
+          emailSubject: "Your property verification was approved",
         });
       }
     }
@@ -134,12 +137,14 @@ export const useAdminVerifications = () => {
       // Create notification for user
       const request = requests.find((r) => r.id === requestId);
       if (request) {
-        await supabase.from("notifications").insert({
-          user_id: request.user_id,
-          title: "Verification Rejected",
-          message: `Your verification for ${request.property_address} has been rejected. Reason: ${reason}`,
-          type: "verification",
-          related_id: requestId,
+        await notifyUser({
+          userId: request.user_id,
+          title: "Verification rejected",
+          message: `Your verification for ${request.property_address} was rejected. Reason: ${reason}`,
+          type: "verification_rejected",
+          relatedId: requestId,
+          actionUrl: "/community",
+          emailSubject: "Your property verification was rejected",
         });
       }
     }

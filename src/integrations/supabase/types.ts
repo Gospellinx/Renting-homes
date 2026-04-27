@@ -413,6 +413,10 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string
+          email_connection_notifications: boolean
+          email_message_notifications: boolean
+          email_notifications_enabled: boolean
+          email_verification_notifications: boolean
           full_name: string | null
           id: string
           location: string | null
@@ -425,6 +429,10 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          email_connection_notifications?: boolean
+          email_message_notifications?: boolean
+          email_notifications_enabled?: boolean
+          email_verification_notifications?: boolean
           full_name?: string | null
           id?: string
           location?: string | null
@@ -437,6 +445,10 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          email_connection_notifications?: boolean
+          email_message_notifications?: boolean
+          email_notifications_enabled?: boolean
+          email_verification_notifications?: boolean
           full_name?: string | null
           id?: string
           location?: string | null

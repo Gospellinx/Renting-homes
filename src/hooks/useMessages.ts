@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
+import {
+  getUserDisplayName,
+  notifyUser,
+  truncateNotificationMessage,
+} from "@/lib/notifications";
 
 export interface Message {
   id: string;
@@ -121,11 +126,26 @@ export const useMessages = () => {
   const sendMessage = async (recipientId: string, content: string) => {
     if (!user) return { error: new Error("Not authenticated") };
 
+    const trimmedContent = content.trim();
     const { error } = await supabase.from("messages").insert({
       sender_id: user.id,
       recipient_id: recipientId,
-      content,
+      content: trimmedContent,
     });
+
+    if (!error) {
+      const senderName = getUserDisplayName(user);
+
+      await notifyUser({
+        userId: recipientId,
+        type: "new_message",
+        title: `New message from ${senderName}`,
+        message: truncateNotificationMessage(trimmedContent),
+        relatedId: user.id,
+        actionUrl: `/messages?partner=${user.id}`,
+        emailSubject: `New Homes Nigeria message from ${senderName}`,
+      });
+    }
 
     return { error };
   };

@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { User, Mail, Phone, MapPin, FileText, Loader2, ArrowLeft, Shield, Briefcase, Building, Home, Search, ExternalLink, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import logo from "@/assets/homes-logo.png";
-import PushNotificationSettings from "@/components/PushNotificationSettings";
+import EmailNotificationSettings from "@/components/EmailNotificationSettings";
 import { z } from "zod";
 
 interface Profile {
@@ -776,9 +776,9 @@ const Profile = () => {
           </Card>
         )}
 
-        {/* Push Notification Settings */}
+        {/* Email Notification Settings */}
         <div className="mt-6">
-          <PushNotificationSettings />
+          <EmailNotificationSettings />
         </div>
 
         {/* Admin Link (only visible if admin) */}

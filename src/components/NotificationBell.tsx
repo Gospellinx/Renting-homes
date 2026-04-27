@@ -1,4 +1,12 @@
-import { Bell, Check, CheckCheck } from "lucide-react";
+import {
+  Bell,
+  CheckCheck,
+  Handshake,
+  MessageCircleMore,
+  ShieldCheck,
+  ShieldX,
+  UserPlus,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -11,18 +19,19 @@ import { formatDistanceToNow } from "date-fns";
 
 const getNotificationIcon = (type: string) => {
   switch (type) {
+    case "verification":
     case "verification_approved":
-      return "✅";
+      return <ShieldCheck className="h-4 w-4 text-emerald-600" />;
     case "verification_rejected":
-      return "❌";
+      return <ShieldX className="h-4 w-4 text-destructive" />;
     case "connection_request":
-      return "👋";
+      return <UserPlus className="h-4 w-4 text-primary" />;
     case "connection_accepted":
-      return "🤝";
+      return <Handshake className="h-4 w-4 text-amber-600" />;
     case "new_message":
-      return "💬";
+      return <MessageCircleMore className="h-4 w-4 text-sky-600" />;
     default:
-      return "🔔";
+      return <Bell className="h-4 w-4 text-muted-foreground" />;
   }
 };
 
@@ -35,14 +44,14 @@ export const NotificationBell = () => {
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs text-destructive-foreground">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="end">
-        <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center justify-between border-b p-4">
           <h4 className="font-semibold">Notifications</h4>
           {unreadCount > 0 && (
             <Button
@@ -51,7 +60,7 @@ export const NotificationBell = () => {
               onClick={markAllAsRead}
               className="text-xs"
             >
-              <CheckCheck className="h-4 w-4 mr-1" />
+              <CheckCheck className="mr-1 h-4 w-4" />
               Mark all read
             </Button>
           )}
@@ -87,26 +96,28 @@ const NotificationItem = ({
 }) => {
   return (
     <div
-      className={`p-4 hover:bg-muted/50 cursor-pointer transition-colors ${
+      className={`cursor-pointer p-4 transition-colors hover:bg-muted/50 ${
         !notification.read ? "bg-primary/5" : ""
       }`}
       onClick={onMarkAsRead}
     >
       <div className="flex gap-3">
-        <span className="text-xl">{getNotificationIcon(notification.type)}</span>
-        <div className="flex-1 min-w-0">
-          <p className="font-medium text-sm">{notification.title}</p>
-          <p className="text-sm text-muted-foreground truncate">
+        <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-muted/60">
+          {getNotificationIcon(notification.type)}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium">{notification.title}</p>
+          <p className="truncate text-sm text-muted-foreground">
             {notification.message}
           </p>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="mt-1 text-xs text-muted-foreground">
             {formatDistanceToNow(new Date(notification.created_at), {
               addSuffix: true,
             })}
           </p>
         </div>
         {!notification.read && (
-          <div className="h-2 w-2 rounded-full bg-primary flex-shrink-0 mt-2" />
+          <div className="mt-2 h-2 w-2 flex-shrink-0 rounded-full bg-primary" />
         )}
       </div>
     </div>

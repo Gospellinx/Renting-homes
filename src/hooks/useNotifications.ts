@@ -68,10 +68,17 @@ export const useNotifications = () => {
   }, [user]);
 
   const markAsRead = async (notificationId: string) => {
+    const existingNotification = notifications.find((n) => n.id === notificationId);
+
+    if (!existingNotification || existingNotification.read) {
+      return;
+    }
+
     const { error } = await supabase
       .from("notifications")
       .update({ read: true })
-      .eq("id", notificationId);
+      .eq("id", notificationId)
+      .eq("read", false);
 
     if (!error) {
       setNotifications((prev) =>

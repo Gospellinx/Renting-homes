@@ -71,3 +71,26 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+## Email notification setup
+
+This project now sends user notifications by email through a Supabase Edge Function called `send-notification-email`.
+
+Before deploying it, make sure you:
+
+1. Run the profile migrations in Supabase so `profiles.email_notifications_enabled` exists.
+2. Set the following Supabase function secrets:
+   - `RESEND_API_KEY`
+   - `EMAIL_FROM`
+   - `SITE_URL`
+3. Deploy the function:
+
+```sh
+supabase functions deploy send-notification-email
+```
+
+Example secret values:
+
+```sh
+supabase secrets set RESEND_API_KEY=re_xxx EMAIL_FROM="Homes Nigeria <notifications@yourdomain.com>" SITE_URL=https://your-app-domain.com
+```

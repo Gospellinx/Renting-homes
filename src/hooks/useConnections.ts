@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
+import { getUserDisplayName, notifyUser } from "@/lib/notifications";
 
 export interface Connection {
   id: string;
@@ -90,12 +91,16 @@ export const useConnections = () => {
 
     // Create notification for recipient
     if (!error) {
-      await supabase.from("notifications").insert({
-        user_id: recipientId,
+      const requesterName = getUserDisplayName(user);
+
+      await notifyUser({
+        userId: recipientId,
         type: "connection_request",
-        title: "New Connection Request",
-        message: "Someone wants to connect with you!",
-        related_id: user.id,
+        title: "New connection request",
+        message: `${requesterName} wants to connect with you on Homes Nigeria.`,
+        relatedId: user.id,
+        actionUrl: "/community",
+        emailSubject: `New connection request from ${requesterName}`,
       });
     }
 
@@ -114,13 +119,16 @@ export const useConnections = () => {
       .eq("id", connectionId);
 
     if (!error && accept) {
-      // Notify the requester
-      await supabase.from("notifications").insert({
-        user_id: connection.requester_id,
+      const responderName = getUserDisplayName(user);
+
+      await notifyUser({
+        userId: connection.requester_id,
         type: "connection_accepted",
-        title: "Connection Accepted",
-        message: "Your connection request was accepted!",
-        related_id: user.id,
+        title: "Connection request accepted",
+        message: `${responderName} accepted your connection request.`,
+        relatedId: user.id,
+        actionUrl: `/messages?partner=${user.id}`,
+        emailSubject: `${responderName} accepted your connection request`,
       });
 
       // Update local state

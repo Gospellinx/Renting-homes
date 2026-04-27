@@ -8,6 +8,10 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   bio TEXT,
   location TEXT,
   user_type TEXT,
+  email_notifications_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+  email_verification_notifications BOOLEAN NOT NULL DEFAULT TRUE,
+  email_connection_notifications BOOLEAN NOT NULL DEFAULT TRUE,
+  email_message_notifications BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
