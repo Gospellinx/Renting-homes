@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,13 +12,18 @@ import { Separator } from "@/components/ui/separator";
 import { useAdsManager, type Campaign } from "@/hooks/useAdsManager";
 import {
   ArrowLeft,
+  CheckCircle2,
+  Globe2,
   ImagePlus,
+  Layers3,
   Loader2,
   Save,
   Send,
+  Sparkles,
   Target,
   Users,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface CampaignWizardProps {
   campaign?: Campaign | null;
@@ -50,6 +55,31 @@ const toNumberOrNull = (value: string) => {
   const numericValue = Number(trimmedValue);
   return Number.isFinite(numericValue) ? numericValue : null;
 };
+
+const SectionHeading = ({
+  number,
+  title,
+  description,
+  icon: Icon,
+}: {
+  number: string;
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+}) => (
+  <div className="flex items-start gap-4">
+    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eef1ff] text-[#26225f]">
+      <Icon className="h-5 w-5" />
+    </div>
+    <div className="space-y-1">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7b82a8]">
+        Step {number}
+      </p>
+      <h3 className="text-xl font-semibold text-[#1f1a54]">{title}</h3>
+      <p className="text-sm leading-6 text-[#6d7599]">{description}</p>
+    </div>
+  </div>
+);
 
 export default function CampaignWizard({
   campaign,
@@ -123,11 +153,23 @@ export default function CampaignWizard({
     setBadge(primaryAd?.badge || "");
   }, [campaign, primaryAd, primaryAdSet]);
 
-  const handleSave = async (mode: "draft" | "pending_review") => {
-    const mergedLocations = Array.from(
-      new Set([...targetLocations, ...parseList(customLocations)])
-    );
+  const mergedLocations = useMemo(
+    () => Array.from(new Set([...targetLocations, ...parseList(customLocations)])),
+    [customLocations, targetLocations]
+  );
 
+  const basicsComplete =
+    campaignName.trim().length > 0 &&
+    Number(totalBudget || 0) > 0 &&
+    objective.trim().length > 0;
+  const audienceComplete = mergedLocations.length > 0 && targetUserTypes.length > 0;
+  const creativeComplete =
+    headline.trim().length > 0 &&
+    ctaText.trim().length > 0 &&
+    (description.trim().length > 0 || imageUrl.trim().length > 0);
+  const progressCount = [basicsComplete, audienceComplete, creativeComplete].filter(Boolean).length;
+
+  const handleSave = async (mode: "draft" | "pending_review") => {
     const result = await upsertCampaignBundle.mutateAsync({
       campaignId: campaign?.id,
       adSetId: primaryAdSet?.id,
@@ -175,40 +217,79 @@ export default function CampaignWizard({
   const isSaving = upsertCampaignBundle.isPending;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <ArrowLeft className="h-4 w-4" />
-            <button type="button" onClick={onCancel} className="hover:text-foreground">
+    <div className="mx-auto max-w-6xl space-y-6">
+      <div className="overflow-hidden rounded-[32px] border border-[#dbe0f4] bg-[linear-gradient(135deg,#1f1a54_0%,#2d2873_58%,#6e62ca_100%)] text-white shadow-[0_28px_60px_rgba(31,26,84,0.18)]">
+        <div className="grid gap-6 px-6 py-6 lg:grid-cols-[1.35fr_0.65fr] lg:px-8 lg:py-8">
+          <div className="space-y-5">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="inline-flex items-center gap-2 text-sm text-white/78 transition hover:text-white"
+            >
+              <ArrowLeft className="h-4 w-4" />
               Back to ads manager
             </button>
+            <div className="space-y-3">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-white/85">
+                <Sparkles className="h-3.5 w-3.5" />
+                Campaign builder
+              </div>
+              <h2 className="text-3xl font-bold leading-tight lg:text-[2.4rem]">
+                {campaign ? "Refine your campaign before the next review." : "Launch a campaign with a cleaner, review-ready setup."}
+              </h2>
+              <p className="max-w-2xl text-sm leading-6 text-white/75 lg:text-base">
+                Shape the brief, define the audience, and package the creative in a layout that is easier
+                for your team and moderators to understand quickly.
+              </p>
+            </div>
           </div>
-          <h2 className="text-2xl font-bold text-[#1f1a54]">
-            {campaign ? "Edit Campaign" : "Create Ad Campaign"}
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Build one campaign, define its audience, and submit the ad for review.
-          </p>
+
+          <div className="rounded-[28px] border border-white/12 bg-white/10 p-5 backdrop-blur-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
+              Progress overview
+            </p>
+            <div className="mt-3 flex items-end justify-between">
+              <div>
+                <p className="text-4xl font-bold">{progressCount}/3</p>
+                <p className="text-sm text-white/72">Core sections ready</p>
+              </div>
+              {campaign?.status && (
+                <Badge variant="outline" className="border-white/20 bg-white/10 text-white">
+                  {campaign.status.replace(/_/g, " ")}
+                </Badge>
+              )}
+            </div>
+            <div className="mt-5 space-y-3">
+              {[
+                { label: "Campaign basics", complete: basicsComplete },
+                { label: "Audience targeting", complete: audienceComplete },
+                { label: "Creative setup", complete: creativeComplete },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="flex items-center justify-between rounded-2xl bg-black/10 px-4 py-3 text-sm"
+                >
+                  <span className="text-white/82">{item.label}</span>
+                  <span className={cn("font-medium", item.complete ? "text-white" : "text-white/55")}>
+                    {item.complete ? "Ready" : "Pending"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-        {campaign?.status && (
-          <Badge variant="outline" className="capitalize">
-            Current status: {campaign.status.replace(/_/g, " ")}
-          </Badge>
-        )}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1.4fr_0.9fr]">
+      <div className="grid gap-6 lg:grid-cols-[1.35fr_0.72fr]">
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5 text-primary" />
-                Campaign Basics
-              </CardTitle>
-              <CardDescription>
-                Set the goal, budget, and flight dates for this campaign.
-              </CardDescription>
+          <Card className="border-[#dbe0f4] bg-white/95 shadow-[0_18px_45px_rgba(31,26,84,0.06)]">
+            <CardHeader className="pb-2">
+              <SectionHeading
+                number="01"
+                title="Campaign Basics"
+                description="Set the strategic direction, spend, and date range for this advertising push."
+                icon={Target}
+              />
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2 md:col-span-2">
@@ -297,17 +378,16 @@ export default function CampaignWizard({
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-primary" />
-                Audience Targeting
-              </CardTitle>
-              <CardDescription>
-                Choose where this ad should appear and who should see it.
-              </CardDescription>
+          <Card className="border-[#dbe0f4] bg-white/95 shadow-[0_18px_45px_rgba(31,26,84,0.06)]">
+            <CardHeader className="pb-2">
+              <SectionHeading
+                number="02"
+                title="Audience Targeting"
+                description="Describe the neighborhood, user intent, and budget profile that should receive the ad."
+                icon={Users}
+              />
             </CardHeader>
-            <CardContent className="space-y-5">
+            <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="ad-set-name">Audience name</Label>
                 <Input
@@ -327,6 +407,7 @@ export default function CampaignWizard({
                       type="button"
                       variant={targetLocations.includes(option) ? "default" : "outline"}
                       size="sm"
+                      className="rounded-full"
                       onClick={() =>
                         setTargetLocations((currentValues) =>
                           toggleListValue(currentValues, option)
@@ -353,12 +434,12 @@ export default function CampaignWizard({
                       type="button"
                       variant={targetUserTypes.includes(option) ? "default" : "outline"}
                       size="sm"
+                      className="rounded-full capitalize"
                       onClick={() =>
                         setTargetUserTypes((currentValues) =>
                           toggleListValue(currentValues, option)
                         )
                       }
-                      className="capitalize"
                     >
                       {option.replace(/_/g, " ")}
                     </Button>
@@ -375,12 +456,12 @@ export default function CampaignWizard({
                       type="button"
                       variant={targetPropertyTypes.includes(option) ? "default" : "outline"}
                       size="sm"
+                      className="rounded-full capitalize"
                       onClick={() =>
                         setTargetPropertyTypes((currentValues) =>
                           toggleListValue(currentValues, option)
                         )
                       }
-                      className="capitalize"
                     >
                       {option}
                     </Button>
@@ -418,15 +499,14 @@ export default function CampaignWizard({
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ImagePlus className="h-5 w-5 text-primary" />
-                Ad Creative
-              </CardTitle>
-              <CardDescription>
-                Provide the text and media that buyers or renters will see.
-              </CardDescription>
+          <Card className="border-[#dbe0f4] bg-white/95 shadow-[0_18px_45px_rgba(31,26,84,0.06)]">
+            <CardHeader className="pb-2">
+              <SectionHeading
+                number="03"
+                title="Creative Setup"
+                description="Shape the message and visual details that make the ad feel clear and premium."
+                icon={ImagePlus}
+              />
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
@@ -466,7 +546,7 @@ export default function CampaignWizard({
                   value={description}
                   onChange={(event) => setDescription(event.target.value)}
                   placeholder="Highlight the property's value, location, and strongest features."
-                  className="min-h-[120px]"
+                  className="min-h-[140px] rounded-[24px] border-[#dbe0f4] bg-[#fbfbfe] p-4"
                 />
               </div>
 
@@ -523,88 +603,168 @@ export default function CampaignWizard({
           </Card>
         </div>
 
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Launch Checklist</CardTitle>
+        <div className="space-y-6 lg:sticky lg:top-6 lg:self-start">
+          <Card className="overflow-hidden border-0 bg-[linear-gradient(160deg,#ffffff_0%,#f6f7fd_100%)] shadow-[0_18px_45px_rgba(31,26,84,0.08)]">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-[#1f1a54]">
+                <Layers3 className="h-5 w-5 text-primary" />
+                Campaign Summary
+              </CardTitle>
               <CardDescription>
-                Save a draft if you are still polishing the ad, or submit it for admin review when
-                it is ready.
+                A cleaner snapshot of what you are about to save or send for review.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm text-muted-foreground">
-              <div className="rounded-lg border p-3">
-                <p className="font-medium text-foreground">Campaign setup</p>
-                <p>Name, objective, budget, and schedule should be final.</p>
-              </div>
-              <div className="rounded-lg border p-3">
-                <p className="font-medium text-foreground">Audience setup</p>
-                <p>Choose the right locations and property intent for better reach.</p>
-              </div>
-              <div className="rounded-lg border p-3">
-                <p className="font-medium text-foreground">Creative review</p>
-                <p>Make sure the headline, image, and CTA link are accurate.</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Campaign Summary</CardTitle>
-              <CardDescription>
-                A quick view of what will be saved with this campaign.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Objective</span>
-                <span className="font-medium capitalize">{objective}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Budget</span>
-                <span className="font-medium">NGN {Number(totalBudget || 0).toLocaleString()}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Locations</span>
-                <span className="font-medium text-right">
-                  {[...targetLocations, ...parseList(customLocations)].join(", ") || "Not set"}
-                </span>
-              </div>
-              <Separator />
-              <div className="space-y-2">
-                <p className="font-medium text-foreground">Headline preview</p>
-                <p className="rounded-lg bg-muted/50 p-3 text-sm">
-                  {headline || "Your ad headline will appear here."}
+            <CardContent className="space-y-4">
+              <div className="rounded-[24px] border border-[#e3e7f7] bg-white p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#7b82a8]">
+                  Campaign overview
+                </p>
+                <h4 className="mt-2 text-xl font-semibold text-[#1f1a54]">
+                  {campaignName || "Untitled campaign"}
+                </h4>
+                <p className="mt-1 text-sm text-[#6d7599] capitalize">
+                  {objective} • {adType} ad
                 </p>
               </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-2xl border border-[#e3e7f7] bg-white p-4">
+                  <p className="text-xs uppercase tracking-[0.16em] text-[#7b82a8]">Budget</p>
+                  <p className="mt-1 text-lg font-semibold text-[#1f1a54]">
+                    NGN {Number(totalBudget || 0).toLocaleString()}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-[#e3e7f7] bg-white p-4">
+                  <p className="text-xs uppercase tracking-[0.16em] text-[#7b82a8]">Locations</p>
+                  <p className="mt-1 text-lg font-semibold text-[#1f1a54]">{mergedLocations.length}</p>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-3">
+                {[
+                  { label: "Campaign basics", complete: basicsComplete },
+                  { label: "Audience targeting", complete: audienceComplete },
+                  { label: "Creative setup", complete: creativeComplete },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="flex items-center justify-between rounded-2xl border border-[#e3e7f7] bg-white px-4 py-3"
+                  >
+                    <span className="text-sm text-[#5f678a]">{item.label}</span>
+                    <span
+                      className={cn(
+                        "text-sm font-medium",
+                        item.complete ? "text-emerald-700" : "text-[#8a91b0]"
+                      )}
+                    >
+                      {item.complete ? "Ready" : "Needs work"}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
 
-          <div className="flex flex-col gap-3">
+          <Card className="border-[#dbe0f4] bg-white/95 shadow-[0_18px_45px_rgba(31,26,84,0.06)]">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-[#1f1a54]">
+                <Globe2 className="h-5 w-5 text-primary" />
+                Live Preview
+              </CardTitle>
+              <CardDescription>
+                This is how the creative direction is shaping up.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="overflow-hidden rounded-[28px] border border-[#dbe0f4] bg-[#f7f8ff]">
+                <div className="relative h-48 bg-[#edf1ff]">
+                  {imageUrl ? (
+                    <img src={imageUrl} alt={headline || "Ad preview"} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-[#8e95b8]">
+                      <ImagePlus className="h-10 w-10" />
+                    </div>
+                  )}
+                  {badge && (
+                    <div className="absolute left-4 top-4 rounded-full bg-black/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white">
+                      {badge}
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-3 p-5">
+                  <div>
+                    <h4 className="text-lg font-semibold text-[#1f1a54]">
+                      {headline || "Your ad headline preview"}
+                    </h4>
+                    <p className="mt-2 text-sm leading-6 text-[#6b7397]">
+                      {description || "Add a concise description to bring the offer to life."}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-[#1f1a54]">
+                        {price || "Price not set"}
+                      </p>
+                      <p className="text-xs text-[#7f86ab]">{location || "Location not set"}</p>
+                    </div>
+                    <div className="rounded-full bg-[#26225f] px-4 py-2 text-sm font-medium text-white">
+                      {ctaText || "View Details"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-dashed border-[#dbe0f4] bg-[#fafbff] p-4 text-sm text-[#687091]">
+                Strong campaigns usually combine a clear headline, a compelling image, and a tight location match.
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="space-y-3">
             <Button
               type="button"
               variant="outline"
+              className="w-full gap-2 rounded-full"
               onClick={() => handleSave("draft")}
               disabled={isSaving}
             >
-              {isSaving ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4" />
-              )}
+              {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Save Draft
             </Button>
-            <Button type="button" onClick={() => handleSave("pending_review")} disabled={isSaving}>
-              {isSaving ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
+            <Button
+              type="button"
+              className="w-full gap-2 rounded-full"
+              onClick={() => handleSave("pending_review")}
+              disabled={isSaving}
+            >
+              {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               Submit For Review
             </Button>
-            <Button type="button" variant="ghost" onClick={onCancel} disabled={isSaving}>
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full rounded-full"
+              onClick={onCancel}
+              disabled={isSaving}
+            >
               Cancel
             </Button>
+          </div>
+
+          <div className="rounded-[26px] border border-[#ecd9bf] bg-[linear-gradient(135deg,#fbf4e8_0%,#fffaf3_100%)] p-5 shadow-sm">
+            <div className="flex items-start gap-3">
+              <div className="rounded-2xl bg-white/80 p-2 text-[#8b6135]">
+                <CheckCircle2 className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="font-semibold text-[#6f4c22]">Submission tip</p>
+                <p className="mt-1 text-sm leading-6 text-[#7b5c39]">
+                  Before submitting, double-check the CTA link, image quality, and audience choices so the moderation round goes faster.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

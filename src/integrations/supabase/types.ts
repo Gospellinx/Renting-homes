@@ -461,73 +461,91 @@ export type Database = {
       }
       properties: {
         Row: {
-          amenities: string[] | null
+          amenities: string[]
           created_at: string
-          description: string | null
+          description: string
+          developer_requirements: string | null
+          document_paths: string[]
+          expected_investment: string | null
           id: string
-          images: string[] | null
+          images: string[]
+          land_size: string | null
           latitude: number | null
-          lga: string | null
+          lga: string
           location: string
           longitude: number | null
-          owner_email: string | null
-          owner_name: string | null
-          owner_phone: string | null
-          price: string | null
+          owner_email: string
+          owner_name: string
+          owner_phone: string
+          partnership_terms: string | null
+          price: string
+          proposed_development: string | null
           property_type: string
-          size: string | null
-          state: string | null
+          size: string
+          state: string
           status: string
           title: string
           updated_at: string
           user_id: string
-          verification_type: string | null
+          verification_type: string
         }
         Insert: {
-          amenities?: string[] | null
+          amenities?: string[]
           created_at?: string
-          description?: string | null
+          description: string
+          developer_requirements?: string | null
+          document_paths?: string[]
+          expected_investment?: string | null
           id?: string
-          images?: string[] | null
+          images?: string[]
+          land_size?: string | null
           latitude?: number | null
-          lga?: string | null
+          lga: string
           location: string
           longitude?: number | null
-          owner_email?: string | null
-          owner_name?: string | null
-          owner_phone?: string | null
-          price?: string | null
+          owner_email: string
+          owner_name: string
+          owner_phone: string
+          partnership_terms?: string | null
+          price: string
+          proposed_development?: string | null
           property_type: string
-          size?: string | null
-          state?: string | null
+          size: string
+          state: string
           status?: string
           title: string
           updated_at?: string
           user_id: string
-          verification_type?: string | null
+          verification_type: string
         }
         Update: {
-          amenities?: string[] | null
+          amenities?: string[]
           created_at?: string
-          description?: string | null
+          description?: string
+          developer_requirements?: string | null
+          document_paths?: string[]
+          expected_investment?: string | null
           id?: string
-          images?: string[] | null
+          images?: string[]
+          land_size?: string | null
           latitude?: number | null
-          lga?: string | null
+          lga?: string
           location?: string
           longitude?: number | null
-          owner_email?: string | null
-          owner_name?: string | null
-          owner_phone?: string | null
-          price?: string | null
+          owner_email?: string
+          owner_name?: string
+          owner_phone?: string
+          partnership_terms?: string | null
+          price?: string
+          proposed_development?: string | null
           property_type?: string
-          size?: string | null
-          state?: string | null
+          size?: string
+          state?: string
           status?: string
           title?: string
           updated_at?: string
           user_id?: string
-          verification_type?: string | null
+          verification_type?: string
         }
         Relationships: []
       }

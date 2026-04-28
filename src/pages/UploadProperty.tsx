@@ -1,200 +1,115 @@
-﻿import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { useForm, type FieldPath } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/context/AuthContext";
-import AdBanner from '@/components/AdBanner';
-import AuthPrompt from '@/components/AuthPrompt';
-import { getLgasForState, nigerianStates } from "@/data/nigerianStateLgas";
-import { 
-  Upload, 
-  FileText, 
-  Camera, 
-  CheckCircle, 
+import { useEffect, useRef, useState } from "react";
+import {
   AlertTriangle,
-  Home,
-  Building,
-  TreePine,
   ArrowLeft,
+  Briefcase,
+  Building,
+  Camera,
+  CheckCircle,
   Clock,
-  Shield,
-  Users,
-  Handshake,
   DollarSign,
   FileCheck,
-  Briefcase
+  FileText,
+  Handshake,
+  Home,
+  Loader2,
+  Shield,
+  TreePine,
+  Upload,
+  Users,
+  X,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { z } from "zod";
+import { useForm, type FieldErrors, type FieldPath } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { FunctionsHttpError } from "@supabase/supabase-js";
 
-interface PropertyFormData {
-  propertyType: string;
-  title: string;
-  description: string;
-  location: string;
-  state: string;
-  lga: string;
-  price: string;
-  size: string;
-  amenities: string[];
-  ownerName: string;
-  ownerPhone: string;
-  ownerEmail: string;
-  verificationType: string;
-  // Joint Venture specific fields
-  expectedInvestment: string;
-  partnershipTerms: string;
-  developerRequirements: string;
-  landSize: string;
-  proposedDevelopment: string;
-}
-
-interface DuplicateMatch {
-  title: string;
-  location: string;
-}
-
-interface DuplicateWarning {
-  isDuplicate: boolean;
-  reason: string;
-  matches: DuplicateMatch[];
-}
-
-const phoneCharactersPattern = /^[+\d\s()-]+$/;
-
-const uploadPropertySchema = z
-  .object({
-    propertyType: z.string().min(1, "Select a property type"),
-    title: z.string().trim().min(5, "Enter a clearer property title").max(120, "Title is too long"),
-    description: z.string().trim().min(20, "Description must be at least 20 characters").max(2000, "Description is too long"),
-    location: z.string().trim().min(5, "Enter the detailed property address").max(200, "Address is too long"),
-    state: z.string().min(1, "Select a state"),
-    lga: z.string().min(1, "Select an LGA"),
-    price: z
-      .string()
-      .trim()
-      .min(2, "Enter the property price")
-      .max(60, "Price is too long")
-      .refine((value) => /\d/.test(value), "Price must include a number"),
-    size: z.string().trim().min(2, "Enter the property size").max(80, "Size is too long"),
-    amenities: z.array(z.string()),
-    ownerName: z.string().trim().min(2, "Enter the contact full name").max(100, "Name is too long"),
-    ownerPhone: z
-      .string()
-      .trim()
-      .min(1, "Enter a phone number")
-      .refine(
-        (value) => phoneCharactersPattern.test(value),
-        "Use only numbers, spaces, hyphens, parentheses, or a leading +"
-      )
-      .refine((value) => {
-        const digitsOnly = value.replace(/\D/g, "");
-        return digitsOnly.length >= 10 && digitsOnly.length <= 15;
-      }, "Phone number must contain 10 to 15 digits"),
-    ownerEmail: z.string().trim().email("Enter a valid email address"),
-    verificationType: z.string().min(1, "Select a document type"),
-    expectedInvestment: z.string(),
-    partnershipTerms: z.string(),
-    developerRequirements: z.string(),
-    landSize: z.string(),
-    proposedDevelopment: z.string(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.propertyType !== "joint_venture") {
-      return;
-    }
-
-    if (!data.landSize.trim()) {
-      ctx.addIssue({ code: "custom", path: ["landSize"], message: "Enter the land size" });
-    }
-
-    if (!data.expectedInvestment.trim()) {
-      ctx.addIssue({ code: "custom", path: ["expectedInvestment"], message: "Enter the expected investment amount" });
-    }
-
-    if (!data.proposedDevelopment.trim()) {
-      ctx.addIssue({ code: "custom", path: ["proposedDevelopment"], message: "Enter the proposed development type" });
-    }
-
-    if (data.partnershipTerms.trim().length < 10) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["partnershipTerms"],
-        message: "Partnership terms must be at least 10 characters",
-      });
-    }
-
-    if (data.developerRequirements.trim().length < 10) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["developerRequirements"],
-        message: "Developer requirements must be at least 10 characters",
-      });
-    }
-  });
-
-const stepTwoBaseFields: FieldPath<PropertyFormData>[] = ["title", "price", "description", "state", "lga", "size", "location"];
-const jointVentureFields: FieldPath<PropertyFormData>[] = [
-  "landSize",
-  "expectedInvestment",
-  "proposedDevelopment",
-  "partnershipTerms",
-  "developerRequirements",
-];
+import AdBanner from "@/components/AdBanner";
+import AuthPrompt from "@/components/AuthPrompt";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/context/AuthContext";
+import { getLgasForState, nigerianStates } from "@/data/nigerianStateLgas";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  buildPropertySubmissionPayload,
+  buildStoragePath,
+  getStepForField,
+  jointVentureFields,
+  PROPERTY_DOCUMENT_BUCKET,
+  PROPERTY_DOCUMENT_LIMITS,
+  PROPERTY_IMAGE_BUCKET,
+  PROPERTY_IMAGE_LIMITS,
+  PROPERTY_TYPES,
+  propertyFormDefaults,
+  type PropertyFormData,
+  type PropertySubmissionResponse,
+  revokeMediaPreviews,
+  type SelectedMediaFile,
+  stepTwoBaseFields,
+  uploadPropertySchema,
+  validateAndPrepareFiles,
+  VERIFICATION_TYPES,
+  type DuplicateWarning,
+} from "@/lib/propertySubmission";
 
 const getStateLabel = (state: string) =>
   state === "Federal Capital Territory" ? "Abuja (FCT)" : state;
 
+const propertyTypeIcons = {
+  land: TreePine,
+  rental: Home,
+  building: Building,
+  shop_rental: Briefcase,
+  joint_venture: Handshake,
+} as const;
+
+const stepTwoFields = [...stepTwoBaseFields] as FieldPath<PropertyFormData>[];
+const jointVentureStepFields = [...jointVentureFields] as FieldPath<PropertyFormData>[];
+
+type SubmissionPhase = "uploading" | "submitting" | null;
+
 const UploadProperty = () => {
   const { user, loading } = useAuth();
+  const { toast } = useToast();
+
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const [uploadedDocuments, setUploadedDocuments] = useState<string[]>([]);
-  const [isCheckingDuplicate, setIsCheckingDuplicate] = useState(false);
+  const [imageFiles, setImageFiles] = useState<SelectedMediaFile[]>([]);
+  const [documentFiles, setDocumentFiles] = useState<SelectedMediaFile[]>([]);
   const [duplicateWarning, setDuplicateWarning] = useState<DuplicateWarning | null>(null);
   const [mediaErrors, setMediaErrors] = useState<{ images?: string; documents?: string }>({});
-  const [submissionIssue, setSubmissionIssue] = useState<{ title: string; description: string; hint?: string } | null>(null);
-  const { toast } = useToast();
+  const [submissionIssue, setSubmissionIssue] = useState<{
+    title: string;
+    description: string;
+    hint?: string;
+  } | null>(null);
+  const [submissionPhase, setSubmissionPhase] = useState<SubmissionPhase>(null);
+
+  const imageFilesRef = useRef<SelectedMediaFile[]>([]);
+  const documentFilesRef = useRef<SelectedMediaFile[]>([]);
 
   const form = useForm<PropertyFormData>({
     resolver: zodResolver(uploadPropertySchema),
     mode: "onTouched",
     reValidateMode: "onChange",
-    defaultValues: {
-      propertyType: "",
-      title: "",
-      description: "",
-      location: "",
-      state: "",
-      lga: "",
-      price: "",
-      size: "",
-      amenities: [],
-      ownerName: "",
-      ownerPhone: "",
-      ownerEmail: "",
-      verificationType: "",
-      expectedInvestment: "",
-      partnershipTerms: "",
-      developerRequirements: "",
-      landSize: "",
-      proposedDevelopment: "",
-    },
+    defaultValues: propertyFormDefaults,
   });
+
   const selectedPropertyType = form.watch("propertyType");
   const selectedState = form.watch("state");
   const availableLgas = getLgasForState(selectedState);
+
+  imageFilesRef.current = imageFiles;
+  documentFilesRef.current = documentFiles;
 
   useEffect(() => {
     if (!user) {
@@ -213,10 +128,16 @@ const UploadProperty = () => {
     }
   }, [form, user]);
 
-  // Show auth prompt for unauthenticated users
+  useEffect(() => {
+    return () => {
+      revokeMediaPreviews(imageFilesRef.current);
+      revokeMediaPreviews(documentFilesRef.current);
+    };
+  }, []);
+
   if (!loading && !user) {
     return (
-      <AuthPrompt 
+      <AuthPrompt
         icon={Upload}
         title="Upload Property"
         description="Create an account to list your property on our platform"
@@ -224,181 +145,33 @@ const UploadProperty = () => {
     );
   }
 
-  const propertyTypes = [
-    { id: "land", label: "Land", icon: TreePine, desc: "Vacant land, plots, or development sites" },
-    { id: "rental", label: "Rental Property", icon: Home, desc: "Apartments, houses for rent" },
-    { id: "building", label: "Building/Sale", icon: Building, desc: "Properties for sale or investment" },
-    { id: "shop_rental", label: "Shop Rental", icon: Briefcase, desc: "Shops and commercial retail spaces" },
-    { id: "joint_venture", label: "Joint Venture", icon: Handshake, desc: "Partnership opportunities for developers" }
-  ];
-
-  const verificationTypes = [
-    { id: "certificate", label: "Certificate of Occupancy (C of O)" },
-    { id: "deed", label: "Deed of Assignment" },
-    { id: "survey", label: "Survey Plan" },
-    { id: "receipt", label: "Purchase Receipt" },
-    { id: "other", label: "Other Legal Documents" }
-  ];
-
-  const handleFileUpload = (type: 'image' | 'document', files: FileList | null) => {
-    if (!files) return;
-
-    const fileList = Array.from(files);
-    const maxFileSize = type === "image" ? 5 * 1024 * 1024 : 10 * 1024 * 1024;
-    const validFiles = fileList.filter((file) => {
-      const isCorrectType =
-        type === "image"
-          ? file.type.startsWith("image/")
-          : file.type === "application/pdf" || file.type.startsWith("image/");
-
-      return isCorrectType && file.size <= maxFileSize;
-    });
-
-    if (validFiles.length !== fileList.length) {
-      toast({
-        title: "Some files were skipped",
-        description:
-          type === "image"
-            ? "Only image files up to 5MB were accepted."
-            : "Only PDF or image files up to 10MB were accepted.",
-        variant: "destructive",
-      });
-    }
-
-    if (validFiles.length === 0) {
-      return;
-    }
-
-    const fileArray = validFiles.map((file) => URL.createObjectURL(file));
-
-    if (type === 'image') {
-      setUploadedImages(prev => [...prev, ...fileArray]);
-      setMediaErrors((current) => ({ ...current, images: undefined }));
-    } else {
-      setUploadedDocuments(prev => [...prev, ...fileArray]);
-      setMediaErrors((current) => ({ ...current, documents: undefined }));
-    }
-  };
-
-  const checkForDuplicate = async (data: PropertyFormData) => {
-    setIsCheckingDuplicate(true);
+  const clearSubmissionState = () => {
     setDuplicateWarning(null);
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/check-duplicate-property`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({
-            title: data.title,
-            description: data.description,
-            location: data.location,
-            state: data.state,
-            lga: data.lga,
-            property_type: data.propertyType,
-          }),
-        }
-      );
-      if (!response.ok) {
-        throw new Error("We could not complete the duplicate check right now.");
-      }
-
-      const result = (await response.json()) as DuplicateWarning;
-      if (result.isDuplicate) {
-        setDuplicateWarning(result);
-        toast({
-          title: "âš ï¸ Possible Duplicate Detected",
-          description: result.reason || "A similar property already exists on the platform.",
-          variant: "destructive",
-        });
-        return true;
-      }
-      return false;
-    } catch (err) {
-      console.error("Duplicate check error:", err);
-      return false; // Allow submission if check fails
-    } finally {
-      setIsCheckingDuplicate(false);
-    }
-  };
-
-  const onSubmit = async (data: PropertyFormData) => {
     setSubmissionIssue(null);
-
-    const isDuplicate = await checkForDuplicate(data);
-    if (isDuplicate) return;
-
-    // Save to database
-    try {
-      const { supabase } = await import("@/integrations/supabase/client");
-      const { error } = await supabase.from("properties").insert({
-        user_id: user!.id,
-        title: data.title,
-        description: data.description,
-        property_type: data.propertyType,
-        location: data.location,
-        state: data.state,
-        lga: data.lga,
-        price: data.price,
-        size: data.size,
-        amenities: data.amenities ?? [],
-        images: uploadedImages,
-        owner_name: data.ownerName,
-        owner_phone: data.ownerPhone,
-        owner_email: data.ownerEmail,
-        verification_type: data.verificationType,
-        status: "pending_review",
-      });
-
-      if (error) throw error;
-
-      setIsSubmitted(true);
-      toast({
-        title: "Property Submitted Successfully!",
-        description: "Your property is now under review. You'll be notified within 2-3 business days.",
-      });
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "";
-      const errorCode =
-        typeof err === "object" && err !== null && "code" in err ? String(err.code) : "";
-      const isPropertiesTableMissing =
-        errorCode === "PGRST205" ||
-        errorMessage.toLowerCase().includes("public.properties") ||
-        errorMessage.toLowerCase().includes("schema cache");
-
-      if (isPropertiesTableMissing) {
-        setSubmissionIssue({
-          title: "Property submission is not ready yet",
-          description:
-            "Property review could not start because the listing database has not been configured on this environment yet.",
-          hint:
-            "If you're setting up the project, run the SQL in supabase/migrations/properties_table.sql, then refresh and try again.",
-        });
-        toast({
-          title: "Submission unavailable",
-          description: "Property listing setup is incomplete on this environment.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      setSubmissionIssue({
-        title: "We couldn't submit this property",
-        description: errorMessage || "Could not submit property. Please try again.",
-      });
-      toast({
-        title: "Submission Failed",
-        description: errorMessage || "Could not submit property. Please try again.",
-        variant: "destructive",
-      });
-    }
   };
 
-  const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, 4));
-  const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
+  const resetMedia = () => {
+    revokeMediaPreviews(imageFiles);
+    revokeMediaPreviews(documentFiles);
+    setImageFiles([]);
+    setDocumentFiles([]);
+    setMediaErrors({});
+  };
+
+  const resetFormFlow = () => {
+    resetMedia();
+    setIsSubmitted(false);
+    setCurrentStep(1);
+    clearSubmissionState();
+    setSubmissionPhase(null);
+    form.reset({
+      ...propertyFormDefaults,
+      ownerEmail: user?.email ?? "",
+      ownerName:
+        typeof user?.user_metadata?.full_name === "string" ? user.user_metadata.full_name : "",
+    });
+  };
+
   const handleStepOneContinue = () => {
     if (!selectedPropertyType) {
       form.setError("propertyType", {
@@ -411,11 +184,14 @@ const UploadProperty = () => {
     nextStep();
   };
 
+  const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 4));
+  const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
+
   const handleStepTwoContinue = async () => {
     const fieldsToValidate =
       selectedPropertyType === "joint_venture"
-        ? [...stepTwoBaseFields, ...jointVentureFields]
-        : stepTwoBaseFields;
+        ? [...stepTwoFields, ...jointVentureStepFields]
+        : stepTwoFields;
 
     const isValid = await form.trigger(fieldsToValidate, { shouldFocus: true });
 
@@ -424,21 +200,305 @@ const UploadProperty = () => {
     }
   };
 
-  const handleStepThreeContinue = async () => {
-    const isVerificationValid = await form.trigger("verificationType", { shouldFocus: true });
+  const validateMediaStep = () => {
     const nextMediaErrors = {
-      images: uploadedImages.length > 0 ? undefined : "Upload at least one property photo.",
-      documents: uploadedDocuments.length > 0 ? undefined : "Upload at least one legal document.",
+      images: imageFiles.length > 0 ? undefined : "Upload at least one property photo.",
+      documents: documentFiles.length > 0 ? undefined : "Upload at least one legal document.",
     };
 
     setMediaErrors(nextMediaErrors);
+    return !nextMediaErrors.images && !nextMediaErrors.documents;
+  };
 
-    if (isVerificationValid && !nextMediaErrors.images && !nextMediaErrors.documents) {
+  const handleStepThreeContinue = async () => {
+    const isVerificationValid = await form.trigger("verificationType", { shouldFocus: true });
+    const isMediaValid = validateMediaStep();
+
+    if (isVerificationValid && isMediaValid) {
       nextStep();
     }
   };
 
+  const handleFileUpload = (kind: "image" | "document", files: FileList | null) => {
+    if (!files || files.length === 0) {
+      return;
+    }
+
+    clearSubmissionState();
+
+    const fileArray = Array.from(files);
+    const existingCount = kind === "image" ? imageFiles.length : documentFiles.length;
+    const { acceptedFiles, rejectedErrors } = validateAndPrepareFiles(kind, fileArray, existingCount);
+
+    if (kind === "image") {
+      setImageFiles((current) => [...current, ...acceptedFiles]);
+      setMediaErrors((current) => ({ ...current, images: acceptedFiles.length > 0 ? undefined : current.images }));
+    } else {
+      setDocumentFiles((current) => [...current, ...acceptedFiles]);
+      setMediaErrors((current) => ({
+        ...current,
+        documents: acceptedFiles.length > 0 ? undefined : current.documents,
+      }));
+    }
+
+    if (rejectedErrors.length > 0) {
+      const firstError = rejectedErrors[0];
+      setMediaErrors((current) => ({
+        ...current,
+        [kind === "image" ? "images" : "documents"]: firstError,
+      }));
+      toast({
+        title: kind === "image" ? "Some photos were not added" : "Some documents were not added",
+        description: firstError,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const removeMediaFile = (kind: "image" | "document", fileId: string) => {
+    if (kind === "image") {
+      setImageFiles((current) => {
+        const target = current.find((file) => file.id === fileId);
+        if (target) {
+          revokeMediaPreviews([target]);
+        }
+        return current.filter((file) => file.id !== fileId);
+      });
+      setMediaErrors((current) => ({ ...current, images: undefined }));
+      return;
+    }
+
+    setDocumentFiles((current) => current.filter((file) => file.id !== fileId));
+    setMediaErrors((current) => ({ ...current, documents: undefined }));
+  };
+
+  const cleanupUploadedMedia = async (paths: { imagePaths: string[]; documentPaths: string[] }) => {
+    const cleanupTasks: Promise<unknown>[] = [];
+
+    if (paths.imagePaths.length > 0) {
+      cleanupTasks.push(supabase.storage.from(PROPERTY_IMAGE_BUCKET).remove(paths.imagePaths));
+    }
+
+    if (paths.documentPaths.length > 0) {
+      cleanupTasks.push(supabase.storage.from(PROPERTY_DOCUMENT_BUCKET).remove(paths.documentPaths));
+    }
+
+    if (cleanupTasks.length > 0) {
+      await Promise.allSettled(cleanupTasks);
+    }
+  };
+
+  const uploadSelectedMedia = async (propertyType: string) => {
+    if (!user) {
+      throw new Error("You must be signed in to upload property files.");
+    }
+
+    const imagePaths: string[] = [];
+    const imageUrls: string[] = [];
+    const documentPaths: string[] = [];
+
+    try {
+      for (const image of imageFiles) {
+        const storagePath = buildStoragePath(user.id, propertyType, "image", image.fileName);
+        const { error } = await supabase.storage.from(PROPERTY_IMAGE_BUCKET).upload(storagePath, image.file, {
+          cacheControl: "3600",
+          contentType: image.file.type || undefined,
+          upsert: false,
+        });
+
+        if (error) {
+          throw new Error(`Could not upload ${image.fileName}. ${error.message}`);
+        }
+
+        imagePaths.push(storagePath);
+        imageUrls.push(supabase.storage.from(PROPERTY_IMAGE_BUCKET).getPublicUrl(storagePath).data.publicUrl);
+      }
+
+      for (const document of documentFiles) {
+        const storagePath = buildStoragePath(user.id, propertyType, "document", document.fileName);
+        const { error } = await supabase.storage
+          .from(PROPERTY_DOCUMENT_BUCKET)
+          .upload(storagePath, document.file, {
+            cacheControl: "3600",
+            contentType: document.file.type || undefined,
+            upsert: false,
+          });
+
+        if (error) {
+          throw new Error(`Could not upload ${document.fileName}. ${error.message}`);
+        }
+
+        documentPaths.push(storagePath);
+      }
+
+      return { imagePaths, imageUrls, documentPaths };
+    } catch (error) {
+      await cleanupUploadedMedia({ imagePaths, documentPaths });
+      throw error;
+    }
+  };
+
+  const applyBackendErrors = (fieldErrors?: PropertySubmissionResponse["fieldErrors"]) => {
+    if (!fieldErrors) {
+      return;
+    }
+
+    const nextMediaErrors: { images?: string; documents?: string } = {};
+    let earliestStep = 4;
+
+    Object.entries(fieldErrors).forEach(([fieldName, message]) => {
+      if (!message) {
+        return;
+      }
+
+      if (fieldName === "images" || fieldName === "documents") {
+        nextMediaErrors[fieldName] = message;
+        earliestStep = Math.min(earliestStep, 3);
+        return;
+      }
+
+      const typedFieldName = fieldName as keyof PropertyFormData;
+      form.setError(typedFieldName, {
+        type: "server",
+        message,
+      });
+      earliestStep = Math.min(earliestStep, getStepForField(typedFieldName));
+    });
+
+    if (nextMediaErrors.images || nextMediaErrors.documents) {
+      setMediaErrors((current) => ({ ...current, ...nextMediaErrors }));
+    }
+
+    setCurrentStep(earliestStep);
+  };
+
+  const handleInvalidSubmit = (errors: FieldErrors<PropertyFormData>) => {
+    const firstField = Object.keys(errors)[0] as keyof PropertyFormData | undefined;
+    if (!firstField) {
+      return;
+    }
+
+    setCurrentStep(getStepForField(firstField));
+  };
+
+  const onSubmit = async (data: PropertyFormData) => {
+    clearSubmissionState();
+    setMediaErrors({});
+
+    const isMediaValid = validateMediaStep();
+    if (!isMediaValid) {
+      setCurrentStep(3);
+      return;
+    }
+
+    setSubmissionPhase("uploading");
+
+    let uploads: { imagePaths: string[]; imageUrls: string[]; documentPaths: string[] } | null = null;
+
+    try {
+      uploads = await uploadSelectedMedia(data.propertyType);
+      setSubmissionPhase("submitting");
+
+      const payload = buildPropertySubmissionPayload(data, {
+        imageUrls: uploads.imageUrls,
+        documentPaths: uploads.documentPaths,
+      });
+
+      const { data: response, error } = await supabase.functions.invoke<PropertySubmissionResponse>(
+        "submit-property-listing",
+        {
+          body: payload,
+        }
+      );
+
+      const responsePayload =
+        error instanceof FunctionsHttpError
+          ? ((await error.context.json()) as PropertySubmissionResponse)
+          : response;
+
+      if (error && !(error instanceof FunctionsHttpError)) {
+        throw new Error(error.message || "We could not submit this property right now.");
+      }
+
+      if (!responsePayload?.ok) {
+        await cleanupUploadedMedia({
+          imagePaths: uploads.imagePaths,
+          documentPaths: uploads.documentPaths,
+        });
+
+        if (responsePayload?.errorType === "validation") {
+          applyBackendErrors(responsePayload.fieldErrors);
+          setSubmissionIssue({
+            title: "Some details still need attention",
+            description: responsePayload.message || "Fix the highlighted fields and try again.",
+          });
+          return;
+        }
+
+        if (responsePayload?.errorType === "duplicate" && responsePayload.duplicateWarning) {
+          setDuplicateWarning(responsePayload.duplicateWarning);
+          setSubmissionIssue({
+            title: "Possible duplicate property",
+            description: responsePayload.message || responsePayload.duplicateWarning.reason,
+          });
+          return;
+        }
+
+        if (responsePayload?.errorType === "schema_not_ready") {
+          setSubmissionIssue({
+            title: "Property submission is not ready yet",
+            description:
+              responsePayload.message ||
+              "Property review could not start because the listing database is not ready on this environment.",
+            hint: responsePayload.hint,
+          });
+          toast({
+            title: "Submission unavailable",
+            description: "Property listing setup is incomplete on this environment.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        throw new Error(responsePayload?.message || "We could not submit this property right now.");
+      }
+
+      setIsSubmitted(true);
+      toast({
+        title: "Property submitted successfully",
+        description: "Your property is now under review. You will hear from us within 2 to 3 business days.",
+      });
+    } catch (error) {
+      if (uploads) {
+        await cleanupUploadedMedia({
+          imagePaths: uploads.imagePaths,
+          documentPaths: uploads.documentPaths,
+        });
+      }
+
+      const message = error instanceof Error ? error.message : "Could not submit property. Please try again.";
+      setSubmissionIssue({
+        title: "We could not submit this property",
+        description: message,
+      });
+      toast({
+        title: "Submission failed",
+        description: message,
+        variant: "destructive",
+      });
+    } finally {
+      setSubmissionPhase(null);
+    }
+  };
+
   const getStepProgress = () => (currentStep / 4) * 100;
+  const isSubmitting = submissionPhase !== null;
+  const submitButtonLabel =
+    submissionPhase === "uploading"
+      ? "Uploading files..."
+      : submissionPhase === "submitting"
+        ? "Submitting property..."
+        : "Submit Property for Review";
 
   if (isSubmitted) {
     return (
@@ -473,7 +533,7 @@ const UploadProperty = () => {
                   </div>
                   <div className="flex items-center space-x-3">
                     <Users className="h-5 w-5 text-primary" />
-                    <span>You'll be contacted via phone and email</span>
+                    <span>You will be contacted via phone and email</span>
                   </div>
                 </div>
               </CardContent>
@@ -485,7 +545,9 @@ const UploadProperty = () => {
                 <Card>
                   <CardContent className="pt-4">
                     <div className="text-center">
-                      <div className="bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center mx-auto mb-2">1</div>
+                      <div className="bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center mx-auto mb-2">
+                        1
+                      </div>
                       <h4 className="font-medium">Document Review</h4>
                       <p className="text-muted-foreground">Legal documents verified</p>
                     </div>
@@ -494,7 +556,9 @@ const UploadProperty = () => {
                 <Card>
                   <CardContent className="pt-4">
                     <div className="text-center">
-                      <div className="bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center mx-auto mb-2">2</div>
+                      <div className="bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center mx-auto mb-2">
+                        2
+                      </div>
                       <h4 className="font-medium">Location Verification</h4>
                       <p className="text-muted-foreground">Property location confirmed</p>
                     </div>
@@ -503,7 +567,9 @@ const UploadProperty = () => {
                 <Card>
                   <CardContent className="pt-4">
                     <div className="text-center">
-                      <div className="bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center mx-auto mb-2">3</div>
+                      <div className="bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center mx-auto mb-2">
+                        3
+                      </div>
                       <h4 className="font-medium">Live on Platform</h4>
                       <p className="text-muted-foreground">Property goes live</p>
                     </div>
@@ -516,7 +582,7 @@ const UploadProperty = () => {
               <Button asChild>
                 <Link to="/">Return Home</Link>
               </Button>
-              <Button variant="outline" onClick={() => {setIsSubmitted(false); setCurrentStep(1);}}>
+              <Button variant="outline" onClick={resetFormFlow}>
                 Submit Another Property
               </Button>
             </div>
@@ -529,24 +595,25 @@ const UploadProperty = () => {
   return (
     <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f2f4fb_0%,#f7f7fb_42%,#f4f1ec_100%)]">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(91,104,228,0.16),transparent_34%),radial-gradient(circle_at_top_right,rgba(72,153,255,0.16),transparent_28%),radial-gradient(circle_at_bottom,rgba(162,153,255,0.12),transparent_42%)] z-0" />
-      
+
       <header className="relative z-40 border-b border-[#d7daf0] bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0">
         <div className="container flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center space-x-2 text-[#1f1a54] hover:text-[#26225f]">
             <ArrowLeft className="h-5 w-5" />
             <span className="text-lg font-semibold">Back to Home</span>
           </Link>
-          <Badge variant="outline" className="border-[#d7daf0] text-[#26225f]">Step {currentStep} of 4</Badge>
+          <Badge variant="outline" className="border-[#d7daf0] text-[#26225f]">
+            Step {currentStep} of 4
+          </Badge>
         </div>
       </header>
 
       <div className="relative z-10 container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          {/* Upload Property Ad Banner */}
           <div className="mb-8">
             <AdBanner type="banner" />
           </div>
-          
+
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold mb-4">Upload Your Property</h1>
             <p className="text-xl text-muted-foreground mb-6">
@@ -556,9 +623,7 @@ const UploadProperty = () => {
           </div>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              
-              {/* Step 1: Property Type Selection */}
+            <form onSubmit={form.handleSubmit(onSubmit, handleInvalidSubmit)} className="space-y-8">
               {currentStep === 1 && (
                 <Card>
                   <CardHeader>
@@ -567,41 +632,46 @@ const UploadProperty = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="grid md:grid-cols-3 lg:grid-cols-5 gap-4">
-                      {propertyTypes.map((type) => (
-                        <Card 
-                          key={type.id}
-                          className={`cursor-pointer transition-all hover:shadow-md ${
-                            selectedPropertyType === type.id ? 'ring-2 ring-primary border-primary' : ''
-                          }`}
-                          onClick={() => {
-                            form.setValue("propertyType", type.id, {
-                              shouldDirty: true,
-                              shouldTouch: true,
-                              shouldValidate: true,
-                            });
-                            if (type.id !== "joint_venture") {
-                              form.clearErrors(jointVentureFields);
-                            }
-                            form.clearErrors("propertyType");
-                          }}
-                        >
-                          <CardContent className="pt-6 text-center">
-                            <type.icon className="h-12 w-12 mx-auto mb-4 text-primary" />
-                            <h3 className="font-semibold mb-2">{type.label}</h3>
-                            <p className="text-sm text-muted-foreground">{type.desc}</p>
-                          </CardContent>
-                        </Card>
-                      ))}
+                      {PROPERTY_TYPES.map((type) => {
+                        const Icon = propertyTypeIcons[type.id];
+
+                        return (
+                          <Card
+                            key={type.id}
+                            className={`cursor-pointer transition-all hover:shadow-md ${
+                              selectedPropertyType === type.id ? "ring-2 ring-primary border-primary" : ""
+                            }`}
+                            onClick={() => {
+                              clearSubmissionState();
+                              form.setValue("propertyType", type.id, {
+                                shouldDirty: true,
+                                shouldTouch: true,
+                                shouldValidate: true,
+                              });
+                              if (type.id !== "joint_venture") {
+                                form.clearErrors(jointVentureStepFields);
+                              }
+                              form.clearErrors("propertyType");
+                            }}
+                          >
+                            <CardContent className="pt-6 text-center">
+                              <Icon className="h-12 w-12 mx-auto mb-4 text-primary" />
+                              <h3 className="font-semibold mb-2">{type.label}</h3>
+                              <p className="text-sm text-muted-foreground">{type.description}</p>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
                     </div>
-                    
+
                     <div className="mt-8 bg-muted/30 p-4 rounded-lg">
                       <div className="flex items-start space-x-3">
                         <AlertTriangle className="h-5 w-5 text-primary mt-0.5" />
                         <div>
                           <h4 className="font-medium">Platform Guidelines</h4>
                           <p className="text-sm text-muted-foreground mt-1">
-                            All properties undergo verification. Fake listings will be removed. 
-                            Only legitimate property owners or authorized agents can list properties.
+                            All properties undergo verification. Fake listings will be removed. Only
+                            legitimate property owners or authorized agents can list properties.
                           </p>
                         </div>
                       </div>
@@ -621,7 +691,6 @@ const UploadProperty = () => {
                 </Card>
               )}
 
-              {/* Step 2: Property Details */}
               {currentStep === 2 && (
                 <Card>
                   <CardHeader>
@@ -637,7 +706,14 @@ const UploadProperty = () => {
                           <FormItem>
                             <FormLabel>Property Title *</FormLabel>
                             <FormControl>
-                              <Input placeholder="e.g., 2-Bedroom Apartment in Lekki" {...field} />
+                              <Input
+                                placeholder="e.g., 2-Bedroom Apartment in Lekki"
+                                {...field}
+                                onChange={(event) => {
+                                  clearSubmissionState();
+                                  field.onChange(event);
+                                }}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -651,9 +727,17 @@ const UploadProperty = () => {
                           <FormItem>
                             <FormLabel>Price *</FormLabel>
                             <FormControl>
-                              <Input 
-                                placeholder={selectedPropertyType === 'rental' ? 'e.g., â‚¦500,000/month' : 'e.g., â‚¦25,000,000'} 
-                                {...field} 
+                              <Input
+                                placeholder={
+                                  selectedPropertyType === "rental"
+                                    ? "e.g., NGN 500,000/month"
+                                    : "e.g., NGN 25,000,000"
+                                }
+                                {...field}
+                                onChange={(event) => {
+                                  clearSubmissionState();
+                                  field.onChange(event);
+                                }}
                               />
                             </FormControl>
                             <FormMessage />
@@ -669,10 +753,14 @@ const UploadProperty = () => {
                         <FormItem>
                           <FormLabel>Property Description *</FormLabel>
                           <FormControl>
-                            <Textarea 
+                            <Textarea
                               placeholder="Describe your property, its features, and what makes it special..."
                               className="min-h-[120px]"
-                              {...field} 
+                              {...field}
+                              onChange={(event) => {
+                                clearSubmissionState();
+                                field.onChange(event);
+                              }}
                             />
                           </FormControl>
                           <FormMessage />
@@ -690,8 +778,9 @@ const UploadProperty = () => {
                             <Select
                               value={field.value || undefined}
                               onValueChange={(value) => {
+                                clearSubmissionState();
                                 field.onChange(value);
-                                form.setValue("lga", "", { shouldDirty: true });
+                                form.setValue("lga", "", { shouldDirty: true, shouldValidate: true });
                                 form.clearErrors("lga");
                               }}
                             >
@@ -721,7 +810,10 @@ const UploadProperty = () => {
                             <FormLabel>LGA *</FormLabel>
                             <Select
                               value={field.value || undefined}
-                              onValueChange={field.onChange}
+                              onValueChange={(value) => {
+                                clearSubmissionState();
+                                field.onChange(value);
+                              }}
                               disabled={!selectedState}
                             >
                               <FormControl>
@@ -749,9 +841,15 @@ const UploadProperty = () => {
                           <FormItem>
                             <FormLabel>Size *</FormLabel>
                             <FormControl>
-                              <Input 
-                                placeholder={selectedPropertyType === 'land' ? 'e.g., 500 sqm' : 'e.g., 3 bedrooms'} 
-                                {...field} 
+                              <Input
+                                placeholder={
+                                  selectedPropertyType === "land" ? "e.g., 500 sqm" : "e.g., 3 bedrooms"
+                                }
+                                {...field}
+                                onChange={(event) => {
+                                  clearSubmissionState();
+                                  field.onChange(event);
+                                }}
                               />
                             </FormControl>
                             <FormMessage />
@@ -767,14 +865,20 @@ const UploadProperty = () => {
                         <FormItem>
                           <FormLabel>Detailed Address *</FormLabel>
                           <FormControl>
-                            <Input placeholder="Street address, landmarks, area description" {...field} />
+                            <Input
+                              placeholder="Street address, landmarks, area description"
+                              {...field}
+                              onChange={(event) => {
+                                clearSubmissionState();
+                                field.onChange(event);
+                              }}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
 
-                    {/* Joint Venture Specific Fields */}
                     {selectedPropertyType === "joint_venture" && (
                       <>
                         <div className="border-t pt-6 mt-6">
@@ -782,7 +886,7 @@ const UploadProperty = () => {
                             <Handshake className="h-5 w-5 text-primary" />
                             Joint Venture Details
                           </h3>
-                          
+
                           <div className="grid md:grid-cols-2 gap-6">
                             <FormField
                               control={form.control}
@@ -791,7 +895,14 @@ const UploadProperty = () => {
                                 <FormItem>
                                   <FormLabel>Land Size *</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="e.g., 2,000 sqm or 1 hectare" {...field} />
+                                    <Input
+                                      placeholder="e.g., 2,000 sqm or 1 hectare"
+                                      {...field}
+                                      onChange={(event) => {
+                                        clearSubmissionState();
+                                        field.onChange(event);
+                                      }}
+                                    />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -807,7 +918,15 @@ const UploadProperty = () => {
                                   <div className="relative">
                                     <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                     <FormControl>
-                                      <Input className="pl-10" placeholder="e.g., â‚¦500,000,000" {...field} />
+                                      <Input
+                                        className="pl-10"
+                                        placeholder="e.g., NGN 500,000,000"
+                                        {...field}
+                                        onChange={(event) => {
+                                          clearSubmissionState();
+                                          field.onChange(event);
+                                        }}
+                                      />
                                     </FormControl>
                                   </div>
                                   <FormMessage />
@@ -823,7 +942,14 @@ const UploadProperty = () => {
                               <FormItem className="mt-4">
                                 <FormLabel>Proposed Development Type *</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="e.g., Residential Estate, Shopping Mall, Mixed-Use Development" {...field} />
+                                  <Input
+                                    placeholder="e.g., Residential Estate, Shopping Mall, Mixed-Use Development"
+                                    {...field}
+                                    onChange={(event) => {
+                                      clearSubmissionState();
+                                      field.onChange(event);
+                                    }}
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -839,10 +965,14 @@ const UploadProperty = () => {
                                 <div className="relative">
                                   <FileCheck className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                   <FormControl>
-                                    <Textarea 
+                                    <Textarea
                                       className="pl-10 min-h-[100px]"
-                                      placeholder="Describe your preferred partnership structure (e.g., profit sharing ratio, equity split, timeline expectations...)"
-                                      {...field} 
+                                      placeholder="Describe your preferred partnership structure, timeline expectations, and profit sharing."
+                                      {...field}
+                                      onChange={(event) => {
+                                        clearSubmissionState();
+                                        field.onChange(event);
+                                      }}
                                     />
                                   </FormControl>
                                 </div>
@@ -860,10 +990,14 @@ const UploadProperty = () => {
                                 <div className="relative">
                                   <Briefcase className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                   <FormControl>
-                                    <Textarea 
+                                    <Textarea
                                       className="pl-10 min-h-[100px]"
-                                      placeholder="What qualifications do you expect from developers? (e.g., minimum portfolio size, years of experience, financial capacity, CAC registration...)"
-                                      {...field} 
+                                      placeholder="Describe the qualifications or track record you expect from developers."
+                                      {...field}
+                                      onChange={(event) => {
+                                        clearSubmissionState();
+                                        field.onChange(event);
+                                      }}
                                     />
                                   </FormControl>
                                 </div>
@@ -879,8 +1013,9 @@ const UploadProperty = () => {
                             <div>
                               <h4 className="font-medium">JV Application Process</h4>
                               <p className="text-sm text-muted-foreground mt-1">
-                                Interested developers will submit their portfolio, company letterhead, and CAC documentation. 
-                                You'll be able to review and approve applicants before sharing detailed property information.
+                                Interested developers will submit their portfolio, company letterhead, and CAC
+                                documentation. You will be able to review applicants before sharing detailed
+                                property information.
                               </p>
                             </div>
                           </div>
@@ -900,7 +1035,6 @@ const UploadProperty = () => {
                 </Card>
               )}
 
-              {/* Step 3: Media Upload */}
               {currentStep === 3 && (
                 <Card>
                   <CardHeader>
@@ -913,19 +1047,23 @@ const UploadProperty = () => {
                         <TabsTrigger value="photos">Property Photos</TabsTrigger>
                         <TabsTrigger value="documents">Legal Documents</TabsTrigger>
                       </TabsList>
-                      
+
                       <TabsContent value="photos" className="space-y-4">
                         <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
                           <Camera className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                           <h3 className="font-medium mb-2">Upload Property Photos</h3>
                           <p className="text-sm text-muted-foreground mb-4">
-                            Add photos to showcase your property (JPG, PNG up to 5MB each)
+                            Add up to {PROPERTY_IMAGE_LIMITS.maxFiles} photos. Only JPG, PNG, and WEBP images up to
+                            5MB each are accepted.
                           </p>
                           <input
                             type="file"
                             multiple
-                            accept="image/*"
-                            onChange={(e) => handleFileUpload('image', e.target.files)}
+                            accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                            onChange={(event) => {
+                              handleFileUpload("image", event.target.files);
+                              event.currentTarget.value = "";
+                            }}
                             className="hidden"
                             id="photo-upload"
                           />
@@ -939,21 +1077,33 @@ const UploadProperty = () => {
                         {mediaErrors.images && (
                           <p className="text-sm font-medium text-destructive">{mediaErrors.images}</p>
                         )}
-                        
-                        {uploadedImages.length > 0 && (
-                          <div className="grid grid-cols-3 gap-4">
-                            {uploadedImages.map((img, index) => (
-                              <img 
-                                key={index} 
-                                src={img} 
-                                alt={`Property ${index + 1}`}
-                                className="w-full h-24 object-cover rounded-lg border"
-                              />
+
+                        {imageFiles.length > 0 && (
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            {imageFiles.map((image, index) => (
+                              <div key={image.id} className="relative rounded-lg border bg-background overflow-hidden">
+                                {image.previewUrl && (
+                                  <img
+                                    src={image.previewUrl}
+                                    alt={`Property ${index + 1}`}
+                                    className="w-full h-28 object-cover"
+                                  />
+                                )}
+                                <button
+                                  type="button"
+                                  className="absolute top-2 right-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-white"
+                                  onClick={() => removeMediaFile("image", image.id)}
+                                  aria-label={`Remove ${image.fileName}`}
+                                >
+                                  <X className="h-4 w-4" />
+                                </button>
+                                <div className="p-3 text-sm text-muted-foreground truncate">{image.fileName}</div>
+                              </div>
                             ))}
                           </div>
                         )}
                       </TabsContent>
-                      
+
                       <TabsContent value="documents" className="space-y-4">
                         <FormField
                           control={form.control}
@@ -961,14 +1111,20 @@ const UploadProperty = () => {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Document Type *</FormLabel>
-                              <Select value={field.value || undefined} onValueChange={field.onChange}>
+                              <Select
+                                value={field.value || undefined}
+                                onValueChange={(value) => {
+                                  clearSubmissionState();
+                                  field.onChange(value);
+                                }}
+                              >
                                 <FormControl>
                                   <SelectTrigger>
                                     <SelectValue placeholder="Select document type" />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  {verificationTypes.map((type) => (
+                                  {VERIFICATION_TYPES.map((type) => (
                                     <SelectItem key={type.id} value={type.id}>
                                       {type.label}
                                     </SelectItem>
@@ -984,13 +1140,17 @@ const UploadProperty = () => {
                           <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                           <h3 className="font-medium mb-2">Upload Legal Documents</h3>
                           <p className="text-sm text-muted-foreground mb-4">
-                            Upload legal documents to verify ownership (PDF, JPG, PNG up to 10MB)
+                            Add up to {PROPERTY_DOCUMENT_LIMITS.maxFiles} documents. Only PDF, JPG, PNG, and WEBP
+                            files up to 10MB each are accepted.
                           </p>
                           <input
                             type="file"
                             multiple
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            onChange={(e) => handleFileUpload('document', e.target.files)}
+                            accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp"
+                            onChange={(event) => {
+                              handleFileUpload("document", event.target.files);
+                              event.currentTarget.value = "";
+                            }}
                             className="hidden"
                             id="document-upload"
                           />
@@ -1005,13 +1165,27 @@ const UploadProperty = () => {
                           <p className="text-sm font-medium text-destructive">{mediaErrors.documents}</p>
                         )}
 
-                        {uploadedDocuments.length > 0 && (
+                        {documentFiles.length > 0 && (
                           <div className="space-y-2">
-                            <h4 className="font-medium">Uploaded Documents:</h4>
-                            {uploadedDocuments.map((doc, index) => (
-                              <div key={index} className="flex items-center space-x-2 p-2 border rounded">
-                                <FileText className="h-4 w-4" />
-                                <span className="text-sm">Document {index + 1}</span>
+                            <h4 className="font-medium">Uploaded Documents</h4>
+                            {documentFiles.map((document) => (
+                              <div
+                                key={document.id}
+                                className="flex items-center justify-between gap-3 p-3 border rounded-lg"
+                              >
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <FileText className="h-4 w-4 shrink-0" />
+                                  <span className="text-sm truncate">{document.fileName}</span>
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => removeMediaFile("document", document.id)}
+                                  aria-label={`Remove ${document.fileName}`}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
                               </div>
                             ))}
                           </div>
@@ -1031,7 +1205,6 @@ const UploadProperty = () => {
                 </Card>
               )}
 
-              {/* Step 4: Contact Information */}
               {currentStep === 4 && (
                 <Card>
                   <CardHeader>
@@ -1047,7 +1220,14 @@ const UploadProperty = () => {
                           <FormItem>
                             <FormLabel>Full Name *</FormLabel>
                             <FormControl>
-                              <Input placeholder="Your full name" {...field} />
+                              <Input
+                                placeholder="Your full name"
+                                {...field}
+                                onChange={(event) => {
+                                  clearSubmissionState();
+                                  field.onChange(event);
+                                }}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -1061,7 +1241,14 @@ const UploadProperty = () => {
                           <FormItem>
                             <FormLabel>Phone Number *</FormLabel>
                             <FormControl>
-                              <Input placeholder="+234 XXX XXX XXXX" {...field} />
+                              <Input
+                                placeholder="+234 XXX XXX XXXX"
+                                {...field}
+                                onChange={(event) => {
+                                  clearSubmissionState();
+                                  field.onChange(event);
+                                }}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -1076,7 +1263,15 @@ const UploadProperty = () => {
                         <FormItem>
                           <FormLabel>Email Address *</FormLabel>
                           <FormControl>
-                            <Input type="email" placeholder="your.email@example.com" {...field} />
+                            <Input
+                              type="email"
+                              placeholder="your.email@example.com"
+                              {...field}
+                              onChange={(event) => {
+                                clearSubmissionState();
+                                field.onChange(event);
+                              }}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -1089,14 +1284,15 @@ const UploadProperty = () => {
                         <div>
                           <h4 className="font-medium">Verification Process</h4>
                           <p className="text-sm text-muted-foreground mt-1">
-                            Our team will contact you within 2-3 business days to verify your property and documents. 
-                            Your contact information will only be shared with serious, verified inquirers.
+                            Our team will contact you within 2 to 3 business days to verify your property and
+                            documents. Your contact information will only be shared with serious, verified
+                            inquirers.
                           </p>
                         </div>
                       </div>
                     </div>
 
-                    {duplicateWarning && duplicateWarning.isDuplicate && (
+                    {duplicateWarning?.isDuplicate && (
                       <div className="bg-destructive/10 border border-destructive/30 p-4 rounded-lg">
                         <div className="flex items-start space-x-3">
                           <AlertTriangle className="h-5 w-5 text-destructive mt-0.5" />
@@ -1106,14 +1302,15 @@ const UploadProperty = () => {
                             {duplicateWarning.matches.length > 0 && (
                               <ul className="mt-2 text-sm space-y-1">
                                 {duplicateWarning.matches.map((match, index) => (
-                                  <li key={`${match.title}-${index}`} className="text-muted-foreground">• {match.title} - {match.location}</li>
+                                  <li
+                                    key={`${match.title}-${index}`}
+                                    className="text-muted-foreground"
+                                  >
+                                    • {match.title} - {match.location}
+                                  </li>
                                 ))}
                               </ul>
                             )}
-                            <p className="text-sm mt-2 text-muted-foreground">
-                              If you believe this is an error, please modify your property details and try again.
-                              You can also report the existing listing if it doesn't belong to the current uploader.
-                            </p>
                           </div>
                         </div>
                       </div>
@@ -1135,12 +1332,12 @@ const UploadProperty = () => {
                     )}
 
                     <div className="flex justify-between mt-6">
-                      <Button type="button" variant="outline" onClick={prevStep}>
+                      <Button type="button" variant="outline" onClick={prevStep} disabled={isSubmitting}>
                         Previous
                       </Button>
-                      <Button type="submit" className="bg-primary hover:bg-primary/90" disabled={isCheckingDuplicate}>
-                        {isCheckingDuplicate && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                        {isCheckingDuplicate ? "Checking for duplicates..." : "Submit Property for Review"}
+                      <Button type="submit" className="bg-primary hover:bg-primary/90" disabled={isSubmitting}>
+                        {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                        {submitButtonLabel}
                       </Button>
                     </div>
                   </CardContent>
@@ -1155,5 +1352,3 @@ const UploadProperty = () => {
 };
 
 export default UploadProperty;
-
-
