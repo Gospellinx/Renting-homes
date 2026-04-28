@@ -42,8 +42,10 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   buildPropertySubmissionPayload,
   buildStoragePath,
+  contactFields,
   getStepForField,
   jointVentureFields,
+  type MediaValidationErrors,
   PROPERTY_DOCUMENT_BUCKET,
   PROPERTY_DOCUMENT_LIMITS,
   PROPERTY_IMAGE_BUCKET,
@@ -57,6 +59,7 @@ import {
   stepTwoBaseFields,
   uploadPropertySchema,
   validateAndPrepareFiles,
+  validateSelectedMedia,
   VERIFICATION_TYPES,
   type DuplicateWarning,
 } from "@/lib/propertySubmission";
@@ -75,7 +78,60 @@ const propertyTypeIcons = {
 const stepTwoFields = [...stepTwoBaseFields] as FieldPath<PropertyFormData>[];
 const jointVentureStepFields = [...jointVentureFields] as FieldPath<PropertyFormData>[];
 
-type SubmissionPhase = "uploading" | "submitting" | null;
+type SubmissionPhase = "validating" | "uploading" | "submitting" | null;
+
+const getFriendlyUploadErrorMessage = (kind: "image" | "document", fileName: string, message: string) => {
+  const normalizedMessage = message.toLowerCase();
+  const assetLabel = kind === "image" ? "property photo" : "legal document";
+
+  if (normalizedMessage.includes("bucket") && normalizedMessage.includes("not found")) {
+    return `The ${assetLabel} upload bucket has not been configured yet. Run the storage migration and try again.`;
+  }
+
+  if (
+    normalizedMessage.includes("row-level security") ||
+    normalizedMessage.includes("permission") ||
+    normalizedMessage.includes("unauthorized")
+  ) {
+    return `Uploads are blocked because ${assetLabel} storage permissions are not configured correctly yet.`;
+  }
+
+  if (
+    normalizedMessage.includes("mime") ||
+    normalizedMessage.includes("content type") ||
+    normalizedMessage.includes("invalid")
+  ) {
+    return `Could not upload ${fileName} because the file type was rejected.`;
+  }
+
+  if (normalizedMessage.includes("failed to fetch") || normalizedMessage.includes("network")) {
+    return `The upload for ${fileName} was interrupted by a network error. Check your connection and try again.`;
+  }
+
+  return `Could not upload ${fileName}. ${message}`;
+};
+
+const getFriendlySubmissionErrorMessage = (error: unknown) => {
+  if (!(error instanceof Error)) {
+    return "Could not submit property. Please try again.";
+  }
+
+  const normalizedMessage = error.message.toLowerCase();
+
+  if (normalizedMessage.includes("failed to fetch") || normalizedMessage.includes("network")) {
+    return "We could not reach the server. Check your internet connection and try again.";
+  }
+
+  if (
+    normalizedMessage.includes("row-level security") ||
+    normalizedMessage.includes("permission") ||
+    normalizedMessage.includes("unauthorized")
+  ) {
+    return "This project is missing a database or storage permission needed for property submission.";
+  }
+
+  return error.message;
+};
 
 const UploadProperty = () => {
   const { user, loading } = useAuth();
@@ -86,7 +142,7 @@ const UploadProperty = () => {
   const [imageFiles, setImageFiles] = useState<SelectedMediaFile[]>([]);
   const [documentFiles, setDocumentFiles] = useState<SelectedMediaFile[]>([]);
   const [duplicateWarning, setDuplicateWarning] = useState<DuplicateWarning | null>(null);
-  const [mediaErrors, setMediaErrors] = useState<{ images?: string; documents?: string }>({});
+  const [mediaErrors, setMediaErrors] = useState<MediaValidationErrors>({});
   const [submissionIssue, setSubmissionIssue] = useState<{
     title: string;
     description: string;
@@ -99,7 +155,7 @@ const UploadProperty = () => {
 
   const form = useForm<PropertyFormData>({
     resolver: zodResolver(uploadPropertySchema),
-    mode: "onTouched",
+    mode: "onChange",
     reValidateMode: "onChange",
     defaultValues: propertyFormDefaults,
   });
@@ -201,13 +257,13 @@ const UploadProperty = () => {
   };
 
   const validateMediaStep = () => {
-    const nextMediaErrors = {
-      images: imageFiles.length > 0 ? undefined : "Upload at least one property photo.",
-      documents: documentFiles.length > 0 ? undefined : "Upload at least one legal document.",
-    };
+    const validation = validateSelectedMedia({
+      images: imageFiles,
+      documents: documentFiles,
+    });
 
-    setMediaErrors(nextMediaErrors);
-    return !nextMediaErrors.images && !nextMediaErrors.documents;
+    setMediaErrors(validation.errors);
+    return validation.isValid;
   };
 
   const handleStepThreeContinue = async () => {
@@ -227,8 +283,8 @@ const UploadProperty = () => {
     clearSubmissionState();
 
     const fileArray = Array.from(files);
-    const existingCount = kind === "image" ? imageFiles.length : documentFiles.length;
-    const { acceptedFiles, rejectedErrors } = validateAndPrepareFiles(kind, fileArray, existingCount);
+    const existingFiles = kind === "image" ? imageFiles : documentFiles;
+    const { acceptedFiles, rejectedErrors } = validateAndPrepareFiles(kind, fileArray, existingFiles);
 
     if (kind === "image") {
       setImageFiles((current) => [...current, ...acceptedFiles]);
@@ -243,13 +299,22 @@ const UploadProperty = () => {
 
     if (rejectedErrors.length > 0) {
       const firstError = rejectedErrors[0];
-      setMediaErrors((current) => ({
-        ...current,
-        [kind === "image" ? "images" : "documents"]: firstError,
-      }));
+      const remainingErrorCount = rejectedErrors.length - 1;
+      const rejectionDescription =
+        remainingErrorCount > 0
+          ? `${firstError} ${remainingErrorCount} more file${remainingErrorCount > 1 ? "s" : ""} need attention.`
+          : firstError;
+
+      if (acceptedFiles.length === 0) {
+        setMediaErrors((current) => ({
+          ...current,
+          [kind === "image" ? "images" : "documents"]: rejectionDescription,
+        }));
+      }
+
       toast({
         title: kind === "image" ? "Some photos were not added" : "Some documents were not added",
-        description: firstError,
+        description: rejectionDescription,
         variant: "destructive",
       });
     }
@@ -307,7 +372,7 @@ const UploadProperty = () => {
         });
 
         if (error) {
-          throw new Error(`Could not upload ${image.fileName}. ${error.message}`);
+          throw new Error(getFriendlyUploadErrorMessage("image", image.fileName, error.message));
         }
 
         imagePaths.push(storagePath);
@@ -325,7 +390,7 @@ const UploadProperty = () => {
           });
 
         if (error) {
-          throw new Error(`Could not upload ${document.fileName}. ${error.message}`);
+          throw new Error(getFriendlyUploadErrorMessage("document", document.fileName, error.message));
         }
 
         documentPaths.push(storagePath);
@@ -336,6 +401,41 @@ const UploadProperty = () => {
       await cleanupUploadedMedia({ imagePaths, documentPaths });
       throw error;
     }
+  };
+
+  const getSubmissionFields = () =>
+    (
+      selectedPropertyType === "joint_venture"
+        ? ["propertyType", ...stepTwoFields, ...jointVentureStepFields, "verificationType", ...contactFields]
+        : ["propertyType", ...stepTwoFields, "verificationType", ...contactFields]
+    ) as (keyof PropertyFormData)[];
+
+  const moveToFirstInvalidStep = (fields: (keyof PropertyFormData)[]) => {
+    const firstInvalidField = fields.find((fieldName) => form.getFieldState(fieldName).error);
+
+    if (firstInvalidField) {
+      setCurrentStep(getStepForField(firstInvalidField));
+    }
+  };
+
+  // Re-run every gate in order before we touch storage or the database.
+  const validateBeforeSubmission = async () => {
+    const fieldsToValidate = getSubmissionFields();
+    const isFormValid = await form.trigger(fieldsToValidate, { shouldFocus: true });
+    const mediaValidation = validateSelectedMedia({
+      images: imageFiles,
+      documents: documentFiles,
+    });
+
+    setMediaErrors(mediaValidation.errors);
+
+    if (!isFormValid) {
+      moveToFirstInvalidStep(fieldsToValidate);
+    } else if (!mediaValidation.isValid) {
+      setCurrentStep(3);
+    }
+
+    return isFormValid && mediaValidation.isValid;
   };
 
   const applyBackendErrors = (fieldErrors?: PropertySubmissionResponse["fieldErrors"]) => {
@@ -383,11 +483,11 @@ const UploadProperty = () => {
 
   const onSubmit = async (data: PropertyFormData) => {
     clearSubmissionState();
-    setMediaErrors({});
+    setSubmissionPhase("validating");
 
-    const isMediaValid = validateMediaStep();
-    if (!isMediaValid) {
-      setCurrentStep(3);
+    const isReadyForSubmission = await validateBeforeSubmission();
+    if (!isReadyForSubmission) {
+      setSubmissionPhase(null);
       return;
     }
 
@@ -476,7 +576,7 @@ const UploadProperty = () => {
         });
       }
 
-      const message = error instanceof Error ? error.message : "Could not submit property. Please try again.";
+      const message = getFriendlySubmissionErrorMessage(error);
       setSubmissionIssue({
         title: "We could not submit this property",
         description: message,
@@ -494,7 +594,9 @@ const UploadProperty = () => {
   const getStepProgress = () => (currentStep / 4) * 100;
   const isSubmitting = submissionPhase !== null;
   const submitButtonLabel =
-    submissionPhase === "uploading"
+    submissionPhase === "validating"
+      ? "Validating details..."
+      : submissionPhase === "uploading"
       ? "Uploading files..."
       : submissionPhase === "submitting"
         ? "Submitting property..."
@@ -1306,7 +1408,7 @@ const UploadProperty = () => {
                                     key={`${match.title}-${index}`}
                                     className="text-muted-foreground"
                                   >
-                                    • {match.title} - {match.location}
+                                    - {match.title} - {match.location}
                                   </li>
                                 ))}
                               </ul>

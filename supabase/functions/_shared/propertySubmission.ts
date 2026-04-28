@@ -7,6 +7,8 @@ export const corsHeaders = {
 
 export const PROPERTY_IMAGE_BUCKET = "property-images";
 export const PROPERTY_DOCUMENT_BUCKET = "property-documents";
+const MAX_PROPERTY_IMAGE_FILES = 12;
+const MAX_PROPERTY_DOCUMENT_FILES = 6;
 
 const allowedPropertyTypes = new Set([
   "land",
@@ -246,10 +248,14 @@ export const validatePropertySubmissionPayload = (
 
   if (sanitized.imageUrls.length === 0) {
     fieldErrors.images = "Upload at least one property photo.";
+  } else if (sanitized.imageUrls.length > MAX_PROPERTY_IMAGE_FILES) {
+    fieldErrors.images = `You can upload up to ${MAX_PROPERTY_IMAGE_FILES} property photos.`;
   }
 
   if (sanitized.documentPaths.length === 0) {
     fieldErrors.documents = "Upload at least one legal document.";
+  } else if (sanitized.documentPaths.length > MAX_PROPERTY_DOCUMENT_FILES) {
+    fieldErrors.documents = `You can upload up to ${MAX_PROPERTY_DOCUMENT_FILES} legal documents.`;
   }
 
   if (

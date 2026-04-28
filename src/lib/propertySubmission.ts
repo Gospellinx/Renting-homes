@@ -42,6 +42,11 @@ export interface SelectedMediaFile {
   previewUrl: string | null;
 }
 
+export interface MediaValidationErrors {
+  images?: string;
+  documents?: string;
+}
+
 export interface DuplicateMatch {
   title: string;
   location: string;
@@ -195,14 +200,22 @@ export const contactFields = ["ownerName", "ownerPhone", "ownerEmail"] as const;
 
 const getFileExtension = (fileName: string) => fileName.split(".").pop()?.toLowerCase() ?? "";
 
+const buildFileSignature = (file: Pick<File, "name" | "size" | "lastModified">) =>
+  `${file.name.trim().toLowerCase()}-${file.size}-${file.lastModified}`;
+
 const isAcceptedFile = (kind: MediaKind, file: File) => {
   const extension = getFileExtension(file.name);
+  const hasFileType = typeof file.type === "string" && file.type.length > 0;
 
   if (kind === "image") {
-    return allowedImageMimeTypes.has(file.type) || allowedImageExtensions.has(extension);
+    const hasAcceptedMimeType = allowedImageMimeTypes.has(file.type);
+    const hasAcceptedExtension = allowedImageExtensions.has(extension);
+    return hasFileType ? hasAcceptedMimeType && hasAcceptedExtension : hasAcceptedExtension;
   }
 
-  return allowedDocumentMimeTypes.has(file.type) || allowedDocumentExtensions.has(extension);
+  const hasAcceptedMimeType = allowedDocumentMimeTypes.has(file.type);
+  const hasAcceptedExtension = allowedDocumentExtensions.has(extension);
+  return hasFileType ? hasAcceptedMimeType && hasAcceptedExtension : hasAcceptedExtension;
 };
 
 export const formatFileSize = (sizeInBytes: number) => {
@@ -224,12 +237,14 @@ export const revokeMediaPreviews = (files: SelectedMediaFile[]) => {
 export const validateAndPrepareFiles = (
   kind: MediaKind,
   files: File[],
-  existingCount: number
+  existingFiles: SelectedMediaFile[]
 ) => {
   const limits = kind === "image" ? PROPERTY_IMAGE_LIMITS : PROPERTY_DOCUMENT_LIMITS;
   const acceptedFiles: SelectedMediaFile[] = [];
   const rejectedErrors: string[] = [];
-  let remainingSlots = Math.max(0, limits.maxFiles - existingCount);
+  const existingSignatures = new Set(existingFiles.map((file) => buildFileSignature(file.file)));
+  const acceptedSignatures = new Set<string>();
+  let remainingSlots = Math.max(0, limits.maxFiles - existingFiles.length);
 
   if (remainingSlots === 0) {
     return {
@@ -252,12 +267,24 @@ export const validateAndPrepareFiles = (
       break;
     }
 
+    if (file.size === 0) {
+      rejectedErrors.push(`${file.name} is empty. Choose a file that contains real data.`);
+      continue;
+    }
+
     if (!isAcceptedFile(kind, file)) {
       rejectedErrors.push(
         kind === "image"
           ? `${file.name} is not supported. Use JPG, PNG, or WEBP images.`
           : `${file.name} is not supported. Use PDF, JPG, PNG, or WEBP files.`
       );
+      continue;
+    }
+
+    const fileSignature = buildFileSignature(file);
+
+    if (existingSignatures.has(fileSignature) || acceptedSignatures.has(fileSignature)) {
+      rejectedErrors.push(`${file.name} has already been added.`);
       continue;
     }
 
@@ -274,10 +301,26 @@ export const validateAndPrepareFiles = (
       fileName: file.name,
       previewUrl: kind === "image" ? URL.createObjectURL(file) : null,
     });
+    acceptedSignatures.add(fileSignature);
     remainingSlots -= 1;
   }
 
   return { acceptedFiles, rejectedErrors };
+};
+
+export const validateSelectedMedia = (files: {
+  images: SelectedMediaFile[];
+  documents: SelectedMediaFile[];
+}) => {
+  const errors: MediaValidationErrors = {
+    images: files.images.length > 0 ? undefined : "Upload at least one property photo.",
+    documents: files.documents.length > 0 ? undefined : "Upload at least one legal document.",
+  };
+
+  return {
+    errors,
+    isValid: !errors.images && !errors.documents,
+  };
 };
 
 export const sanitizePropertyFormData = (data: PropertyFormData): PropertyFormData => ({

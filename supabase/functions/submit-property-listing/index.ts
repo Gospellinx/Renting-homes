@@ -12,7 +12,7 @@ import {
 } from "../_shared/propertySubmission.ts";
 
 const buildSchemaHint = () =>
-  "Run the SQL in supabase/migrations/properties_table.sql. If this environment already has an older properties table, run supabase/migrations/20260428_property_submission_upgrade.sql as well.";
+  "Run supabase/migrations/properties_table.sql first. If this project already had an older properties table before today, run supabase/migrations/20260428_property_submission_upgrade.sql immediately after, then refresh the app.";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
