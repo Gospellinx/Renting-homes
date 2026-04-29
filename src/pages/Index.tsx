@@ -243,7 +243,7 @@ const Index = () => {
             </p>
 
             <h1 className="mx-auto mt-5 max-w-4xl text-balance text-center text-4xl font-semibold tracking-[-0.04em] text-[#1f1a54] sm:text-5xl lg:text-6xl">
-              Find your perfect property with AI
+              Looking to rent, buy, list, or develop? Just ask our AI.
             </h1>
 
             <p className="mx-auto mt-5 max-w-2xl text-center text-sm leading-7 text-[#6f7599] sm:text-lg">
