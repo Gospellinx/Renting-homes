@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
     );
   }
 
-  let payload: PropertySubmissionPayload;
+  let payload: PropertySubmissionPayload | { healthCheck?: boolean };
 
   try {
     payload = (await req.json()) as PropertySubmissionPayload;
@@ -88,6 +88,13 @@ Deno.serve(async (req) => {
         },
         { status: 401 }
       );
+    }
+
+    if ("healthCheck" in payload && payload.healthCheck === true) {
+      return json({
+        ok: true,
+        message: "submit-property-listing is reachable.",
+      });
     }
 
     const validation = validatePropertySubmissionPayload(payload, {

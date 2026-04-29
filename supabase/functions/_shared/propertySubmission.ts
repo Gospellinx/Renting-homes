@@ -9,6 +9,9 @@ export const PROPERTY_IMAGE_BUCKET = "property-images";
 export const PROPERTY_DOCUMENT_BUCKET = "property-documents";
 const MAX_PROPERTY_IMAGE_FILES = 12;
 const MAX_PROPERTY_DOCUMENT_FILES = 6;
+const squareFeetPattern = /^\d[\d,\s.]*(?:\s*(?:sq\.?\s*ft|sqft|square\s*feet|ft|ft2|ft²))?$/i;
+const digitsOnlyPattern = /^\d[\d,\s.]*$/;
+const bedroomPattern = /\bbed(room)?s?\b/i;
 
 const allowedPropertyTypes = new Set([
   "land",
@@ -94,6 +97,32 @@ const normalizeParagraph = (value: unknown) =>
     ? value.replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim()
     : "";
 
+const normalizeSquareFeet = (value: unknown) => {
+  const normalized = normalizeLine(value);
+
+  if (!normalized) {
+    return "";
+  }
+
+  const compactUnits = normalized
+    .replace(/square\s*feet/gi, "sq ft")
+    .replace(/sq\.?\s*ft/gi, "sq ft")
+    .replace(/sqft/gi, "sq ft")
+    .replace(/ft2/gi, "sq ft")
+    .replace(/ft²/gi, "sq ft")
+    .replace(/\s*ft$/i, " sq ft");
+
+  return digitsOnlyPattern.test(compactUnits) ? `${compactUnits} sq ft` : compactUnits;
+};
+
+const isValidSquareFeet = (value: string) => {
+  if (!value || bedroomPattern.test(value)) {
+    return false;
+  }
+
+  return squareFeetPattern.test(value);
+};
+
 const toOptionalValue = (value: string) => (value.length > 0 ? value : null);
 
 const isValidPublicImageUrl = (value: string, supabaseUrl: string, userId: string) =>
@@ -162,7 +191,7 @@ export const sanitizePropertySubmissionPayload = (
   state: normalizeLine(payload.state),
   lga: normalizeLine(payload.lga),
   price: normalizeLine(payload.price),
-  size: normalizeLine(payload.size),
+  size: normalizeSquareFeet(payload.size),
   amenities: Array.isArray(payload.amenities)
     ? payload.amenities.map((value) => normalizeLine(value)).filter(Boolean)
     : [],
@@ -221,8 +250,8 @@ export const validatePropertySubmissionPayload = (
     fieldErrors.price = "Enter a valid property price.";
   }
 
-  if (sanitized.size.length < 2 || sanitized.size.length > 80) {
-    fieldErrors.size = "Property size must be between 2 and 80 characters.";
+  if (sanitized.size.length < 2 || sanitized.size.length > 80 || !isValidSquareFeet(sanitized.size)) {
+    fieldErrors.size = "Enter the property size in square feet, e.g. 1,800 sq ft.";
   }
 
   if (sanitized.ownerName.length < 2 || sanitized.ownerName.length > 100) {

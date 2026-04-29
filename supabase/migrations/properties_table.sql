@@ -115,7 +115,7 @@ VALUES (
   'property-images',
   'property-images',
   TRUE,
-  5242880,
+  10485760,
   ARRAY['image/jpeg', 'image/png', 'image/webp']
 )
 ON CONFLICT (id) DO UPDATE
@@ -129,7 +129,7 @@ VALUES (
   'property-documents',
   'property-documents',
   FALSE,
-  10485760,
+  20971520,
   ARRAY['application/pdf', 'image/jpeg', 'image/png', 'image/webp']
 )
 ON CONFLICT (id) DO UPDATE

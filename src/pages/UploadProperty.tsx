@@ -22,7 +22,7 @@ import {
 import { Link } from "react-router-dom";
 import { useForm, type FieldErrors, type FieldPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FunctionsHttpError } from "@supabase/supabase-js";
+import { FunctionsFetchError, FunctionsHttpError, FunctionsRelayError } from "@supabase/supabase-js";
 
 import AdBanner from "@/components/AdBanner";
 import AuthPrompt from "@/components/AuthPrompt";
@@ -33,7 +33,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthContext";
 import { getLgasForState, nigerianStates } from "@/data/nigerianStateLgas";
@@ -43,6 +42,7 @@ import {
   buildPropertySubmissionPayload,
   buildStoragePath,
   contactFields,
+  formatFileSize,
   getStepForField,
   jointVentureFields,
   type MediaValidationErrors,
@@ -79,6 +79,8 @@ const stepTwoFields = [...stepTwoBaseFields] as FieldPath<PropertyFormData>[];
 const jointVentureStepFields = [...jointVentureFields] as FieldPath<PropertyFormData>[];
 
 type SubmissionPhase = "validating" | "uploading" | "submitting" | null;
+const EDGE_FUNCTION_SETUP_HINT =
+  "Deploy the submit-property-listing edge function, then confirm this app is using the same Supabase project URL and publishable key as the function.";
 
 const getFriendlyUploadErrorMessage = (kind: "image" | "document", fileName: string, message: string) => {
   const normalizedMessage = message.toLowerCase();
@@ -133,6 +135,14 @@ const getFriendlySubmissionErrorMessage = (error: unknown) => {
   return error.message;
 };
 
+const getFunctionUnavailableMessage = (error: FunctionsFetchError | FunctionsRelayError) => {
+  if (error instanceof FunctionsRelayError) {
+    return "The property submission service is deployed, but Supabase could not route this request to it right now.";
+  }
+
+  return "The property submission service could not be reached from this app right now.";
+};
+
 const UploadProperty = () => {
   const { user, loading } = useAuth();
   const { toast } = useToast();
@@ -152,6 +162,7 @@ const UploadProperty = () => {
 
   const imageFilesRef = useRef<SelectedMediaFile[]>([]);
   const documentFilesRef = useRef<SelectedMediaFile[]>([]);
+  const legalDocumentsRef = useRef<HTMLDivElement | null>(null);
 
   const form = useForm<PropertyFormData>({
     resolver: zodResolver(uploadPropertySchema),
@@ -204,6 +215,10 @@ const UploadProperty = () => {
   const clearSubmissionState = () => {
     setDuplicateWarning(null);
     setSubmissionIssue(null);
+  };
+
+  const scrollToLegalDocuments = () => {
+    legalDocumentsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const resetMedia = () => {
@@ -403,6 +418,32 @@ const UploadProperty = () => {
     }
   };
 
+  const ensureSubmissionServiceReady = async () => {
+    const { data: response, error } = await supabase.functions.invoke<PropertySubmissionResponse>(
+      "submit-property-listing",
+      {
+        body: { healthCheck: true },
+      }
+    );
+
+    if (error instanceof FunctionsFetchError || error instanceof FunctionsRelayError) {
+      throw new Error(getFunctionUnavailableMessage(error));
+    }
+
+    if (error instanceof FunctionsHttpError) {
+      const responsePayload = (await error.context.json()) as PropertySubmissionResponse;
+      throw new Error(responsePayload.message || "Property submission is not available right now.");
+    }
+
+    if (error) {
+      throw new Error(error.message || "Property submission is not available right now.");
+    }
+
+    if (!response?.ok) {
+      throw new Error(response?.message || "Property submission is not available right now.");
+    }
+  };
+
   const getSubmissionFields = () =>
     (
       selectedPropertyType === "joint_venture"
@@ -491,11 +532,11 @@ const UploadProperty = () => {
       return;
     }
 
-    setSubmissionPhase("uploading");
-
     let uploads: { imagePaths: string[]; imageUrls: string[]; documentPaths: string[] } | null = null;
 
     try {
+      await ensureSubmissionServiceReady();
+      setSubmissionPhase("uploading");
       uploads = await uploadSelectedMedia(data.propertyType);
       setSubmissionPhase("submitting");
 
@@ -577,9 +618,16 @@ const UploadProperty = () => {
       }
 
       const message = getFriendlySubmissionErrorMessage(error);
+      const hint =
+        error instanceof Error &&
+        (message === "The property submission service could not be reached from this app right now." ||
+          message === "The property submission service is deployed, but Supabase could not route this request to it right now.")
+          ? EDGE_FUNCTION_SETUP_HINT
+          : undefined;
       setSubmissionIssue({
         title: "We could not submit this property",
         description: message,
+        hint,
       });
       toast({
         title: "Submission failed",
@@ -941,12 +989,10 @@ const UploadProperty = () => {
                         name="size"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Size *</FormLabel>
+                            <FormLabel>Property Size (sq ft) *</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder={
-                                  selectedPropertyType === "land" ? "e.g., 500 sqm" : "e.g., 3 bedrooms"
-                                }
+                                placeholder="e.g., 1,800 sq ft"
                                 {...field}
                                 onChange={(event) => {
                                   clearSubmissionState();
@@ -1144,19 +1190,14 @@ const UploadProperty = () => {
                     <CardDescription>Upload photos and verification documents</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    <Tabs defaultValue="photos" className="w-full">
-                      <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="photos">Property Photos</TabsTrigger>
-                        <TabsTrigger value="documents">Legal Documents</TabsTrigger>
-                      </TabsList>
-
-                      <TabsContent value="photos" className="space-y-4">
+                    <div className="space-y-8">
+                      <div className="space-y-4">
                         <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
                           <Camera className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                           <h3 className="font-medium mb-2">Upload Property Photos</h3>
                           <p className="text-sm text-muted-foreground mb-4">
-                            Add up to {PROPERTY_IMAGE_LIMITS.maxFiles} photos. Only JPG, PNG, and WEBP images up to
-                            5MB each are accepted.
+                            Add up to {PROPERTY_IMAGE_LIMITS.maxFiles} photos. Only JPG, PNG, and WEBP images up to{" "}
+                            {formatFileSize(PROPERTY_IMAGE_LIMITS.maxFileSize)} each are accepted.
                           </p>
                           <input
                             type="file"
@@ -1204,9 +1245,21 @@ const UploadProperty = () => {
                             ))}
                           </div>
                         )}
-                      </TabsContent>
 
-                      <TabsContent value="documents" className="space-y-4">
+                        <div className="rounded-lg border bg-muted/30 p-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                          <div>
+                            <h4 className="font-medium">Next: legal documents</h4>
+                            <p className="text-sm text-muted-foreground">
+                              The legal document section is directly below on this same page.
+                            </p>
+                          </div>
+                          <Button type="button" variant="outline" onClick={scrollToLegalDocuments}>
+                            Continue to Legal Documents
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div ref={legalDocumentsRef} className="space-y-4 border-t pt-6">
                         <FormField
                           control={form.control}
                           name="verificationType"
@@ -1243,7 +1296,7 @@ const UploadProperty = () => {
                           <h3 className="font-medium mb-2">Upload Legal Documents</h3>
                           <p className="text-sm text-muted-foreground mb-4">
                             Add up to {PROPERTY_DOCUMENT_LIMITS.maxFiles} documents. Only PDF, JPG, PNG, and WEBP
-                            files up to 10MB each are accepted.
+                            files up to {formatFileSize(PROPERTY_DOCUMENT_LIMITS.maxFileSize)} each are accepted.
                           </p>
                           <input
                             type="file"
@@ -1292,8 +1345,8 @@ const UploadProperty = () => {
                             ))}
                           </div>
                         )}
-                      </TabsContent>
-                    </Tabs>
+                      </div>
+                    </div>
 
                     <div className="flex justify-between mt-6">
                       <Button type="button" variant="outline" onClick={prevStep}>
