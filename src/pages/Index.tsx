@@ -13,6 +13,7 @@ import {
   Mic,
   Search,
   Store,
+  Bot,
   TrendingUp,
   Upload,
   UserRound,
@@ -242,12 +243,11 @@ const Index = () => {
             </p>
 
             <h1 className="mx-auto mt-5 max-w-4xl text-balance text-center text-4xl font-semibold tracking-[-0.04em] text-[#1f1a54] sm:text-5xl lg:text-6xl">
-              Looking to rent, buy, list, or develop?
+              Find your perfect property with AI
             </h1>
 
             <p className="mx-auto mt-5 max-w-2xl text-center text-sm leading-7 text-[#6f7599] sm:text-lg">
-              Search verified homes, land, and commercial spaces across Nigeria with a
-              cleaner, faster experience built around discovery.
+              Tell our AI assistant exactly what you're looking for—from budget to location—and let it guide you to the best homes, land, and commercial spaces.
             </p>
 
             <form onSubmit={handleSearch} className="mx-auto mt-8 w-full max-w-4xl sm:mt-10">
@@ -302,6 +302,17 @@ const Index = () => {
               </div>
             </form>
 
+            <div className="mx-auto mt-5 max-w-2xl rounded-2xl border border-[#d7daf0] bg-[#f8f9fe]/80 px-5 py-3.5 text-sm text-[#4a507e] shadow-sm backdrop-blur-md">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 text-center sm:text-left">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#eef1ff] text-[#5b68e4]">
+                  <Bot className="h-4 w-4" />
+                </div>
+                <p className="leading-relaxed">
+                  <strong className="text-[#2b2770]">AI-Powered Search:</strong> Type naturally to describe your dream property, budget, or specifications, and let our assistant find the perfect match.
+                </p>
+              </div>
+            </div>
+
             <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
               {suggestedSearches.map((suggestion) => (
                 <button
@@ -315,20 +326,6 @@ const Index = () => {
               ))}
             </div>
 
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-[#646a91]">
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-[#5b68e4]" />
-                Verified listings
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-[#73a2ff]" />
-                AI-guided search
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-[#8d79ff]" />
-                Nationwide coverage
-              </div>
-            </div>
 
             <div className="mt-8 grid w-full max-w-5xl grid-cols-1 gap-4 text-left md:grid-cols-2">
               {quickActionCards.map((card) => {

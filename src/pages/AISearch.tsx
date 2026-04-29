@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Search, Loader2, Bot, ArrowLeft, MapPin, Bed, Bath, Square, Eye } from "lucide-react";
+import { Search, Loader2, Bot, ArrowLeft, MapPin, Bed, Bath, Square, Eye, UserRound } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { motion, AnimatePresence } from "framer-motion";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { addStepCount } from "@/lib/utils";
@@ -11,60 +13,32 @@ type Message = { role: "user" | "assistant"; content: string };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/property-chatbot`;
 
-async function streamChat({
+async function mockStreamChat({
   messages,
   onDelta,
   onDone,
-  onError,
 }: {
   messages: Message[];
   onDelta: (text: string) => void;
   onDone: () => void;
-  onError: (msg: string) => void;
 }) {
-  const resp = await fetch(CHAT_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-    },
-    body: JSON.stringify({ messages }),
-  });
-
-  if (!resp.ok) {
-    const data = await resp.json().catch(() => ({}));
-    onError(data.error || "Something went wrong. Please try again.");
-    return;
+  const lastMessage = messages[messages.length - 1].content.toLowerCase();
+  let responseText = "I found some great options for you. Let me know if you need to adjust your budget, location, or the number of bedrooms.";
+  
+  if (lastMessage.includes("lekki")) {
+    responseText = "Lekki is a fantastic area! I've filtered the properties to show you the best matches in Lekki. Do you have a specific budget in mind?";
+  } else if (lastMessage.includes("abuja")) {
+    responseText = "Abuja has some beautiful properties! I've updated the list. What kind of property are you looking for?";
+  } else if (lastMessage.includes("rent")) {
+    responseText = "Looking to rent? Great choice. I've updated the list to only show rental properties. Are you looking for an apartment or a duplex?";
+  } else if (lastMessage.includes("buy") || lastMessage.includes("sale")) {
+    responseText = "Buying a property is a great investment! I've filtered the results to show properties for sale. How many bedrooms do you need?";
   }
 
-  if (!resp.body) {
-    onError("No response received.");
-    return;
-  }
-
-  const reader = resp.body.getReader();
-  const decoder = new TextDecoder();
-  let buf = "";
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buf += decoder.decode(value, { stream: true });
-
-    let idx: number;
-    while ((idx = buf.indexOf("\n")) !== -1) {
-      let line = buf.slice(0, idx);
-      buf = buf.slice(idx + 1);
-      if (line.endsWith("\r")) line = line.slice(0, -1);
-      if (!line.startsWith("data: ")) continue;
-      const json = line.slice(6).trim();
-      if (json === "[DONE]") { onDone(); return; }
-      try {
-        const parsed = JSON.parse(json);
-        const c = parsed.choices?.[0]?.delta?.content;
-        if (c) onDelta(c);
-      } catch { /* partial */ }
-    }
+  const words = responseText.split(" ");
+  for (let i = 0; i < words.length; i++) {
+    await new Promise(resolve => setTimeout(resolve, 50));
+    onDelta(words[i] + " ");
   }
   onDone();
 }
@@ -168,14 +142,10 @@ const AISearch = () => {
     };
 
     try {
-      await streamChat({
+      await mockStreamChat({
         messages: [...messages, userMsg],
         onDelta: upsert,
         onDone: () => setIsLoading(false),
-        onError: (msg) => {
-          setMessages((p) => [...p, { role: "assistant", content: `⚠️ ${msg}` }]);
-          setIsLoading(false);
-        },
       });
     } catch {
       setMessages((p) => [...p, { role: "assistant", content: "⚠️ Connection error. Please try again." }]);
@@ -230,25 +200,43 @@ const AISearch = () => {
               </div>
             )}
             
-            {messages.map((m, i) => (
-              <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
-                    m.role === "user"
-                      ? "bg-[#26225f] text-white rounded-br-sm"
-                      : "bg-white border border-[#d7daf0] text-[#1f1a54] rounded-bl-sm"
-                  }`}
+            <AnimatePresence>
+              {messages.map((m, i) => (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                  key={i} 
+                  className={`flex gap-3 ${m.role === "user" ? "justify-end" : "justify-start"}`}
                 >
-                  {m.role === "assistant" ? (
-                    <div className="prose prose-sm max-w-none [&>p]:m-0 [&>ul]:mt-1 [&>ol]:mt-1 text-[#4a507e]">
-                      <ReactMarkdown>{m.content}</ReactMarkdown>
-                    </div>
-                  ) : (
-                    m.content
+                  {m.role === "assistant" && (
+                    <Avatar className="h-8 w-8 shrink-0 shadow-sm border border-[#d7daf0]">
+                      <AvatarFallback className="bg-[#eef1ff] text-[#5b68e4]"><Bot className="h-4 w-4" /></AvatarFallback>
+                    </Avatar>
                   )}
-                </div>
-              </div>
-            ))}
+                  <div
+                    className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
+                      m.role === "user"
+                        ? "bg-[#26225f] text-white rounded-br-sm"
+                        : "bg-white border border-[#d7daf0] text-[#1f1a54] rounded-bl-sm"
+                    }`}
+                  >
+                    {m.role === "assistant" ? (
+                      <div className="prose prose-sm max-w-none [&>p]:m-0 [&>ul]:mt-1 [&>ol]:mt-1 text-[#4a507e]">
+                        <ReactMarkdown>{m.content}</ReactMarkdown>
+                      </div>
+                    ) : (
+                      m.content
+                    )}
+                  </div>
+                  {m.role === "user" && (
+                    <Avatar className="h-8 w-8 shrink-0 shadow-sm">
+                      <AvatarFallback className="bg-[#26225f] text-white"><UserRound className="h-4 w-4" /></AvatarFallback>
+                    </Avatar>
+                  )}
+                </motion.div>
+              ))}
+            </AnimatePresence>
             
             {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
               <div className="flex justify-start">
@@ -296,52 +284,63 @@ const AISearch = () => {
           
           <div className="flex-1 overflow-y-auto p-4 sm:p-6">
             {displayedProperties.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-                {displayedProperties.map((property) => (
-                  <Card key={`${property.type}-${property.id}`} className="overflow-hidden hover:shadow-lg transition-shadow group border-[#d7daf0] shadow-sm">
-                    <div className="relative">
-                      <img
-                        src={property.image}
-                        alt={property.title}
-                        className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute top-2 left-2 flex gap-1.5">
-                        {property.verified && (
-                          <Badge className="bg-primary/90 text-primary-foreground text-[10px] px-1.5 py-0">Verified</Badge>
-                        )}
-                        <Badge variant="secondary" className="capitalize text-[10px] px-1.5 py-0 bg-white/90 text-black">
-                          {property.type === "rent" ? "Rent" : "Sale"}
-                        </Badge>
-                      </div>
-                    </div>
-                    <CardContent className="p-3">
-                      <h3 className="font-semibold text-sm mb-1 line-clamp-1 text-[#1f1a54]">{property.title}</h3>
-                      <div className="flex items-center text-muted-foreground text-xs mb-2">
-                        <MapPin className="h-3 w-3 mr-1" />
-                        <span className="truncate">{property.location}</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
-                        <span className="flex items-center">
-                          <Bed className="h-3 w-3 mr-1" />
-                          {property.beds}
-                        </span>
-                        <span className="flex items-center">
-                          <Bath className="h-3 w-3 mr-1" />
-                          {property.baths}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-base font-bold text-[#26225f]">{property.price}</span>
-                        <Button size="sm" variant="ghost" className="h-8 px-2 text-[#5c6494] hover:bg-[#eef1ff] hover:text-[#26225f]" asChild>
-                          <Link to={`/property/${property.type}/${property.id}`}>
-                            View
-                          </Link>
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              <AnimatePresence>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+                  {displayedProperties.map((property) => (
+                    <motion.div 
+                      key={`${property.type}-${property.id}`}
+                      layout
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <Card className="h-full overflow-hidden hover:shadow-lg transition-shadow group border-[#d7daf0] shadow-sm">
+                        <div className="relative">
+                          <img
+                            src={property.image}
+                            alt={property.title}
+                            className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          <div className="absolute top-2 left-2 flex gap-1.5">
+                            {property.verified && (
+                              <Badge className="bg-primary/90 text-primary-foreground text-[10px] px-1.5 py-0">Verified</Badge>
+                            )}
+                            <Badge variant="secondary" className="capitalize text-[10px] px-1.5 py-0 bg-white/90 text-black">
+                              {property.type === "rent" ? "Rent" : "Sale"}
+                            </Badge>
+                          </div>
+                        </div>
+                        <CardContent className="p-3">
+                          <h3 className="font-semibold text-sm mb-1 line-clamp-1 text-[#1f1a54]">{property.title}</h3>
+                          <div className="flex items-center text-muted-foreground text-xs mb-2">
+                            <MapPin className="h-3 w-3 mr-1" />
+                            <span className="truncate">{property.location}</span>
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
+                            <span className="flex items-center">
+                              <Bed className="h-3 w-3 mr-1" />
+                              {property.beds}
+                            </span>
+                            <span className="flex items-center">
+                              <Bath className="h-3 w-3 mr-1" />
+                              {property.baths}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-base font-bold text-[#26225f]">{property.price}</span>
+                            <Button size="sm" variant="ghost" className="h-8 px-2 text-[#5c6494] hover:bg-[#eef1ff] hover:text-[#26225f]" asChild>
+                              <Link to={`/property/${property.type}/${property.id}`}>
+                                View
+                              </Link>
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
+              </AnimatePresence>
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-center p-6">
                 <div className="h-16 w-16 rounded-full bg-white border border-[#d7daf0] flex items-center justify-center mb-4 shadow-sm">

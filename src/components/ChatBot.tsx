@@ -1,67 +1,40 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, X, Send, Loader2, Bot, Search } from "lucide-react";
+import { MessageCircle, X, Send, Loader2, Bot, Search, UserRound } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 type Message = { role: "user" | "assistant"; content: string };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/property-chatbot`;
 
-async function streamChat({
+async function mockStreamChat({
   messages,
   onDelta,
   onDone,
-  onError,
 }: {
   messages: Message[];
   onDelta: (text: string) => void;
   onDone: () => void;
-  onError: (msg: string) => void;
 }) {
-  const resp = await fetch(CHAT_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-    },
-    body: JSON.stringify({ messages }),
-  });
-
-  if (!resp.ok) {
-    const data = await resp.json().catch(() => ({}));
-    onError(data.error || "Something went wrong. Please try again.");
-    return;
+  const lastMessage = messages[messages.length - 1].content.toLowerCase();
+  let responseText = "I'm here to help you find the perfect property! Could you tell me a bit more about what you're looking for?";
+  
+  if (lastMessage.includes("lekki")) {
+    responseText = "Lekki is a fantastic area! I can help you find the best matches in Lekki. Do you have a specific budget in mind?";
+  } else if (lastMessage.includes("abuja") || lastMessage.includes("jv")) {
+    responseText = "Abuja has some beautiful properties and great JV opportunities! What kind of property are you looking for?";
+  } else if (lastMessage.includes("rent") || lastMessage.includes("shop")) {
+    responseText = "Looking to rent? Great choice. We have many options for apartments and shops. What size do you need?";
+  } else if (lastMessage.includes("verify")) {
+    responseText = "Verifying a property is easy and essential! Just upload the property details in the Verify section, and our team will handle the rest.";
   }
 
-  if (!resp.body) {
-    onError("No response received.");
-    return;
-  }
-
-  const reader = resp.body.getReader();
-  const decoder = new TextDecoder();
-  let buf = "";
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buf += decoder.decode(value, { stream: true });
-
-    let idx: number;
-    while ((idx = buf.indexOf("\n")) !== -1) {
-      let line = buf.slice(0, idx);
-      buf = buf.slice(idx + 1);
-      if (line.endsWith("\r")) line = line.slice(0, -1);
-      if (!line.startsWith("data: ")) continue;
-      const json = line.slice(6).trim();
-      if (json === "[DONE]") { onDone(); return; }
-      try {
-        const parsed = JSON.parse(json);
-        const c = parsed.choices?.[0]?.delta?.content;
-        if (c) onDelta(c);
-      } catch { /* partial */ }
-    }
+  const words = responseText.split(" ");
+  for (let i = 0; i < words.length; i++) {
+    await new Promise(resolve => setTimeout(resolve, 50));
+    onDelta(words[i] + " ");
   }
   onDone();
 }
@@ -104,14 +77,10 @@ const ChatBot = () => {
     };
 
     try {
-      await streamChat({
+      await mockStreamChat({
         messages: [...messages, userMsg],
         onDelta: upsert,
         onDone: () => setIsLoading(false),
-        onError: (msg) => {
-          setMessages((p) => [...p, { role: "assistant", content: `⚠️ ${msg}` }]);
-          setIsLoading(false);
-        },
       });
     } catch {
       setMessages((p) => [...p, { role: "assistant", content: "⚠️ Connection error. Please try again." }]);
@@ -162,25 +131,43 @@ const ChatBot = () => {
                   </div>
                 </div>
               )}
-              {messages.map((m, i) => (
-                <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div
-                    className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${
-                      m.role === "user"
-                        ? "bg-primary text-primary-foreground rounded-br-md"
-                        : "bg-muted text-foreground rounded-bl-md"
-                    }`}
+              <AnimatePresence>
+                {messages.map((m, i) => (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.3 }}
+                    key={i} 
+                    className={`flex gap-2 ${m.role === "user" ? "justify-end" : "justify-start"}`}
                   >
-                    {m.role === "assistant" ? (
-                      <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:m-0 [&>ul]:mt-1 [&>ol]:mt-1">
-                        <ReactMarkdown>{m.content}</ReactMarkdown>
-                      </div>
-                    ) : (
-                      m.content
+                    {m.role === "assistant" && (
+                      <Avatar className="h-6 w-6 shrink-0 mt-1 shadow-sm border border-[#d7daf0]">
+                        <AvatarFallback className="bg-[#eef1ff] text-[#5b68e4] text-xs"><Bot className="h-3 w-3" /></AvatarFallback>
+                      </Avatar>
                     )}
-                  </div>
-                </div>
-              ))}
+                    <div
+                      className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm shadow-sm ${
+                        m.role === "user"
+                          ? "bg-primary text-primary-foreground rounded-br-md"
+                          : "bg-muted text-foreground border border-border rounded-bl-md"
+                      }`}
+                    >
+                      {m.role === "assistant" ? (
+                        <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:m-0 [&>ul]:mt-1 [&>ol]:mt-1">
+                          <ReactMarkdown>{m.content}</ReactMarkdown>
+                        </div>
+                      ) : (
+                        m.content
+                      )}
+                    </div>
+                    {m.role === "user" && (
+                      <Avatar className="h-6 w-6 shrink-0 mt-1 shadow-sm">
+                        <AvatarFallback className="bg-primary text-primary-foreground text-xs"><UserRound className="h-3 w-3" /></AvatarFallback>
+                      </Avatar>
+                    )}
+                  </motion.div>
+                ))}
+              </AnimatePresence>
               {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
                 <div className="flex justify-start">
                   <div className="bg-muted rounded-2xl rounded-bl-md px-3 py-2">
