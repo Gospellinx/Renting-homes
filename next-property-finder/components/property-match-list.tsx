@@ -25,14 +25,14 @@ export function PropertyMatchList({ properties }: { properties: PropertyMatch[] 
   }
 
   return (
-    <div className="mt-4 grid gap-3">
+    <div className="grid gap-3">
       {properties.map((property) => {
         const features = formatFeatures(property.features).slice(0, 4);
 
         return (
           <article
             key={property.id}
-            className="rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm"
+            className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
           >
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>

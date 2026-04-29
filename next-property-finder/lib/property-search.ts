@@ -36,22 +36,9 @@ const cosineSimilarity = (left: number[], right: number[]) => {
 
 export async function fetchMatchingProperties(filters: SearchFilters) {
   const db = getDb();
-  const whereClauses = [];
-
-  if (filters.location) {
-    whereClauses.push(db`location ILIKE ${`%${filters.location}%`}`);
-  }
-
-  if (filters.maxPrice !== null) {
-    whereClauses.push(db`price <= ${filters.maxPrice}`);
-  }
-
-  if (filters.bedrooms !== null) {
-    whereClauses.push(db`bedrooms >= ${filters.bedrooms}`);
-  }
-
-  const whereFragment =
-    whereClauses.length > 0 ? db`WHERE ${db.join(whereClauses, db` AND `)}` : db``;
+  const locationPattern = filters.location ? `%${filters.location}%` : null;
+  const maxPrice = filters.maxPrice ?? null;
+  const bedrooms = filters.bedrooms ?? null;
 
   const rows = await db<PropertyRecord[]>`
     SELECT
@@ -64,7 +51,9 @@ export async function fetchMatchingProperties(filters: SearchFilters) {
       features,
       description
     FROM properties
-    ${whereFragment}
+    WHERE (${locationPattern}::TEXT IS NULL OR location ILIKE ${locationPattern ?? ""})
+      AND (${maxPrice}::NUMERIC IS NULL OR price <= ${maxPrice ?? 0})
+      AND (${bedrooms}::INTEGER IS NULL OR bedrooms >= ${bedrooms ?? 0})
     ORDER BY price ASC, bedrooms DESC, bathrooms DESC
     LIMIT ${EMBEDDING_CANDIDATE_LIMIT}
   `;
