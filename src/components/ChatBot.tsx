@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, X, Send, Loader2, Bot } from "lucide-react";
+import { MessageCircle, X, Send, Loader2, Bot, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 
@@ -203,7 +203,7 @@ const ChatBot = () => {
                 className="flex-1 text-sm bg-transparent outline-none placeholder:text-muted-foreground disabled:opacity-50"
               />
               <Button type="submit" size="icon" variant="ghost" disabled={isLoading || !input.trim()}>
-                <Send className="h-4 w-4" />
+                <Search className="h-4 w-4" />
               </Button>
             </form>
           </motion.div>

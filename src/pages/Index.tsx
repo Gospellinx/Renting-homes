@@ -125,7 +125,7 @@ const Index = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
-  const { parseSearchQuery, isProcessing } = useAISearch();
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const displayName = user
     ? user.user_metadata?.user_name?.trim() ||
@@ -141,33 +141,11 @@ const Index = () => {
     }
   };
 
-  const handleSearch = async (e: React.FormEvent) => {
+  const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
-
-    const parsed = await parseSearchQuery(searchQuery.trim());
-
-    if (parsed) {
-      const params = new URLSearchParams();
-      params.set("q", searchQuery.trim());
-
-      if (parsed.location) params.set("location", parsed.location);
-      if (parsed.propertyType) params.set("propertyType", parsed.propertyType);
-      if (parsed.intent) params.set("intent", parsed.intent);
-      if (parsed.bedrooms) params.set("bedrooms", parsed.bedrooms.toString());
-      if (parsed.priceMin) params.set("priceMin", parsed.priceMin.toString());
-      if (parsed.priceMax) params.set("priceMax", parsed.priceMax.toString());
-
-      if (parsed.intent === "rent") {
-        navigate(`/rental-properties?${params.toString()}`);
-      } else if (parsed.intent === "buy") {
-        navigate(`/buy-property?${params.toString()}`);
-      } else {
-        navigate(`/search?${params.toString()}`);
-      }
-    } else {
-      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-    }
+    setIsProcessing(true);
+    navigate(`/ai-search?q=${encodeURIComponent(searchQuery.trim())}`);
   };
 
   const handleVoiceSearch = () => {
@@ -318,7 +296,7 @@ const Index = () => {
                     className="h-10 rounded-full bg-[#26225f] px-3 text-sm font-medium text-white shadow-[0_12px_24px_rgba(38,34,95,0.22)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#1f1b50] hover:shadow-[0_16px_28px_rgba(38,34,95,0.28)] sm:h-11 sm:px-5"
                   >
                     <span className="hidden sm:inline">Search</span>
-                    <ArrowRight className="h-4 w-4" />
+                    <Search className="h-4 w-4" />
                   </Button>
                 </div>
               </div>

@@ -19,6 +19,7 @@ import PropertyDetails from "./pages/PropertyDetails";
 import VirtualTour360 from "./pages/VirtualTour360";
 import CompareProperties from "./pages/CompareProperties";
 import SearchResults from "./pages/SearchResults";
+import AISearch from "./pages/AISearch";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
 import Profile from "./pages/Profile";
@@ -56,6 +57,7 @@ const App = () => (
             <Route path="/virtual-tour/:type/:id" element={<VirtualTour360 />} />
             <Route path="/compare-properties" element={<CompareProperties />} />
             <Route path="/search" element={<SearchResults />} />
+            <Route path="/ai-search" element={<AISearch />} />
             <Route 
               path="/profile" 
               element={

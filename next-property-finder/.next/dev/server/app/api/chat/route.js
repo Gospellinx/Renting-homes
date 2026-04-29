@@ -1,0 +1,10 @@
+var R=require("../../../chunks/[turbopack]_runtime.js")("server/app/api/chat/route.js")
+R.c("server/chunks/next-property-finder_app_api_chat_route_ts_0pb34x5._.js")
+R.c("server/chunks/0t_7_next_0vw0thv._.js")
+R.c("server/chunks/0t_7_zod_v4_0ctkcjs._.js")
+R.c("server/chunks/0t_7_openai_0i-jh39._.js")
+R.c("server/chunks/0t_7_postgres_src_0k9v8ya._.js")
+R.c("server/chunks/[root-of-the-server]__0yim8nq._.js")
+R.c("server/chunks/next-property-finder__next-internal_server_app_api_chat_route_actions_0l5og-_.js")
+R.m("[project]/next-property-finder/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/next-property-finder/app/api/chat/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)")
+module.exports=R.m("[project]/next-property-finder/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/next-property-finder/app/api/chat/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)").exports

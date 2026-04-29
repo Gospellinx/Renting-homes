@@ -1,0 +1,363 @@
+import { useState, useRef, useEffect } from "react";
+import { useSearchParams, Link, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Search, Loader2, Bot, ArrowLeft, MapPin, Bed, Bath, Square, Eye } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { addStepCount } from "@/lib/utils";
+
+type Message = { role: "user" | "assistant"; content: string };
+
+const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/property-chatbot`;
+
+async function streamChat({
+  messages,
+  onDelta,
+  onDone,
+  onError,
+}: {
+  messages: Message[];
+  onDelta: (text: string) => void;
+  onDone: () => void;
+  onError: (msg: string) => void;
+}) {
+  const resp = await fetch(CHAT_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+    },
+    body: JSON.stringify({ messages }),
+  });
+
+  if (!resp.ok) {
+    const data = await resp.json().catch(() => ({}));
+    onError(data.error || "Something went wrong. Please try again.");
+    return;
+  }
+
+  if (!resp.body) {
+    onError("No response received.");
+    return;
+  }
+
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+
+    let idx: number;
+    while ((idx = buf.indexOf("\n")) !== -1) {
+      let line = buf.slice(0, idx);
+      buf = buf.slice(idx + 1);
+      if (line.endsWith("\r")) line = line.slice(0, -1);
+      if (!line.startsWith("data: ")) continue;
+      const json = line.slice(6).trim();
+      if (json === "[DONE]") { onDone(); return; }
+      try {
+        const parsed = JSON.parse(json);
+        const c = parsed.choices?.[0]?.delta?.content;
+        if (c) onDelta(c);
+      } catch { /* partial */ }
+    }
+  }
+  onDone();
+}
+
+// Combined property data from rentals and sales
+const allProperties = [
+  // Rental Properties
+  { id: 1, type: "rent" as const, title: "Modern 3 Bedroom Apartment", location: "Victoria Island, Lagos", price: "₦3.5M/year", beds: 3, baths: 2, size: "1,500 sqft", image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400", verified: true, featured: true, propertyType: "Apartment" },
+  { id: 2, type: "rent" as const, title: "Luxury 4 Bedroom Duplex", location: "Lekki Phase 1, Lagos", price: "₦8M/year", beds: 4, baths: 4, size: "3,200 sqft", image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400", verified: true, featured: false, propertyType: "Duplex" },
+  { id: 3, type: "rent" as const, title: "Cozy 2 Bedroom Flat", location: "Ikeja GRA, Lagos", price: "₦2.2M/year", beds: 2, baths: 2, size: "1,100 sqft", image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400", verified: true, featured: false, propertyType: "Flat" },
+  { id: 4, type: "rent" as const, title: "Executive 5 Bedroom Mansion", location: "Ikoyi, Lagos", price: "₦15M/year", beds: 5, baths: 6, size: "5,500 sqft", image: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=400", verified: true, featured: true, propertyType: "Mansion" },
+  { id: 5, type: "rent" as const, title: "Studio Apartment", location: "Yaba, Lagos", price: "₦800K/year", beds: 1, baths: 1, size: "450 sqft", image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400", verified: false, featured: false, propertyType: "Studio" },
+  { id: 6, type: "rent" as const, title: "3 Bedroom Bungalow", location: "Ajah, Lagos", price: "₦1.8M/year", beds: 3, baths: 2, size: "1,800 sqft", image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400", verified: true, featured: false, propertyType: "Bungalow" },
+  { id: 9, type: "rent" as const, title: "4 Bedroom Semi-Detached", location: "Asokoro, Abuja", price: "₦6M/year", beds: 4, baths: 3, size: "2,800 sqft", image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400", verified: true, featured: true, propertyType: "Semi-Detached" },
+  { id: 10, type: "rent" as const, title: "3 Bedroom Terrace", location: "Maitama, Abuja", price: "₦5M/year", beds: 3, baths: 3, size: "2,200 sqft", image: "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=400", verified: true, featured: false, propertyType: "Terrace" },
+  { id: 11, type: "rent" as const, title: "Luxury Villa", location: "Wuse 2, Abuja", price: "₦12M/year", beds: 5, baths: 5, size: "4,500 sqft", image: "https://images.unsplash.com/photo-1613977257363-707ba9348227?w=400", verified: true, featured: true, propertyType: "Villa" },
+  
+  // Buy Properties
+  { id: 101, type: "sale" as const, title: "Premium 4 Bedroom Duplex", location: "Victoria Island, Lagos", price: "₦180M", beds: 4, baths: 4, size: "3,500 sqft", image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400", verified: true, featured: true, propertyType: "Duplex" },
+  { id: 102, type: "sale" as const, title: "Waterfront Mansion", location: "Banana Island, Lagos", price: "₦850M", beds: 6, baths: 7, size: "8,000 sqft", image: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=400", verified: true, featured: true, propertyType: "Mansion" },
+  { id: 103, type: "sale" as const, title: "3 Bedroom Apartment", location: "Lekki Phase 1, Lagos", price: "₦75M", beds: 3, baths: 3, size: "1,800 sqft", image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400", verified: true, featured: false, propertyType: "Apartment" },
+  { id: 107, type: "sale" as const, title: "Executive 5 Bedroom Villa", location: "Asokoro, Abuja", price: "₦280M", beds: 5, baths: 5, size: "5,000 sqft", image: "https://images.unsplash.com/photo-1613977257363-707ba9348227?w=400", verified: true, featured: true, propertyType: "Villa" },
+  { id: 108, type: "sale" as const, title: "4 Bedroom Terrace", location: "Maitama, Abuja", price: "₦120M", beds: 4, baths: 4, size: "2,800 sqft", image: "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=400", verified: true, featured: false, propertyType: "Terrace" },
+];
+
+const quickSuggestions = [
+  "Find me a 3-bedroom in Lekki",
+  "Any JV opportunities in Abuja?",
+  "Shops for rent in Lagos",
+  "How do I verify a property?",
+];
+
+const AISearch = () => {
+  const [searchParams] = useSearchParams();
+  const initialQuery = searchParams.get("q") || "";
+  const navigate = useNavigate();
+
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  
+  // A simple heuristic for demonstrating filtering based on conversation context
+  // In a real app, the AI could return JSON of search filters along with its message.
+  const [displayedProperties, setDisplayedProperties] = useState(allProperties);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages]);
+
+  useEffect(() => {
+    if (initialQuery && messages.length === 0) {
+      send(initialQuery);
+    } else if (messages.length === 0) {
+      // Just show default prompt
+    }
+  }, [initialQuery]);
+
+  useEffect(() => {
+    // Simple mock filter based on conversation history
+    const history = messages.map(m => m.content.toLowerCase()).join(" ");
+    
+    let filtered = allProperties;
+    
+    if (history.includes("lekki")) {
+      filtered = filtered.filter(p => p.location.toLowerCase().includes("lekki"));
+    } else if (history.includes("abuja") || history.includes("asokoro") || history.includes("maitama") || history.includes("wuse")) {
+      filtered = filtered.filter(p => p.location.toLowerCase().includes("abuja"));
+    }
+    
+    if (history.includes("rent")) {
+      filtered = filtered.filter(p => p.type === "rent");
+    } else if (history.includes("buy") || history.includes("sale")) {
+      filtered = filtered.filter(p => p.type === "sale");
+    }
+
+    if (history.includes("3 bedroom") || history.includes("3 bed")) {
+      filtered = filtered.filter(p => p.beds >= 3);
+    }
+    
+    setDisplayedProperties(filtered);
+  }, [messages]);
+
+  const send = async (text: string) => {
+    if (!text.trim() || isLoading) return;
+    const userMsg: Message = { role: "user", content: text.trim() };
+    setMessages((p) => [...p, userMsg]);
+    setInput("");
+    setIsLoading(true);
+
+    let assistantSoFar = "";
+    const upsert = (chunk: string) => {
+      assistantSoFar += chunk;
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last?.role === "assistant") {
+          return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: assistantSoFar } : m));
+        }
+        return [...prev, { role: "assistant", content: assistantSoFar }];
+      });
+    };
+
+    try {
+      await streamChat({
+        messages: [...messages, userMsg],
+        onDelta: upsert,
+        onDone: () => setIsLoading(false),
+        onError: (msg) => {
+          setMessages((p) => [...p, { role: "assistant", content: `⚠️ ${msg}` }]);
+          setIsLoading(false);
+        },
+      });
+    } catch {
+      setMessages((p) => [...p, { role: "assistant", content: "⚠️ Connection error. Please try again." }]);
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex h-screen w-full flex-col bg-[linear-gradient(180deg,#f2f4fb_0%,#f7f7fb_42%,#f4f1ec_100%)]">
+      {/* Header */}
+      <header className="relative z-40 flex h-16 shrink-0 items-center justify-between border-b border-[#d7daf0] bg-white/80 px-4 backdrop-blur supports-[backdrop-filter]:bg-white/60 sm:px-6">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="text-[#1f1a54] hover:bg-[#eef1ff] hover:text-[#26225f]">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="flex flex-col">
+            <h1 className="text-lg font-bold leading-tight text-[#1f1a54] flex items-center gap-2">
+              <Bot className="h-5 w-5 text-primary" />
+              AI Search Assistant
+            </h1>
+          </div>
+        </div>
+        <Button variant="outline" size="sm" asChild className="hidden sm:flex border-[#d7daf0] text-[#1f1a54] hover:bg-[#eef1ff] hover:text-[#26225f]">
+          <Link to="/">Back to Home</Link>
+        </Button>
+      </header>
+
+      <div className="flex flex-1 overflow-hidden flex-col md:flex-row">
+        {/* Left pane: AI Chat */}
+        <div className="flex w-full flex-col border-r border-[#d7daf0] bg-white/50 md:w-[400px] lg:w-[450px]">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+            {messages.length === 0 && (
+              <div className="space-y-4 pt-4">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <Bot className="h-6 w-6" />
+                </div>
+                <div className="text-center">
+                  <h3 className="text-lg font-semibold text-[#1f1a54]">HomesNG AI</h3>
+                  <p className="text-sm text-muted-foreground mt-1">Tell me what you're looking for, your budget, or location.</p>
+                </div>
+                <div className="grid grid-cols-1 gap-2 pt-2">
+                  {quickSuggestions.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => send(s)}
+                      className="text-left text-sm px-4 py-3 rounded-xl border border-[#d7daf0] bg-white hover:border-[#cfd5fb] hover:bg-[#f8f9fe] transition-all text-[#4a507e] shadow-sm"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {messages.map((m, i) => (
+              <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div
+                  className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
+                    m.role === "user"
+                      ? "bg-[#26225f] text-white rounded-br-sm"
+                      : "bg-white border border-[#d7daf0] text-[#1f1a54] rounded-bl-sm"
+                  }`}
+                >
+                  {m.role === "assistant" ? (
+                    <div className="prose prose-sm max-w-none [&>p]:m-0 [&>ul]:mt-1 [&>ol]:mt-1 text-[#4a507e]">
+                      <ReactMarkdown>{m.content}</ReactMarkdown>
+                    </div>
+                  ) : (
+                    m.content
+                  )}
+                </div>
+              </div>
+            ))}
+            
+            {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
+              <div className="flex justify-start">
+                <div className="bg-white border border-[#d7daf0] rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
+                  <Loader2 className="h-4 w-4 animate-spin text-[#7d84ad]" />
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="p-4 bg-white border-t border-[#d7daf0]">
+            <form
+              onSubmit={(e) => { e.preventDefault(); send(input); }}
+              className="flex items-center gap-2 rounded-full border border-[#d7daf0] bg-[#f8f9fe] p-1.5 shadow-sm focus-within:border-[#cfd5fb] focus-within:ring-1 focus-within:ring-[#cfd5fb]"
+            >
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask about properties..."
+                disabled={isLoading}
+                className="flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-[#9ca2c6] text-[#1f1a54] disabled:opacity-50"
+              />
+              <Button 
+                type="submit" 
+                size="icon" 
+                className="rounded-full bg-[#26225f] text-white hover:bg-[#1f1b50] h-9 w-9 shrink-0" 
+                disabled={isLoading || !input.trim()}
+              >
+                <Search className="h-4 w-4" />
+              </Button>
+            </form>
+          </div>
+        </div>
+
+        {/* Right pane: Property Results */}
+        <div className="flex-1 flex flex-col bg-transparent overflow-hidden">
+          <div className="p-4 sm:p-6 border-b border-[#d7daf0]/50 bg-white/30 backdrop-blur-sm flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-[#1f1a54]">
+              {displayedProperties.length} Properties Found
+            </h2>
+            <p className="text-sm text-muted-foreground hidden sm:block">
+              Results update automatically as you chat
+            </p>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+            {displayedProperties.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+                {displayedProperties.map((property) => (
+                  <Card key={`${property.type}-${property.id}`} className="overflow-hidden hover:shadow-lg transition-shadow group border-[#d7daf0] shadow-sm">
+                    <div className="relative">
+                      <img
+                        src={property.image}
+                        alt={property.title}
+                        className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <div className="absolute top-2 left-2 flex gap-1.5">
+                        {property.verified && (
+                          <Badge className="bg-primary/90 text-primary-foreground text-[10px] px-1.5 py-0">Verified</Badge>
+                        )}
+                        <Badge variant="secondary" className="capitalize text-[10px] px-1.5 py-0 bg-white/90 text-black">
+                          {property.type === "rent" ? "Rent" : "Sale"}
+                        </Badge>
+                      </div>
+                    </div>
+                    <CardContent className="p-3">
+                      <h3 className="font-semibold text-sm mb-1 line-clamp-1 text-[#1f1a54]">{property.title}</h3>
+                      <div className="flex items-center text-muted-foreground text-xs mb-2">
+                        <MapPin className="h-3 w-3 mr-1" />
+                        <span className="truncate">{property.location}</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
+                        <span className="flex items-center">
+                          <Bed className="h-3 w-3 mr-1" />
+                          {property.beds}
+                        </span>
+                        <span className="flex items-center">
+                          <Bath className="h-3 w-3 mr-1" />
+                          {property.baths}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-base font-bold text-[#26225f]">{property.price}</span>
+                        <Button size="sm" variant="ghost" className="h-8 px-2 text-[#5c6494] hover:bg-[#eef1ff] hover:text-[#26225f]" asChild>
+                          <Link to={`/property/${property.type}/${property.id}`}>
+                            View
+                          </Link>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-center p-6">
+                <div className="h-16 w-16 rounded-full bg-white border border-[#d7daf0] flex items-center justify-center mb-4 shadow-sm">
+                  <Search className="h-6 w-6 text-[#7d84ad]" />
+                </div>
+                <h3 className="text-lg font-semibold text-[#1f1a54] mb-1">No matches found</h3>
+                <p className="text-sm text-muted-foreground max-w-sm">
+                  Try asking the AI to show you different locations, property types, or a broader budget range.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AISearch;
