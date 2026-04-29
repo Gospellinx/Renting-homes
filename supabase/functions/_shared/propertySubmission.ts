@@ -191,7 +191,7 @@ export const sanitizePropertySubmissionPayload = (
   state: normalizeLine(payload.state),
   lga: normalizeLine(payload.lga),
   price: normalizeLine(payload.price),
-  size: normalizeSquareFeet(payload.size),
+  size: normalizeLine(payload.size),
   amenities: Array.isArray(payload.amenities)
     ? payload.amenities.map((value) => normalizeLine(value)).filter(Boolean)
     : [],
@@ -250,8 +250,8 @@ export const validatePropertySubmissionPayload = (
     fieldErrors.price = "Enter a valid property price.";
   }
 
-  if (sanitized.size.length < 2 || sanitized.size.length > 80 || !isValidSquareFeet(sanitized.size)) {
-    fieldErrors.size = "Enter the property size in square feet, e.g. 1,800 sq ft.";
+  if (sanitized.size.length < 2 || sanitized.size.length > 80) {
+    fieldErrors.size = "Enter the property size.";
   }
 
   if (sanitized.ownerName.length < 2 || sanitized.ownerName.length > 100) {

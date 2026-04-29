@@ -74,9 +74,9 @@ const allowedImageMimeTypes = new Set<string>(PROPERTY_IMAGE_LIMITS.acceptedMime
 const allowedImageExtensions = new Set<string>(PROPERTY_IMAGE_LIMITS.acceptedExtensions);
 const allowedDocumentMimeTypes = new Set<string>(PROPERTY_DOCUMENT_LIMITS.acceptedMimeTypes);
 const allowedDocumentExtensions = new Set<string>(PROPERTY_DOCUMENT_LIMITS.acceptedExtensions);
-const squareFeetPattern = /^\d[\d,\s.]*(?:\s*(?:sq\.?\s*ft|sqft|square\s*feet|ft|ft2|ft²))?$/i;
 const digitsOnlyPattern = /^\d[\d,\s.]*$/;
 const bedroomPattern = /\bbed(room)?s?\b/i;
+const squareFeetPattern = /^\d[\d,\s.]*(?:\s*(?:sq\.?\s*ft|sqft|square\s*feet|ft|ft2|ft²))?$/i;
 
 const normalizeLine = (value: string) => value.replace(/\s+/g, " ").trim();
 const normalizeParagraph = (value: string) => value.replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
@@ -131,12 +131,7 @@ export const uploadPropertySchema = z
       .min(2, "Enter the property price")
       .max(60, "Price is too long")
       .refine((value) => /\d/.test(value), "Price must include a number"),
-    size: z
-      .string()
-      .trim()
-      .min(2, "Enter the property size in square feet")
-      .max(80, "Size is too long")
-      .refine((value) => isValidSquareFeet(value), "Enter the property size in square feet, e.g. 1,800 sq ft"),
+    size: z.string().trim().min(2, "Enter the property size").max(80, "Size is too long"),
     amenities: z.array(z.string()),
     ownerName: z.string().trim().min(2, "Enter the contact full name").max(100, "Name is too long"),
     ownerPhone: z
@@ -367,7 +362,7 @@ export const sanitizePropertyFormData = (data: PropertyFormData): PropertyFormDa
   state: normalizeLine(data.state),
   lga: normalizeLine(data.lga),
   price: normalizeLine(data.price),
-  size: normalizeSquareFeet(data.size),
+  size: normalizeLine(data.size),
   amenities: Array.isArray(data.amenities)
     ? data.amenities.map((value) => normalizeLine(value)).filter(Boolean)
     : [],
