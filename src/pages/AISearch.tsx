@@ -7,42 +7,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { addStepCount } from "@/lib/utils";
 import { allProperties } from "@/data/mockProperties";
+import { smartMockStreamChat, ChatMessage } from "@/lib/mockAI";
 
-type Message = { role: "user" | "assistant"; content: string };
+type Message = ChatMessage;
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/property-chatbot`;
 
-async function mockStreamChat({
-  messages,
-  onDelta,
-  onDone,
-}: {
-  messages: Message[];
-  onDelta: (text: string) => void;
-  onDone: () => void;
-}) {
-  const lastMessage = messages[messages.length - 1].content.toLowerCase();
-  let responseText = "I found some great options for you. Let me know if you need to adjust your budget, location, or the number of bedrooms.";
-  
-  if (lastMessage.includes("lekki")) {
-    responseText = "Lekki is a fantastic area! I've filtered the properties to show you the best matches in Lekki. Do you have a specific budget in mind?";
-  } else if (lastMessage.includes("abuja")) {
-    responseText = "Abuja has some beautiful properties! I've updated the list. What kind of property are you looking for?";
-  } else if (lastMessage.includes("rent")) {
-    responseText = "Looking to rent? Great choice. I've updated the list to only show rental properties. Are you looking for an apartment or a duplex?";
-  } else if (lastMessage.includes("buy") || lastMessage.includes("sale")) {
-    responseText = "Buying a property is a great investment! I've filtered the results to show properties for sale. How many bedrooms do you need?";
-  }
 
-  const words = responseText.split(" ");
-  for (let i = 0; i < words.length; i++) {
-    await new Promise(resolve => setTimeout(resolve, 50));
-    onDelta(words[i] + " ");
-  }
-  onDone();
-}
 
 // allProperties imported from @/data/mockProperties
 const quickSuggestions = [
@@ -125,10 +97,11 @@ const AISearch = () => {
     };
 
     try {
-      await mockStreamChat({
+      await smartMockStreamChat({
         messages: [...messages, userMsg],
         onDelta: upsert,
         onDone: () => setIsLoading(false),
+        isMainSearch: true,
       });
     } catch {
       setMessages((p) => [...p, { role: "assistant", content: "⚠️ Connection error. Please try again." }]);

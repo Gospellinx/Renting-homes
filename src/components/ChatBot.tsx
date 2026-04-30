@@ -4,40 +4,13 @@ import { MessageCircle, X, Send, Loader2, Bot, Search, UserRound } from "lucide-
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { smartMockStreamChat, ChatMessage } from "@/lib/mockAI";
 
-type Message = { role: "user" | "assistant"; content: string };
+export type Message = ChatMessage;
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/property-chatbot`;
 
-async function mockStreamChat({
-  messages,
-  onDelta,
-  onDone,
-}: {
-  messages: Message[];
-  onDelta: (text: string) => void;
-  onDone: () => void;
-}) {
-  const lastMessage = messages[messages.length - 1].content.toLowerCase();
-  let responseText = "I'm here to help you find the perfect property! Could you tell me a bit more about what you're looking for?";
-  
-  if (lastMessage.includes("lekki")) {
-    responseText = "Lekki is a fantastic area! I can help you find the best matches in Lekki. Do you have a specific budget in mind?";
-  } else if (lastMessage.includes("abuja") || lastMessage.includes("jv")) {
-    responseText = "Abuja has some beautiful properties and great JV opportunities! What kind of property are you looking for?";
-  } else if (lastMessage.includes("rent") || lastMessage.includes("shop")) {
-    responseText = "Looking to rent? Great choice. We have many options for apartments and shops. What size do you need?";
-  } else if (lastMessage.includes("verify")) {
-    responseText = "Verifying a property is easy and essential! Just upload the property details in the Verify section, and our team will handle the rest.";
-  }
 
-  const words = responseText.split(" ");
-  for (let i = 0; i < words.length; i++) {
-    await new Promise(resolve => setTimeout(resolve, 50));
-    onDelta(words[i] + " ");
-  }
-  onDone();
-}
 
 const quickSuggestions = [
   "Find me a 3-bedroom in Lekki",
@@ -77,10 +50,11 @@ const ChatBot = () => {
     };
 
     try {
-      await mockStreamChat({
+      await smartMockStreamChat({
         messages: [...messages, userMsg],
         onDelta: upsert,
         onDone: () => setIsLoading(false),
+        isMainSearch: false,
       });
     } catch {
       setMessages((p) => [...p, { role: "assistant", content: "⚠️ Connection error. Please try again." }]);
