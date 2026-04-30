@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { addStepCount } from "@/lib/utils";
+import { allProperties } from "@/data/mockProperties";
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -43,27 +44,7 @@ async function mockStreamChat({
   onDone();
 }
 
-// Combined property data from rentals and sales
-const allProperties = [
-  // Rental Properties
-  { id: 1, type: "rent" as const, title: "Modern 3 Bedroom Apartment", location: "Victoria Island, Lagos", price: "₦3.5M/year", beds: 3, baths: 2, size: "1,500 sqft", image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400", verified: true, featured: true, propertyType: "Apartment" },
-  { id: 2, type: "rent" as const, title: "Luxury 4 Bedroom Duplex", location: "Lekki Phase 1, Lagos", price: "₦8M/year", beds: 4, baths: 4, size: "3,200 sqft", image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400", verified: true, featured: false, propertyType: "Duplex" },
-  { id: 3, type: "rent" as const, title: "Cozy 2 Bedroom Flat", location: "Ikeja GRA, Lagos", price: "₦2.2M/year", beds: 2, baths: 2, size: "1,100 sqft", image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400", verified: true, featured: false, propertyType: "Flat" },
-  { id: 4, type: "rent" as const, title: "Executive 5 Bedroom Mansion", location: "Ikoyi, Lagos", price: "₦15M/year", beds: 5, baths: 6, size: "5,500 sqft", image: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=400", verified: true, featured: true, propertyType: "Mansion" },
-  { id: 5, type: "rent" as const, title: "Studio Apartment", location: "Yaba, Lagos", price: "₦800K/year", beds: 1, baths: 1, size: "450 sqft", image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400", verified: false, featured: false, propertyType: "Studio" },
-  { id: 6, type: "rent" as const, title: "3 Bedroom Bungalow", location: "Ajah, Lagos", price: "₦1.8M/year", beds: 3, baths: 2, size: "1,800 sqft", image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400", verified: true, featured: false, propertyType: "Bungalow" },
-  { id: 9, type: "rent" as const, title: "4 Bedroom Semi-Detached", location: "Asokoro, Abuja", price: "₦6M/year", beds: 4, baths: 3, size: "2,800 sqft", image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400", verified: true, featured: true, propertyType: "Semi-Detached" },
-  { id: 10, type: "rent" as const, title: "3 Bedroom Terrace", location: "Maitama, Abuja", price: "₦5M/year", beds: 3, baths: 3, size: "2,200 sqft", image: "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=400", verified: true, featured: false, propertyType: "Terrace" },
-  { id: 11, type: "rent" as const, title: "Luxury Villa", location: "Wuse 2, Abuja", price: "₦12M/year", beds: 5, baths: 5, size: "4,500 sqft", image: "https://images.unsplash.com/photo-1613977257363-707ba9348227?w=400", verified: true, featured: true, propertyType: "Villa" },
-  
-  // Buy Properties
-  { id: 101, type: "sale" as const, title: "Premium 4 Bedroom Duplex", location: "Victoria Island, Lagos", price: "₦180M", beds: 4, baths: 4, size: "3,500 sqft", image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400", verified: true, featured: true, propertyType: "Duplex" },
-  { id: 102, type: "sale" as const, title: "Waterfront Mansion", location: "Banana Island, Lagos", price: "₦850M", beds: 6, baths: 7, size: "8,000 sqft", image: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=400", verified: true, featured: true, propertyType: "Mansion" },
-  { id: 103, type: "sale" as const, title: "3 Bedroom Apartment", location: "Lekki Phase 1, Lagos", price: "₦75M", beds: 3, baths: 3, size: "1,800 sqft", image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400", verified: true, featured: false, propertyType: "Apartment" },
-  { id: 107, type: "sale" as const, title: "Executive 5 Bedroom Villa", location: "Asokoro, Abuja", price: "₦280M", beds: 5, baths: 5, size: "5,000 sqft", image: "https://images.unsplash.com/photo-1613977257363-707ba9348227?w=400", verified: true, featured: true, propertyType: "Villa" },
-  { id: 108, type: "sale" as const, title: "4 Bedroom Terrace", location: "Maitama, Abuja", price: "₦120M", beds: 4, baths: 4, size: "2,800 sqft", image: "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=400", verified: true, featured: false, propertyType: "Terrace" },
-];
-
+// allProperties imported from @/data/mockProperties
 const quickSuggestions = [
   "Find me a 3-bedroom in Lekki",
   "Any JV opportunities in Abuja?",
@@ -105,7 +86,7 @@ const AISearch = () => {
     
     if (history.includes("lekki")) {
       filtered = filtered.filter(p => p.location.toLowerCase().includes("lekki"));
-    } else if (history.includes("abuja") || history.includes("asokoro") || history.includes("maitama") || history.includes("wuse")) {
+    } else if (history.includes("abuja") || history.includes("asokoro") || history.includes("maitama") || history.includes("wuse") || history.includes("garki") || history.includes("gwarinpa")) {
       filtered = filtered.filter(p => p.location.toLowerCase().includes("abuja"));
     }
     
@@ -115,7 +96,9 @@ const AISearch = () => {
       filtered = filtered.filter(p => p.type === "sale");
     }
 
-    if (history.includes("3 bedroom") || history.includes("3 bed")) {
+    if (history.includes("shop") || history.includes("store") || history.includes("retail")) {
+      filtered = filtered.filter(p => p.propertyType.toLowerCase() === "shop" || p.propertyType.toLowerCase() === "commercial");
+    } else if (history.includes("3 bedroom") || history.includes("3 bed")) {
       filtered = filtered.filter(p => p.beds >= 3);
     }
     
