@@ -22,6 +22,7 @@ import SearchResults from "./pages/SearchResults";
 import AISearch from "./pages/AISearch";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
+import Onboarding from "./pages/Onboarding";
 import Profile from "./pages/Profile";
 import Messages from "./pages/Messages";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -44,6 +45,14 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route 
+              path="/onboarding" 
+              element={
+                <ProtectedRoute requireOnboarding={false}>
+                  <Onboarding />
+                </ProtectedRoute>
+              } 
+            />
             <Route path="/rental-properties" element={<RentalProperties />} />
             <Route path="/buy-property" element={<BuyProperty />} />
             <Route path="/buy-land" element={<BuyLand />} />
