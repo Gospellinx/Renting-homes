@@ -35,7 +35,12 @@ export default function Onboarding() {
 
     if (user.user_metadata?.onboarding_completed) {
       const type = user.user_metadata?.user_type;
-      navigate(type === "user" ? "/" : "/admin", { replace: true });
+      let redirectPath = "/";
+      if (type === "admin") redirectPath = "/admin";
+      else if (type === "user") redirectPath = "/dashboard/user";
+      else if (type === "agent" || type === "landlord" || type === "owner") redirectPath = "/dashboard/manager";
+      
+      navigate(redirectPath, { replace: true });
       return;
     }
 
@@ -100,8 +105,13 @@ export default function Onboarding() {
       toast.success("Profile setup complete!");
       sessionStorage.removeItem("pending_user_role");
       
+      let redirectPath = "/";
+      if (role === "admin") redirectPath = "/admin";
+      else if (role === "user") redirectPath = "/dashboard/user";
+      else redirectPath = "/dashboard/manager";
+      
       // Redirect
-      navigate(role === "user" ? "/" : "/admin", { replace: true });
+      navigate(redirectPath, { replace: true });
     } catch (error: any) {
       console.error("Error updating profile:", error);
       toast.error(error.message || "Failed to update profile. Please try again.");

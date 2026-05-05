@@ -29,6 +29,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import GroupChats from "./pages/GroupChats";
 import AdsManager from "./pages/AdsManager";
 import ShopRentals from "./pages/ShopRentals";
+import UserDashboard from "./pages/dashboards/UserDashboard";
+import PropertyManagerDashboard from "./pages/dashboards/PropertyManagerDashboard";
 import FloatingQuickActions from "./components/FloatingQuickActions";
 import FloatingCommunityButton from "./components/FloatingCommunityButton";
 
@@ -88,6 +90,22 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AdminDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/dashboard/user" 
+              element={
+                <ProtectedRoute allowedRoles={['user']}>
+                  <UserDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/dashboard/manager" 
+              element={
+                <ProtectedRoute allowedRoles={['agent', 'landlord', 'owner']}>
+                  <PropertyManagerDashboard />
                 </ProtectedRoute>
               } 
             />

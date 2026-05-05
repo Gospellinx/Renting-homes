@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +9,13 @@ import { supabase } from "@/integrations/supabase/client";
 
 const UserDashboard = () => {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<{ full_name: string | null } | null>(null);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   useEffect(() => {
     if (user) {
@@ -35,7 +41,7 @@ const UserDashboard = () => {
             <Button variant="ghost" asChild>
               <Link to="/profile">Profile Settings</Link>
             </Button>
-            <Button variant="outline" onClick={() => signOut()}>
+            <Button variant="outline" onClick={handleSignOut}>
               Sign Out
             </Button>
           </div>
