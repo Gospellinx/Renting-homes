@@ -782,14 +782,16 @@ const Profile = () => {
         </div>
 
         {/* Admin Link (only visible if admin) */}
-        <Card className="mt-6">
-          <CardContent className="pt-6">
-            <Link to="/admin" className="flex items-center gap-2 text-primary hover:underline">
-              <Shield className="h-4 w-4" />
-              Admin Dashboard
-            </Link>
-          </CardContent>
-        </Card>
+        {profile?.user_type === 'admin' && (
+          <Card className="mt-6">
+            <CardContent className="pt-6">
+              <Link to="/admin" className="flex items-center gap-2 text-primary hover:underline">
+                <Shield className="h-4 w-4" />
+                Admin Dashboard
+              </Link>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

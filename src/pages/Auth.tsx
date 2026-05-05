@@ -416,6 +416,17 @@ const Auth = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            <Tabs 
+              value={activeTab === "signin" ? "signin" : "signup"} 
+              onValueChange={(val) => handleTabChange(val === "signup" ? "role_selection" : "signin")}
+              className="w-full mb-6"
+            >
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="signin">Sign In</TabsTrigger>
+                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              </TabsList>
+            </Tabs>
+
             {inlineNotice && (
               <Alert
                 className={`mb-5 rounded-2xl border shadow-[0_16px_32px_rgba(31,26,84,0.08)] ${inlineNoticeStyles[inlineNotice.tone]}`}
@@ -449,16 +460,6 @@ const Auth = () => {
                       </button>
                     );
                   })}
-                </div>
-                <div className="mt-6 text-center text-sm text-[#6f7599]">
-                  Already have an account?{" "}
-                  <button
-                    type="button"
-                    onClick={() => handleTabChange("signin")}
-                    className="font-medium text-[#26225f] hover:text-[#1f1a54] underline"
-                  >
-                    Sign in
-                  </button>
                 </div>
               </div>
             )}
@@ -567,17 +568,6 @@ const Auth = () => {
                 <p className="text-center text-xs leading-6 text-[#7a81a8]">
                   Secure Google sign-in returns you to Homes Nigeria after account verification or 2-step confirmation.
                 </p>
-
-                <div className="mt-6 text-center text-sm text-[#6f7599]">
-                  New here?{" "}
-                  <button
-                    type="button"
-                    onClick={() => handleTabChange("role_selection")}
-                    className="font-medium text-[#26225f] hover:text-[#1f1a54] underline"
-                  >
-                    Choose account type to continue
-                  </button>
-                </div>
               </form>
             )}
 
@@ -750,17 +740,6 @@ const Auth = () => {
                 <p className="text-center text-xs leading-6 text-[#7a81a8]">
                   If Google asks you to confirm your account or finish 2-step verification, Homes Nigeria will bring you back here automatically.
                 </p>
-
-                <div className="mt-6 text-center text-sm text-[#6f7599]">
-                  Already have an account?{" "}
-                  <button
-                    type="button"
-                    onClick={() => handleTabChange("signin")}
-                    className="font-medium text-[#26225f] hover:text-[#1f1a54] underline"
-                  >
-                    Sign in
-                  </button>
-                </div>
               </form>
             )}
           </CardContent>
