@@ -1,15 +1,14 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlusCircle, Building, Briefcase, Home, Settings, LogOut, LayoutDashboard, LayoutList, Search } from "lucide-react";
-import logo from "@/assets/homes-logo.png";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PlusCircle, Building, LayoutList, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import DashboardLayout from "@/components/DashboardLayout";
 
 const PropertyManagerDashboard = () => {
-  const { user, signOut } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const [profile, setProfile] = useState<{ full_name: string | null; user_type: string | null } | null>(null);
 
   useEffect(() => {
@@ -25,78 +24,9 @@ const PropertyManagerDashboard = () => {
     }
   }, [user]);
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/");
-  };
-
-  const getRoleInfo = (type: string | null) => {
-    switch (type) {
-      case "agent":
-        return { label: "Agent", icon: Briefcase, color: "text-blue-600", bg: "bg-blue-50" };
-      case "landlord":
-        return { label: "Landlord", icon: Building, color: "text-indigo-600", bg: "bg-indigo-50" };
-      case "owner":
-        return { label: "Property Owner", icon: Home, color: "text-emerald-600", bg: "bg-emerald-50" };
-      default:
-        return { label: "Manager", icon: Building, color: "text-gray-600", bg: "bg-gray-50" };
-    }
-  };
-
-  const roleInfo = getRoleInfo(profile?.user_type || null);
-  const RoleIcon = roleInfo.icon;
-
   return (
-    <div className="min-h-screen bg-[#f8f9fa] flex flex-col md:flex-row">
-      {/* Sidebar */}
-      <aside className="w-full md:w-64 bg-white border-r border-gray-200 flex flex-col md:sticky md:top-0 md:h-screen">
-        <div className="p-6 border-b border-gray-200">
-          <Link to="/">
-            <img src={logo} alt="Homes" className="h-8 w-auto" />
-          </Link>
-        </div>
-        
-        <div className="p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className={`p-2 rounded-lg ${roleInfo.bg}`}>
-              <RoleIcon className={`h-6 w-6 ${roleInfo.color}`} />
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">{roleInfo.label}</p>
-              <p className="font-medium text-gray-900 truncate w-32" title={profile?.full_name || "User"}>
-                {profile?.full_name || "User"}
-              </p>
-            </div>
-          </div>
-
-          <nav className="space-y-1">
-            <Link 
-              to="/dashboard/manager" 
-              className="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary rounded-md font-medium"
-            >
-              <LayoutDashboard className="h-5 w-5" />
-              Overview
-            </Link>
-            <Link 
-              to="/profile" 
-              className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md font-medium transition-colors"
-            >
-              <Settings className="h-5 w-5 text-gray-400" />
-              Settings
-            </Link>
-          </nav>
-        </div>
-
-        <div className="mt-auto p-6 border-t border-gray-200">
-          <Button variant="ghost" className="w-full justify-start text-gray-600 hover:text-red-600 hover:bg-red-50" onClick={handleSignOut}>
-            <LogOut className="h-5 w-5 mr-3" />
-            Sign Out
-          </Button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 p-6 md:p-8">
+    <DashboardLayout>
+      <div className="max-w-5xl mx-auto space-y-8">
         <header className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Dashboard Overview</h1>
@@ -112,7 +42,7 @@ const PropertyManagerDashboard = () => {
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
+          <Card className="bg-white">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -125,7 +55,7 @@ const PropertyManagerDashboard = () => {
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-white">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -138,7 +68,7 @@ const PropertyManagerDashboard = () => {
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-white">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -154,7 +84,7 @@ const PropertyManagerDashboard = () => {
         </div>
 
         {/* Properties List */}
-        <Card className="border-gray-200">
+        <Card className="border-gray-200 bg-white">
           <CardHeader className="border-b border-gray-100 bg-gray-50/50">
             <CardTitle className="text-lg">Your Properties</CardTitle>
           </CardHeader>
@@ -174,8 +104,8 @@ const PropertyManagerDashboard = () => {
             </Button>
           </CardContent>
         </Card>
-      </main>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 };
 
