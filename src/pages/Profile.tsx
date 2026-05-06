@@ -18,7 +18,6 @@ import logo from "@/assets/homes-logo.png";
 import EmailNotificationSettings from "@/components/EmailNotificationSettings";
 import DashboardLayout from "@/components/DashboardLayout";
 import { z } from "zod";
-import { z } from "zod";
 
 interface Profile {
   id: string;

@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
 const UserDashboard = () => {
   const { user } = useAuth();
-
+  const [profile, setProfile] = useState<{ full_name: string | null } | null>(null);
   useEffect(() => {
     if (user) {
       supabase
