@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Users } from "lucide-react";
 import { motion } from "framer-motion";
@@ -10,6 +10,10 @@ import {
 } from "@/components/ui/tooltip";
 
 const FloatingCommunityButton = () => {
+  const location = useLocation();
+
+  if (location.pathname !== "/") return null;
+
   return (
     <TooltipProvider>
       <motion.div

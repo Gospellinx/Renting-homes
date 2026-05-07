@@ -99,6 +99,21 @@ export default function Onboarding() {
 
       if (error) throw error;
 
+      // Update the public.profiles table
+      const { error: profileError } = await supabase.from("profiles").upsert({
+        user_id: user.id,
+        user_type: role,
+        full_name: fullName,
+        phone: phone,
+        location: location || null,
+        bio: description || null,
+      }, { onConflict: 'user_id' });
+
+      if (profileError) {
+        console.error("Profile update error:", profileError);
+        throw new Error("Failed to update profile record.");
+      }
+
       // Also refresh the session to ensure changes are propagated
       await supabase.auth.refreshSession();
 
