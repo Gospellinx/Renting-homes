@@ -29,11 +29,7 @@ export default function AuthCallback() {
     if (!loading && user) {
       console.log("OAuth callback successful, redirecting user:", user.email);
 
-      if (!user.user_metadata?.onboarding_completed) {
-        navigate("/onboarding", { replace: true });
-      } else {
-        navigate(consumePostAuthRedirectPath(), { replace: true });
-      }
+      navigate(consumePostAuthRedirectPath(), { replace: true });
     }
   }, [user, loading, navigate, searchParams]);
 
