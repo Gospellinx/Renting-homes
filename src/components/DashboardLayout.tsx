@@ -22,7 +22,7 @@ interface DashboardLayoutProps {
 }
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -32,8 +32,13 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     navigate("/");
   };
 
+  const userType = user?.user_metadata?.user_type;
+  const dashboardPath = (userType === 'agent' || userType === 'landlord' || userType === 'owner') 
+    ? "/dashboard/manager" 
+    : "/dashboard/user";
+
   const navItems = [
-    { label: "Dashboard", path: "/dashboard/user", icon: LayoutDashboard },
+    { label: "Dashboard", path: dashboardPath, icon: LayoutDashboard },
     { label: "My Profile", path: "/profile", icon: UserCircle },
     { label: "My Properties", path: "/dashboard/manager", icon: Building2 },
     { label: "Profile Reviews", path: "/dashboard/profile-reviews", icon: Star },
