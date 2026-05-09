@@ -24,6 +24,9 @@ import {
   Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface CampaignWizardProps {
   campaign?: Campaign | null;
@@ -87,6 +90,8 @@ export default function CampaignWizard({
   onCancel,
 }: CampaignWizardProps) {
   const { upsertCampaignBundle } = useAdsManager();
+  const { user } = useAuth();
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const [campaignName, setCampaignName] = useState("");
   const [objective, setObjective] = useState("awareness");
@@ -168,6 +173,38 @@ export default function CampaignWizard({
     ctaText.trim().length > 0 &&
     (description.trim().length > 0 || imageUrl.trim().length > 0);
   const progressCount = [basicsComplete, audienceComplete, creativeComplete].filter(Boolean).length;
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setIsUploadingImage(true);
+      
+      if (!event.target.files || event.target.files.length === 0) {
+        throw new Error('You must select an image to upload.');
+      }
+
+      const file = event.target.files[0];
+      const fileExt = file.name.split('.').pop();
+      const filePath = `ads/${user?.id || 'anonymous'}-${Math.random()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('property-images')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data } = supabase.storage.from('property-images').getPublicUrl(filePath);
+      
+      setImageUrl(data.publicUrl);
+      
+      toast.success("Image uploaded successfully.");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to upload image.");
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
 
   const handleSave = async (mode: "draft" | "pending_review") => {
     const result = await upsertCampaignBundle.mutateAsync({
@@ -571,13 +608,23 @@ export default function CampaignWizard({
               </div>
 
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="image-url">Image URL</Label>
-                <Input
-                  id="image-url"
-                  value={imageUrl}
-                  onChange={(event) => setImageUrl(event.target.value)}
-                  placeholder="https://images.example.com/ad-cover.jpg"
-                />
+                <Label htmlFor="image-upload">Ad Image</Label>
+                <div className="flex items-center gap-4">
+                  <Input
+                    id="image-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    disabled={isUploadingImage}
+                    className="flex-1"
+                  />
+                  {isUploadingImage && <Loader2 className="h-5 w-5 animate-spin text-[#6d62c8]" />}
+                </div>
+                {imageUrl && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Image uploaded successfully. You can preview it on the right.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">

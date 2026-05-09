@@ -24,7 +24,7 @@ import {
   Sparkles,
   TrendingUp,
 } from "lucide-react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Navigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useAdsManager, type Campaign } from "@/hooks/useAdsManager";
 import { useWallet } from "@/hooks/useWallet";
@@ -226,6 +226,10 @@ const AdsManager = () => {
         description="Create an account to run advertising campaigns and reach potential buyers."
       />
     );
+  }
+
+  if (user.user_metadata?.user_type === "user") {
+    return <Navigate to="/upgrade" replace />;
   }
 
   if (showWizard) {

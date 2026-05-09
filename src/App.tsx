@@ -36,6 +36,7 @@ import PropertyReviews from "./pages/dashboards/PropertyReviews";
 import Favorites from "./pages/dashboards/Favorites";
 import FloatingQuickActions from "./components/FloatingQuickActions";
 import FloatingCommunityButton from "./components/FloatingCommunityButton";
+import UpgradeAccount from "./pages/UpgradeAccount";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,14 @@ const App = () => (
               element={
                 <ProtectedRoute requireOnboarding={false}>
                   <Onboarding />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/upgrade" 
+              element={
+                <ProtectedRoute>
+                  <UpgradeAccount />
                 </ProtectedRoute>
               } 
             />
