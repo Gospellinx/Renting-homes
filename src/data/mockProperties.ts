@@ -13,6 +13,8 @@ export interface Property {
   verified: boolean;
   featured: boolean;
   propertyType: string;
+  isExternal?: boolean;
+  externalUrl?: string;
 }
 
 export const allProperties: Property[] = [

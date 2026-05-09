@@ -7,8 +7,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { allProperties } from "@/data/mockProperties";
+import { allProperties, Property } from "@/data/mockProperties";
 import { smartMockStreamChat, ChatMessage } from "@/lib/mockAI";
+import { ExternalLink } from "lucide-react";
 
 type Message = ChatMessage;
 
@@ -36,7 +37,8 @@ const AISearch = () => {
   
   // A simple heuristic for demonstrating filtering based on conversation context
   // In a real app, the AI could return JSON of search filters along with its message.
-  const [displayedProperties, setDisplayedProperties] = useState(allProperties);
+  const [displayedProperties, setDisplayedProperties] = useState<Property[]>(allProperties);
+  const [isSearchingWeb, setIsSearchingWeb] = useState(false);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -103,10 +105,91 @@ const AISearch = () => {
         onDone: () => setIsLoading(false),
         isMainSearch: true,
       });
+      
+      // Wait a short tick for state to update filtering
+      setTimeout(() => {
+        checkAndTriggerWebSearch([...messages, userMsg].map(m => m.content.toLowerCase()).join(" "));
+      }, 500);
+
     } catch {
       setMessages((p) => [...p, { role: "assistant", content: "⚠️ Connection error. Please try again." }]);
       setIsLoading(false);
     }
+  };
+
+  const checkAndTriggerWebSearch = async (history: string) => {
+    // If we have no local properties matching, we trigger web search
+    setDisplayedProperties((currentDisplayed) => {
+      if (currentDisplayed.length === 0 && !isSearchingWeb && history.length > 0) {
+        triggerWebSearch(history);
+      }
+      return currentDisplayed;
+    });
+  };
+
+  const triggerWebSearch = async (history: string) => {
+    setIsSearchingWeb(true);
+    setMessages((p) => [
+      ...p,
+      { role: "assistant", content: "I couldn't find exactly what you're looking for in our local database. Let me search the web for available properties..." }
+    ]);
+
+    // Simulate network delay for Google search
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Generate simulated external results
+    const locationStr = history.includes("london") ? "London, UK" : 
+                        history.includes("new york") ? "New York, USA" : 
+                        history.includes("dubai") ? "Dubai, UAE" : "Global Area";
+                        
+    const propertyTypeStr = history.includes("shop") ? "Commercial Shop" : 
+                            history.includes("villa") ? "Luxury Villa" : 
+                            history.includes("mansion") ? "Mansion" : "Property";
+
+    const typeStr = history.includes("rent") ? "rent" : "sale";
+
+    const mockWebResults: Property[] = [
+      {
+        id: Math.floor(Math.random() * 10000) + 1000,
+        type: typeStr as "rent" | "sale",
+        title: `External Web Listing: ${propertyTypeStr}`,
+        location: locationStr,
+        price: typeStr === "rent" ? "$2,500/mo" : "$450,000",
+        beds: history.includes("3") ? 3 : 2,
+        baths: history.includes("3") ? 3 : 2,
+        size: "1,500 sqft",
+        image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400",
+        verified: false,
+        featured: false,
+        propertyType: propertyTypeStr,
+        isExternal: true,
+        externalUrl: `https://www.google.com/search?q=${encodeURIComponent(propertyTypeStr + " in " + locationStr + " for " + typeStr)}`
+      },
+      {
+        id: Math.floor(Math.random() * 10000) + 1000,
+        type: typeStr as "rent" | "sale",
+        title: `Google Result: Modern ${propertyTypeStr}`,
+        location: locationStr,
+        price: typeStr === "rent" ? "$3,200/mo" : "$580,000",
+        beds: history.includes("3") ? 4 : 3,
+        baths: history.includes("3") ? 3 : 2,
+        size: "2,200 sqft",
+        image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400",
+        verified: false,
+        featured: false,
+        propertyType: propertyTypeStr,
+        isExternal: true,
+        externalUrl: `https://www.google.com/search?q=${encodeURIComponent(propertyTypeStr + " in " + locationStr + " for " + typeStr)}`
+      }
+    ];
+
+    setDisplayedProperties(mockWebResults);
+    setIsSearchingWeb(false);
+    
+    setMessages((p) => [
+      ...p,
+      { role: "assistant", content: `I found some external listings for you on the web! Let me know if you want to explore any of these.` }
+    ]);
   };
 
   return (
@@ -231,15 +314,23 @@ const AISearch = () => {
         <div className="flex-1 flex flex-col bg-transparent overflow-hidden">
           <div className="p-4 sm:p-6 border-b border-[#d7daf0]/50 bg-white/30 backdrop-blur-sm flex items-center justify-between">
             <h2 className="text-lg font-semibold text-[#1f1a54]">
-              {displayedProperties.length} Properties Found
+              {isSearchingWeb ? "Searching the web..." : `${displayedProperties.length} Properties Found`}
             </h2>
             <p className="text-sm text-muted-foreground hidden sm:block">
-              Results update automatically as you chat
+              {isSearchingWeb ? "Pulling external data" : "Results update automatically as you chat"}
             </p>
           </div>
           
           <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-            {displayedProperties.length > 0 ? (
+            {isSearchingWeb ? (
+              <div className="h-full flex flex-col items-center justify-center text-center p-6">
+                <Loader2 className="h-10 w-10 animate-spin text-[#6d62c8] mb-4" />
+                <h3 className="text-lg font-semibold text-[#1f1a54] mb-1">Searching Google...</h3>
+                <p className="text-sm text-muted-foreground max-w-sm">
+                  We're looking across the web for available properties that match your criteria.
+                </p>
+              </div>
+            ) : displayedProperties.length > 0 ? (
               <AnimatePresence>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                   {displayedProperties.map((property) => (
@@ -259,8 +350,11 @@ const AISearch = () => {
                             className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
                           />
                           <div className="absolute top-2 left-2 flex gap-1.5">
-                            {property.verified && (
+                            {property.verified && !property.isExternal && (
                               <Badge className="bg-primary/90 text-primary-foreground text-[10px] px-1.5 py-0">Verified</Badge>
+                            )}
+                            {property.isExternal && (
+                              <Badge className="bg-[#4285F4] text-white text-[10px] px-1.5 py-0 shadow-sm border border-blue-600">Web Result</Badge>
                             )}
                             <Badge variant="secondary" className="capitalize text-[10px] px-1.5 py-0 bg-white/90 text-black">
                               {property.type === "rent" ? "Rent" : "Sale"}
@@ -268,7 +362,10 @@ const AISearch = () => {
                           </div>
                         </div>
                         <CardContent className="p-3">
-                          <h3 className="font-semibold text-sm mb-1 line-clamp-1 text-[#1f1a54]">{property.title}</h3>
+                          <h3 className="font-semibold text-sm mb-1 line-clamp-1 text-[#1f1a54]">
+                            {property.isExternal ? <ExternalLink className="inline h-3 w-3 mr-1 text-[#4285F4]" /> : null}
+                            {property.title}
+                          </h3>
                           <div className="flex items-center text-muted-foreground text-xs mb-2">
                             <MapPin className="h-3 w-3 mr-1" />
                             <span className="truncate">{property.location}</span>
@@ -285,11 +382,17 @@ const AISearch = () => {
                           </div>
                           <div className="flex items-center justify-between">
                             <span className="text-base font-bold text-[#26225f]">{property.price}</span>
-                            <Button size="sm" variant="ghost" className="h-8 px-2 text-[#5c6494] hover:bg-[#eef1ff] hover:text-[#26225f]" asChild>
-                              <Link to={`/property/${property.type}/${property.id}`}>
-                                View
-                              </Link>
-                            </Button>
+                            {property.isExternal ? (
+                              <Button size="sm" variant="outline" className="h-8 px-2 border-[#d7daf0] text-[#5c6494] hover:bg-[#eef1ff] hover:text-[#26225f]" onClick={() => window.open(property.externalUrl, '_blank')}>
+                                View Web
+                              </Button>
+                            ) : (
+                              <Button size="sm" variant="ghost" className="h-8 px-2 text-[#5c6494] hover:bg-[#eef1ff] hover:text-[#26225f]" asChild>
+                                <Link to={`/property/${property.type}/${property.id}`}>
+                                  View
+                                </Link>
+                              </Button>
+                            )}
                           </div>
                         </CardContent>
                       </Card>
