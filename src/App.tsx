@@ -61,11 +61,7 @@ const App = () => (
             />
             <Route 
               path="/upgrade" 
-              element={
-                <ProtectedRoute>
-                  <UpgradeAccount />
-                </ProtectedRoute>
-              } 
+              element={<UpgradeAccount />} 
             />
             <Route path="/rental-properties" element={<RentalProperties />} />
             <Route path="/buy-property" element={<BuyProperty />} />

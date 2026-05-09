@@ -40,8 +40,14 @@ const UpgradeAccount = () => {
   const [isUpgrading, setIsUpgrading] = useState(false);
 
   const handleUpgrade = async () => {
-    if (!user || !selectedRole) return;
+    if (!selectedRole) return;
     
+    if (!user) {
+      sessionStorage.setItem("pending_user_role", selectedRole);
+      navigate("/auth?mode=signup");
+      return;
+    }
+
     setIsUpgrading(true);
     try {
       const { error: profileError } = await supabase
