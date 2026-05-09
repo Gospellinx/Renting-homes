@@ -505,11 +505,10 @@ const Profile = () => {
               <form onSubmit={handleSaveProfile} className="space-y-6">
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Agent Name */}
                   <div className="space-y-2">
                     <Label htmlFor="fullName" className="font-semibold">
                       <User className="inline-block h-4 w-4 mr-1 mb-1" />
-                      Agent Name <span className="text-red-500">*</span>
+                      Username <span className="text-red-500">*</span>
                     </Label>
                     <Input
                       id="fullName"
@@ -542,29 +541,13 @@ const Profile = () => {
                     />
                   </div>
 
-                  {/* Agent Type */}
-                  <div className="space-y-2">
-                    <Label className="font-semibold">
-                      <Briefcase className="inline-block h-4 w-4 mr-1 mb-1" />
-                      Agent Type <span className="text-red-500">*</span>
-                    </Label>
-                    <select
-                      className="flex h-10 w-full rounded-md border border-input bg-gray-50/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      value={profile?.user_type || ""}
-                      disabled
-                    >
-                      <option value="">Select Type</option>
-                      <option value="agent">Agent</option>
-                      <option value="renter">Renter</option>
-                      <option value="property_owner">Property Owner</option>
-                    </select>
-                  </div>
 
-                  {/* Agent Location */}
+
+                  {/* Location */}
                   <div className="space-y-2">
                     <Label htmlFor="location" className="font-semibold">
                       <MapPin className="inline-block h-4 w-4 mr-1 mb-1" />
-                      Agent Location <span className="text-red-500">*</span>
+                      Location <span className="text-red-500">*</span>
                     </Label>
                     <Input
                       id="location"
@@ -630,11 +613,11 @@ const Profile = () => {
                     />
                   </div>
 
-                  {/* About Agent (Bio) */}
+                  {/* Bio */}
                   <div className="space-y-2 md:col-span-2">
                     <Label htmlFor="bio" className="font-semibold">
                       <FileText className="inline-block h-4 w-4 mr-1 mb-1" />
-                      About Agent
+                      Bio
                     </Label>
                     <Textarea
                       id="bio"
