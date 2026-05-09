@@ -36,25 +36,14 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { label: "Dashboard", path: "/dashboard/user", icon: LayoutDashboard },
     { label: "My Profile", path: "/profile", icon: UserCircle },
     { label: "My Properties", path: "/dashboard/manager", icon: Building2 },
-    { label: "Profile Reviews", path: "#", icon: Star },
-    { label: "Property Reviews", path: "#", icon: MessageSquare },
-    { label: "Favorites", path: "#", icon: Heart },
+    { label: "Profile Reviews", path: "/dashboard/profile-reviews", icon: Star },
+    { label: "Property Reviews", path: "/dashboard/property-reviews", icon: MessageSquare },
+    { label: "Favorites", path: "/dashboard/favorites", icon: Heart },
   ];
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] flex flex-col">
-      {/* Top Green Bar */}
-      <div className="bg-[#5cb85c] text-white px-4 py-2 flex justify-between items-center text-sm">
-        <div className="flex items-center gap-2">
-          {/* WhatsApp number removed as requested */}
-        </div>
-        <div className="flex items-center gap-4">
-          <Link to="/dashboard/user" className="hover:underline">Dashboard</Link>
-          <button onClick={handleSignOut} className="hover:underline">Sign Out</button>
-        </div>
-      </div>
-
-      {/* Secondary White Bar */}
+      {/* Header */}
       <header className="bg-white border-b sticky top-0 z-30">
         <div className="container mx-auto px-4 h-20 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -65,21 +54,23 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               <Menu className="h-6 w-6" />
             </button>
             <Link to="/" className="flex items-center">
-              <img src={logo} alt="Homes" className="h-12 w-auto" />
+              <img src={logo} alt="Homes" className="h-10 md:h-12 w-auto" />
             </Link>
           </div>
           
-          <nav className="hidden md:flex items-center gap-6 font-medium text-gray-700">
-            <Link to="/" className="hover:text-[#5cb85c]">Home</Link>
-            <Link to="/buy-property" className="hover:text-[#5cb85c]">Buy</Link>
-            <Link to="/rental-properties" className="hover:text-[#5cb85c]">Rent</Link>
-            <Link to="/short-let" className="hover:text-[#5cb85c]">Short Let</Link>
-            <Link to="/sellers" className="hover:text-[#5cb85c]">Sellers</Link>
-            <Link to="/affiliates" className="hover:text-[#5cb85c]">Affiliates</Link>
-            <Button asChild className="bg-[#1f1a54] text-white hover:bg-[#15113d]">
+          <div className="flex items-center gap-4 md:gap-6">
+            <nav className="hidden lg:flex items-center gap-6 font-medium text-gray-700">
+              <Link to="/" className="hover:text-[#5cb85c]">Home</Link>
+              <Link to="/buy-property" className="hover:text-[#5cb85c]">Buy</Link>
+              <Link to="/rental-properties" className="hover:text-[#5cb85c]">Rent</Link>
+              <Link to="/short-let" className="hover:text-[#5cb85c]">Short Let</Link>
+              <Link to="/sellers" className="hover:text-[#5cb85c]">Sellers</Link>
+              <Link to="/affiliates" className="hover:text-[#5cb85c]">Affiliates</Link>
+            </nav>
+            <Button asChild className="bg-[#1f1a54] text-white hover:bg-[#15113d] text-xs md:text-sm px-3 md:px-4 whitespace-nowrap">
               <Link to="/upload-property">List A Property</Link>
             </Button>
-          </nav>
+          </div>
         </div>
       </header>
 

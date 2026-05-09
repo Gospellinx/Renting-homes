@@ -109,20 +109,17 @@ const Profile = () => {
 
       const file = event.target.files[0];
       const fileExt = file.name.split('.').pop();
-      const filePath = `${user?.id}-${Math.random()}.${fileExt}`;
+      const filePath = `${user?.id}/avatar-${Math.random()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('avatars')
+        .from('property-images')
         .upload(filePath, file);
 
       if (uploadError) {
-        if (uploadError.message.includes('bucket')) {
-          throw new Error('Avatar bucket not found. Please create an "avatars" storage bucket.');
-        }
         throw uploadError;
       }
 
-      const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      const { data } = supabase.storage.from('property-images').getPublicUrl(filePath);
       
       const { error: updateError } = await supabase.from('profiles').update({
         avatar_url: data.publicUrl
@@ -370,8 +367,8 @@ const Profile = () => {
     if (!hasProfileChanges()) {
       setFormError(null);
       toast({
-        title: "No changes to save",
-        description: "Your profile is already up to date.",
+        title: "Profile saved",
+        description: "Your profile has been saved successfully.",
       });
       return;
     }

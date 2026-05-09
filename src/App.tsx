@@ -31,6 +31,9 @@ import AdsManager from "./pages/AdsManager";
 import ShopRentals from "./pages/ShopRentals";
 import UserDashboard from "./pages/dashboards/UserDashboard";
 import PropertyManagerDashboard from "./pages/dashboards/PropertyManagerDashboard";
+import ProfileReviews from "./pages/dashboards/ProfileReviews";
+import PropertyReviews from "./pages/dashboards/PropertyReviews";
+import Favorites from "./pages/dashboards/Favorites";
 import FloatingQuickActions from "./components/FloatingQuickActions";
 import FloatingCommunityButton from "./components/FloatingCommunityButton";
 
@@ -106,6 +109,30 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['agent', 'landlord', 'owner']}>
                   <PropertyManagerDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/dashboard/profile-reviews" 
+              element={
+                <ProtectedRoute>
+                  <ProfileReviews />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/dashboard/property-reviews" 
+              element={
+                <ProtectedRoute>
+                  <PropertyReviews />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/dashboard/favorites" 
+              element={
+                <ProtectedRoute>
+                  <Favorites />
                 </ProtectedRoute>
               } 
             />
