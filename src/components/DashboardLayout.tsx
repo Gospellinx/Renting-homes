@@ -15,7 +15,6 @@ import {
   Menu,
   X
 } from "lucide-react";
-import ProfileCompletionModal from "./ProfileCompletionModal";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -130,12 +129,12 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         </aside>
 
         {/* Main Content Area */}
-        <main className="flex-1 p-6 md:p-8 overflow-y-auto w-full">
-          {children}
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-4 md:p-8 pt-20 md:pt-8 w-full min-h-screen">
+          <div className="mx-auto w-full max-w-7xl animate-in fade-in duration-500">
+            {children}
+          </div>
         </main>
       </div>
-
-      <ProfileCompletionModal />
     </div>
   );
 };

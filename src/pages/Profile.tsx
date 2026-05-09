@@ -379,17 +379,13 @@ const Profile = () => {
       const normalizedValues = getNormalizedValues();
       const { data: updatedProfile, error } = await supabase
         .from("profiles")
-        .upsert(
-          {
-            user_id: user.id,
-            full_name: normalizedValues.fullName || null,
-            phone: normalizedValues.phone || null,
-            bio: normalizedValues.bio || null,
-            location: normalizedValues.location || null,
-            user_type: profile?.user_type ?? user.user_metadata?.user_type ?? null,
-          },
-          { onConflict: "user_id" }
-        )
+        .update({
+          full_name: normalizedValues.fullName || null,
+          phone: normalizedValues.phone || null,
+          bio: normalizedValues.bio || null,
+          location: normalizedValues.location || null,
+        })
+        .eq("user_id", user.id)
         .select()
         .single();
 

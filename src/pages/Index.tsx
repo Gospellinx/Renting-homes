@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
@@ -127,6 +127,13 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Redirect users who haven't completed onboarding
+  useEffect(() => {
+    if (user && !user.user_metadata?.onboarding_completed) {
+      navigate("/onboarding", { replace: true });
+    }
+  }, [user, navigate]);
 
   const displayName = user
     ? user.user_metadata?.user_name?.trim() ||
