@@ -96,13 +96,28 @@ const Auth = () => {
   }, [authErrorMessage]);
 
   useEffect(() => {
+    const handleSessionRedirect = (session: any) => {
+      if (!session.user.user_metadata?.onboarding_completed) {
+        navigate("/onboarding", { replace: true });
+      } else {
+        const type = session.user.user_metadata?.user_type;
+        let redirectPath = consumePostAuthRedirectPath();
+        if (redirectPath === "/") {
+          if (type === "admin") redirectPath = "/admin";
+          else if (type === "user") redirectPath = "/dashboard/user";
+          else if (type === "agent" || type === "landlord" || type === "owner") redirectPath = "/dashboard/manager";
+        }
+        navigate(redirectPath, { replace: true });
+      }
+    };
+
     const checkUser = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
       if (session) {
-        navigate(consumePostAuthRedirectPath(), { replace: true });
+        handleSessionRedirect(session);
       }
     };
 
@@ -112,7 +127,7 @@ const Auth = () => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        navigate(consumePostAuthRedirectPath(), { replace: true });
+        handleSessionRedirect(session);
       }
     });
 

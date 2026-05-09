@@ -41,7 +41,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       {/* Top Green Bar */}
       <div className="bg-[#5cb85c] text-white px-4 py-2 flex justify-between items-center text-sm">
         <div className="flex items-center gap-2">
-          <span>WhatsApp: +234 816 168 6883</span>
+          {/* WhatsApp number removed as requested */}
         </div>
         <div className="flex items-center gap-4">
           <Link to="/dashboard/user" className="hover:underline">Dashboard</Link>

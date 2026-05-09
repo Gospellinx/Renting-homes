@@ -29,7 +29,20 @@ export default function AuthCallback() {
     if (!loading && user) {
       console.log("OAuth callback successful, redirecting user:", user.email);
 
-      navigate(consumePostAuthRedirectPath(), { replace: true });
+      if (!user.user_metadata?.onboarding_completed) {
+        navigate("/onboarding", { replace: true });
+      } else {
+        const type = user.user_metadata?.user_type;
+        let redirectPath = consumePostAuthRedirectPath();
+        
+        if (redirectPath === "/") {
+          if (type === "admin") redirectPath = "/admin";
+          else if (type === "user") redirectPath = "/dashboard/user";
+          else if (type === "agent" || type === "landlord" || type === "owner") redirectPath = "/dashboard/manager";
+        }
+
+        navigate(redirectPath, { replace: true });
+      }
     }
   }, [user, loading, navigate, searchParams]);
 
