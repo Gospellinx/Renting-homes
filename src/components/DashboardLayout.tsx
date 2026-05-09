@@ -40,7 +40,6 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const navItems = [
     { label: "Dashboard", path: dashboardPath, icon: LayoutDashboard },
     { label: "My Profile", path: "/profile", icon: UserCircle },
-    { label: "My Properties", path: "/dashboard/manager", icon: Building2 },
     { label: "Profile Reviews", path: "/dashboard/profile-reviews", icon: Star },
     { label: "Property Reviews", path: "/dashboard/property-reviews", icon: MessageSquare },
     { label: "Favorites", path: "/dashboard/favorites", icon: Heart },

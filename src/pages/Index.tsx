@@ -136,6 +136,11 @@ const Index = () => {
       "there"
     : "Visitor";
 
+  const userType = user?.user_metadata?.user_type;
+  const dashboardPath = (userType === 'agent' || userType === 'landlord' || userType === 'owner') 
+    ? "/dashboard/manager" 
+    : "/dashboard/user";
+
   const handleQuickActionClick = (href: string) => {
     if (!user) {
       sessionStorage.setItem("auth_return_url", href);
@@ -212,7 +217,7 @@ const Index = () => {
             variant="outline"
             className="h-11 rounded-full border-[#d7daf0] bg-white/85 px-4 text-[#241f66] shadow-[0_10px_25px_rgba(31,26,84,0.08)] backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:border-[#bfc6f5] hover:bg-white"
           >
-            <Link to={user ? "/profile" : "/auth"} className="flex items-center gap-2">
+            <Link to={user ? dashboardPath : "/auth"} className="flex items-center gap-2">
               {user ? (
                 <Avatar className="h-7 w-7 border border-[#d9dcf1]">
                   <AvatarImage src={user.user_metadata?.avatar_url} />
