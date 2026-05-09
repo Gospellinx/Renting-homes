@@ -218,6 +218,9 @@ export const useAdsManager = () => {
 
       const status: CampaignStatus = input.mode === "pending_review" ? "pending_review" : "draft";
 
+      // For new inserts, always start as draft to satisfy any restrictive RLS policies
+      const initialStatus = input.campaignId ? status : "draft";
+
       const campaignPayload: TablesInsert<"ad_campaigns"> | TablesUpdate<"ad_campaigns"> = {
         name: input.campaign.name.trim() || "Untitled Campaign",
         objective: input.campaign.objective,
@@ -225,7 +228,7 @@ export const useAdsManager = () => {
         daily_budget: input.campaign.daily_budget,
         start_date: normalizeDateValue(input.campaign.start_date),
         end_date: normalizeDateValue(input.campaign.end_date),
-        status,
+        status: initialStatus,
       };
 
       let campaignRecord: CampaignRow;
@@ -276,7 +279,7 @@ export const useAdsManager = () => {
           normalizeDateValue(input.adSet.schedule_end) ||
           normalizeDateValue(input.campaign.end_date),
         budget: input.adSet.budget,
-        status,
+        status: initialStatus,
       };
 
       let adSetRecord: AdSetRow;
@@ -322,7 +325,7 @@ export const useAdsManager = () => {
         price: input.ad.price?.trim() || null,
         location: input.ad.location?.trim() || null,
         badge: input.ad.badge?.trim() || null,
-        status,
+        status: initialStatus,
         rejection_reason: null,
       };
 
@@ -346,6 +349,13 @@ export const useAdsManager = () => {
         if (error) {
           throw error;
         }
+      }
+
+      // If this was a new insert and we wanted to submit for review, update the status now
+      if (!input.campaignId && status === "pending_review") {
+        await supabase.from("ad_campaigns").update({ status: "pending_review" }).eq("id", campaignRecord.id);
+        await supabase.from("ad_sets").update({ status: "pending_review" }).eq("id", adSetRecord.id);
+        await supabase.from("ads").update({ status: "pending_review" }).eq("ad_set_id", adSetRecord.id);
       }
 
       return {

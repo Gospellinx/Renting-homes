@@ -775,18 +775,18 @@ export default function CampaignWizard({
               variant="outline"
               className="w-full gap-2 rounded-full"
               onClick={() => handleSave("draft")}
-              disabled={isSaving}
+              disabled={upsertCampaignBundle.isPending || isUploadingImage}
             >
-              {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              {upsertCampaignBundle.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Save Draft
             </Button>
             <Button
               type="button"
               className="w-full gap-2 rounded-full"
               onClick={() => handleSave("pending_review")}
-              disabled={isSaving}
+              disabled={upsertCampaignBundle.isPending || isUploadingImage || progressCount < 3}
             >
-              {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              {upsertCampaignBundle.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               Submit For Review
             </Button>
             <Button

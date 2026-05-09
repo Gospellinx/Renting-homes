@@ -25,6 +25,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useNavigate, useSearchParams, Navigate } from "react-router-dom";
+import PaystackPop from "@paystack/inline-js";
 import { useAuth } from "@/context/AuthContext";
 import { useAdsManager, type Campaign } from "@/hooks/useAdsManager";
 import { useWallet } from "@/hooks/useWallet";
@@ -176,20 +177,24 @@ const AdsManager = () => {
       return;
     }
 
-    const data = await initializePayment.mutateAsync({
-      amount,
-      email: user.email,
-    });
-
-    const authorizationUrl =
-      data?.authorization_url || data?.authorizationUrl || data?.data?.authorization_url;
-
-    if (!authorizationUrl) {
-      toast.error("Could not open the payment checkout. Please try again.");
-      return;
+    try {
+      const paystack = new PaystackPop();
+      paystack.newTransaction({
+        key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
+        email: user.email,
+        amount: amount * 100, // Paystack expects amount in kobo/lowest denomination
+        onSuccess: (transaction: any) => {
+          toast.success("Payment successful! Verifying...");
+          verifyPayment.mutate({ reference: transaction.reference });
+        },
+        onCancel: () => {
+          toast.error("Payment was cancelled.");
+        },
+      });
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not load Paystack. Please try again later.");
     }
-
-    window.location.href = authorizationUrl;
   };
 
   const handleCampaignStatus = async (
