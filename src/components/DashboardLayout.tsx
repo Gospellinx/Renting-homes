@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import logo from "@/assets/homes-logo.png";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   UserCircle,
@@ -10,6 +12,8 @@ import {
   MessageSquare,
   Heart,
   LogOut,
+  Menu,
+  X
 } from "lucide-react";
 import ProfileCompletionModal from "./ProfileCompletionModal";
 
@@ -21,6 +25,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -50,11 +55,19 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       </div>
 
       {/* Secondary White Bar */}
-      <header className="bg-white border-b sticky top-0 z-40">
+      <header className="bg-white border-b sticky top-0 z-30">
         <div className="container mx-auto px-4 h-20 flex items-center justify-between">
-          <Link to="/" className="flex items-center">
-            <img src={logo} alt="Homes" className="h-12 w-auto" />
-          </Link>
+          <div className="flex items-center gap-4">
+            <button 
+              className="md:hidden p-2 rounded-md hover:bg-gray-100 text-gray-700 transition-colors"
+              onClick={() => setIsSidebarOpen(true)}
+            >
+              <Menu className="h-6 w-6" />
+            </button>
+            <Link to="/" className="flex items-center">
+              <img src={logo} alt="Homes" className="h-12 w-auto" />
+            </Link>
+          </div>
           
           <nav className="hidden md:flex items-center gap-6 font-medium text-gray-700">
             <Link to="/" className="hover:text-[#5cb85c]">Home</Link>
@@ -70,16 +83,35 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Mobile Overlay */}
+        {isSidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black/50 z-40 md:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+
         {/* Sidebar */}
-        <aside className="w-64 bg-[#5cb85c] text-white hidden md:flex flex-col">
-          <nav className="flex-1 py-6 space-y-1">
+        <aside 
+          className={cn(
+            "fixed inset-y-0 left-0 z-50 w-64 bg-[#5cb85c] text-white flex flex-col transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0",
+            isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+          )}
+        >
+          <div className="flex justify-end p-4 md:hidden">
+            <button onClick={() => setIsSidebarOpen(false)}>
+              <X className="h-6 w-6 text-white hover:text-gray-200 transition-colors" />
+            </button>
+          </div>
+          <nav className="flex-1 py-6 space-y-1 overflow-y-auto">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
               return (
                 <Link
                   key={item.label}
                   to={item.path}
+                  onClick={() => setIsSidebarOpen(false)}
                   className={`flex items-center gap-3 px-6 py-3 transition-colors ${
                     isActive ? "bg-white/20 border-l-4 border-white font-medium" : "hover:bg-white/10"
                   }`}
@@ -103,7 +135,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         </aside>
 
         {/* Main Content Area */}
-        <main className="flex-1 p-6 md:p-8 overflow-y-auto">
+        <main className="flex-1 p-6 md:p-8 overflow-y-auto w-full">
           {children}
         </main>
       </div>

@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { User, Mail, Phone, MapPin, FileText, Loader2, ArrowLeft, Shield, Briefcase, Building, Home, Search, ExternalLink, AlertCircle } from "lucide-react";
+import { User, Mail, Phone, MapPin, FileText, Loader2, ArrowLeft, Shield, Briefcase, Building, Home, Search, ExternalLink, AlertCircle, Camera } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import logo from "@/assets/homes-logo.png";
 import EmailNotificationSettings from "@/components/EmailNotificationSettings";
@@ -96,6 +96,58 @@ const Profile = () => {
   const [phone, setPhone] = useState("");
   const [bio, setBio] = useState("");
   const [location, setLocation] = useState("");
+
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setUploadingAvatar(true);
+      
+      if (!event.target.files || event.target.files.length === 0) {
+        throw new Error('You must select an image to upload.');
+      }
+
+      const file = event.target.files[0];
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user?.id}-${Math.random()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        if (uploadError.message.includes('bucket')) {
+          throw new Error('Avatar bucket not found. Please create an "avatars" storage bucket.');
+        }
+        throw uploadError;
+      }
+
+      const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      
+      const { error: updateError } = await supabase.from('profiles').update({
+        avatar_url: data.publicUrl
+      }).eq('user_id', user?.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      setProfile(prev => prev ? { ...prev, avatar_url: data.publicUrl } : null);
+      
+      toast({
+        title: "Avatar updated",
+        description: "Your profile picture has been updated successfully.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error uploading avatar",
+        description: error.message || "Failed to upload avatar.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   const applyProfileToForm = (profileData: Profile) => {
     const nextValues = {
@@ -403,12 +455,35 @@ const Profile = () => {
             </CardHeader>
             <CardContent className="p-6">
               <div className="flex flex-col items-center justify-center space-y-4">
-                <Avatar className="h-48 w-48 rounded-none bg-gray-200">
-                  <AvatarImage src={profile?.avatar_url || undefined} className="object-cover" />
-                  <AvatarFallback className="text-4xl rounded-none bg-gray-200 text-gray-500">
-                    <User className="h-24 w-24" />
-                  </AvatarFallback>
-                </Avatar>
+                <div className="relative group">
+                  <Avatar className="h-48 w-48 rounded-none bg-gray-200">
+                    <AvatarImage src={profile?.avatar_url || undefined} className="object-cover" />
+                    <AvatarFallback className="text-4xl rounded-none bg-gray-200 text-gray-500">
+                      <User className="h-24 w-24" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <label 
+                    htmlFor="avatar-upload" 
+                    className="absolute inset-0 bg-black/50 hidden group-hover:flex flex-col items-center justify-center cursor-pointer text-white transition-all"
+                  >
+                    {uploadingAvatar ? (
+                      <Loader2 className="h-8 w-8 animate-spin" />
+                    ) : (
+                      <>
+                        <Camera className="h-8 w-8 mb-2" />
+                        <span className="text-sm font-medium">Change Photo</span>
+                      </>
+                    )}
+                  </label>
+                  <input
+                    id="avatar-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarUpload}
+                    disabled={uploadingAvatar}
+                  />
+                </div>
                 
                 {tableNotFound && (
                   <Alert variant="destructive" className="mt-4">

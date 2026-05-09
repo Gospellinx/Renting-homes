@@ -345,6 +345,12 @@ const Auth = () => {
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
+    
+    // If they selected a role before clicking Google Sign In, remember it
+    if (activeTab === "signup" && userType) {
+      sessionStorage.setItem("pending_user_role", userType);
+    }
+    
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
