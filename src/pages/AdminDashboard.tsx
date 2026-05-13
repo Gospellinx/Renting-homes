@@ -14,6 +14,7 @@ import { useAdminVerifications, AdminVerificationRequest } from "@/hooks/useAdmi
 import { useAdminAnalytics } from "@/hooks/useAdminAnalytics";
 import { AnalyticsDashboard } from "@/components/admin/AnalyticsDashboard";
 import AdModerationTab from "@/components/admin/AdModerationTab";
+import AdminPropertiesTab from "@/components/admin/AdminPropertiesTab";
 import { 
   Shield, 
   CheckCircle, 
@@ -27,7 +28,8 @@ import {
   Loader2,
   RefreshCw,
   BarChart3,
-  Megaphone
+  Megaphone,
+  Home
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -177,9 +179,13 @@ const AdminDashboard = () => {
               <FileText className="h-4 w-4" />
               Verification Requests
             </TabsTrigger>
+            <TabsTrigger value="properties" className="gap-2">
+              <Home className="h-4 w-4" />
+              Properties
+            </TabsTrigger>
             <TabsTrigger value="ads" className="gap-2">
               <Megaphone className="h-4 w-4" />
-              Ad Moderation
+              Ads
             </TabsTrigger>
             <TabsTrigger value="analytics" className="gap-2">
               <BarChart3 className="h-4 w-4" />
@@ -189,6 +195,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="ads" className="mt-6">
             <AdModerationTab />
+          </TabsContent>
+
+          <TabsContent value="properties" className="mt-6">
+            <AdminPropertiesTab />
           </TabsContent>
 
           <TabsContent value="analytics" className="mt-6">
