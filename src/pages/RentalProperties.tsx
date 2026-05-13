@@ -17,6 +17,7 @@ import { nigerianCities, getAreasForCity } from "@/data/nigerianLocations";
 import LiveViewModal from "@/components/LiveViewModal";
 import { useAuth } from "@/context/AuthContext";
 import { useIntendedAction } from "@/hooks/useIntendedAction";
+import { useApprovedProperties } from "@/hooks/useApprovedProperties";
 
 // Mock data for rental properties
 const properties = [
@@ -118,29 +119,31 @@ const RentalProperties = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const { saveAction, getAction, clearAction } = useIntendedAction();
+  const { properties: approvedRentals } = useApprovedProperties("rent");
+  const allProperties: any[] = [...approvedRentals, ...properties];
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedArea, setSelectedArea] = useState("");
   const [selectedBedrooms, setSelectedBedrooms] = useState("");
   const [priceRange, setPriceRange] = useState("");
   const { addProperty, removeProperty, isSelected, properties: compareProperties } = useCompareProperties();
-  const [liveViewProperty, setLiveViewProperty] = useState<typeof properties[0] | null>(null);
+  const [liveViewProperty, setLiveViewProperty] = useState<any | null>(null);
 
   // Resume intended action after login
   useEffect(() => {
     if (user) {
       const action = getAction();
       if (action && action.page === '/rental-properties' && action.type === 'live_view') {
-        const prop = properties.find(p => p.id === action.propertyId);
+        const prop = allProperties.find(p => String(p.id) === String(action.propertyId));
         if (prop) {
           setLiveViewProperty(prop);
         }
         clearAction();
       }
     }
-  }, [user]);
+  }, [user, approvedRentals]);
 
-  const handleLiveView = (property: typeof properties[0]) => {
+  const handleLiveView = (property: any) => {
     if (!user) {
       saveAction({
         type: 'live_view',
@@ -165,7 +168,7 @@ const RentalProperties = () => {
     setSelectedArea(""); // reset area when city changes
   };
 
-  const filteredProperties = properties.filter(property => {
+  const filteredProperties = allProperties.filter(property => {
     const cityObj = nigerianCities.find(c => c.value === selectedCity);
     const cityLabel = cityObj?.label || "";
     const areaObj = availableAreas.find(a => a.value === selectedArea);
@@ -178,7 +181,7 @@ const RentalProperties = () => {
     return matchesSearch && (selectedCity ? matchesCity : true) && (selectedArea ? matchesArea : true);
   });
 
-  const handleCompareToggle = (property: typeof properties[0]) => {
+  const handleCompareToggle = (property: any) => {
     if (isSelected(property.id, 'rent')) {
       removeProperty(property.id, 'rent');
       toast({
@@ -232,7 +235,8 @@ const RentalProperties = () => {
   };
 
   const handleShare = (property: any) => {
-    navigator.clipboard.writeText(`${window.location.origin}/property/rent/${property.id}`);
+    const propertyType = property.source === "database" ? "rental" : "rent";
+    navigator.clipboard.writeText(`${window.location.origin}/property/${propertyType}/${property.id}`);
     toast({ title: "Link Copied", description: "Property link copied to clipboard" });
   };
 
@@ -482,7 +486,7 @@ const RentalProperties = () => {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                       <Button 
                         className="flex items-center gap-2 col-span-2 md:col-span-2"
-                        onClick={() => navigate(`/property/rent/${property.id}`)}
+                        onClick={() => navigate(`/property/${property.source === "database" ? "rental" : "rent"}/${property.id}`)}
                       >
                         View Property
                       </Button>

@@ -18,6 +18,7 @@ import ShopViewModal from "@/components/ShopViewModal";
 import { useAuth } from "@/context/AuthContext";
 import { useIntendedAction } from "@/hooks/useIntendedAction";
 import ScrollAuthGate from "@/components/ScrollAuthGate";
+import { useApprovedProperties } from "@/hooks/useApprovedProperties";
 
 const shopProperties = [
   {
@@ -136,6 +137,8 @@ const ShopRentals = () => {
   const { user, loading } = useAuth();
   const isGuest = !loading && !user;
   const { saveAction, getAction, clearAction } = useIntendedAction();
+  const { properties: approvedShops } = useApprovedProperties("shop");
+  const allShopProperties = [...approvedShops, ...shopProperties];
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedArea, setSelectedArea] = useState("");
@@ -149,12 +152,12 @@ const ShopRentals = () => {
     if (user) {
       const action = getAction();
       if (action && action.page === '/shop-rentals' && action.type === 'live_view') {
-        const prop = shopProperties.find(p => p.id === action.propertyId);
+        const prop = allShopProperties.find(p => String(p.id) === String(action.propertyId));
         if (prop) setLiveViewProperty(prop);
         clearAction();
       }
     }
-  }, [user]);
+  }, [user, approvedShops]);
 
   const handleLiveView = (property: typeof shopProperties[0]) => {
     if (!user) {
@@ -169,7 +172,7 @@ const ShopRentals = () => {
   const availableAreas = getAreasForCity(selectedCity);
   const handleCityChange = (val: string) => { setSelectedCity(val); setSelectedArea(""); };
 
-  const filteredProperties = shopProperties.filter(property => {
+  const filteredProperties = allShopProperties.filter(property => {
     const cityObj = nigerianCities.find(c => c.value === selectedCity);
     const areaObj = availableAreas.find(a => a.value === selectedArea);
     const areaLabel = areaObj?.label || "";
@@ -296,7 +299,7 @@ const ShopRentals = () => {
                         <Scale className="h-4 w-4 mr-1" />{isSelected(property.id, 'rent') ? "Added" : "Compare"}
                       </Button>
                       <Button size="sm" variant="secondary" className="bg-background/80" onClick={() => toast({ title: "Saved", description: `${property.title} added to favorites` })}><Heart className="h-4 w-4" /></Button>
-                      <Button size="sm" variant="secondary" className="bg-background/80" onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/property/rent/${property.id}`); toast({ title: "Link Copied" }); }}><Share2 className="h-4 w-4" /></Button>
+                      <Button size="sm" variant="secondary" className="bg-background/80" onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/property/${property.source === "database" ? "shop-rental" : "rent"}/${property.id}`); toast({ title: "Link Copied" }); }}><Share2 className="h-4 w-4" /></Button>
                     </div>
                   </div>
 

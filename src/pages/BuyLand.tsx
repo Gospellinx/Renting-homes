@@ -5,6 +5,7 @@ import { MapPin, Ruler, Search, ArrowLeft, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import BackButton from "@/components/BackButton";
+import { useApprovedProperties } from "@/hooks/useApprovedProperties";
 
 const dummyLands = [
   { id: "land-1", title: "Residential Plot in Gwarinpa", location: "Gwarinpa, Abuja", price: "₦25,000,000", size: "600 sqm", type: "Residential", image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&h=300&fit=crop" },
@@ -21,8 +22,22 @@ const dummyLands = [
 
 const BuyLand = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const { properties: approvedLands } = useApprovedProperties("land");
+  const allLands = [
+    ...approvedLands.map((property) => ({
+      id: property.id,
+      title: property.title,
+      location: property.location,
+      price: property.price,
+      size: property.area,
+      type: property.type || "Verified Land",
+      image: property.image,
+      source: property.source,
+    })),
+    ...dummyLands,
+  ];
 
-  const filteredLands = dummyLands.filter(
+  const filteredLands = allLands.filter(
     (land) =>
       land.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       land.location.toLowerCase().includes(searchQuery.toLowerCase()) ||

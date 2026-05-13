@@ -153,19 +153,19 @@ const AdminDashboard = () => {
   const rejectedCount = requests.filter(r => r.status === 'rejected').length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#f2f4fb_0%,#f7f7fb_42%,#f4f1ec_100%)]">
       {/* Header */}
-      <div className="bg-card border-b sticky top-0 z-10">
+      <div className="sticky top-0 z-20 border-b border-[#d7daf0] bg-white/85 backdrop-blur">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
               <BackButton showHomeLink={false} />
               <div>
-                <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
-                <p className="text-muted-foreground">Manage verification requests and user content</p>
+                <h1 className="text-xl font-bold text-[#1f1a54] sm:text-2xl">Admin Dashboard</h1>
+                <p className="text-sm text-[#6f7599]">Moderate listings, users, ads, and platform trust signals</p>
               </div>
             </div>
-            <Button variant="outline" className="gap-2" onClick={() => window.location.reload()}>
+            <Button variant="outline" className="w-full gap-2 sm:w-auto" onClick={() => window.location.reload()}>
               <RefreshCw className="h-4 w-4" />
               Refresh
             </Button>
@@ -174,12 +174,41 @@ const AdminDashboard = () => {
       </div>
 
       <div className="container mx-auto px-4 py-6">
+        <div className="mb-6 grid gap-4 md:grid-cols-4">
+          <Card className="border-0 bg-[#1f1a54] text-white shadow-lg">
+            <CardContent className="p-5">
+              <p className="text-sm text-white/70">Pending Verifications</p>
+              <p className="mt-2 text-3xl font-bold">{pendingCount}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-0 bg-white shadow-sm">
+            <CardContent className="p-5">
+              <p className="text-sm text-muted-foreground">Flagged Requests</p>
+              <p className="mt-2 text-3xl font-bold text-orange-600">{flaggedCount}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-0 bg-white shadow-sm">
+            <CardContent className="p-5">
+              <p className="text-sm text-muted-foreground">Approved Requests</p>
+              <p className="mt-2 text-3xl font-bold text-green-600">{approvedCount}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-0 bg-white shadow-sm">
+            <CardContent className="p-5">
+              <p className="text-sm text-muted-foreground">Rejected Requests</p>
+              <p className="mt-2 text-3xl font-bold text-red-600">{rejectedCount}</p>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList>
+          <div className="-mx-4 overflow-x-auto px-4 pb-2">
+          <TabsList className="inline-flex h-auto min-w-max flex-wrap justify-start gap-1 bg-white p-1 shadow-sm">
             <TabsTrigger value="requests" className="gap-2">
               <FileText className="h-4 w-4" />
-              Verification Requests
+              <span className="hidden sm:inline">Verification</span>
+              <span className="sm:hidden">Verify</span>
             </TabsTrigger>
             <TabsTrigger value="properties" className="gap-2">
               <Home className="h-4 w-4" />
@@ -198,6 +227,7 @@ const AdminDashboard = () => {
               Analytics
             </TabsTrigger>
           </TabsList>
+          </div>
 
           <TabsContent value="ads" className="mt-6">
             <AdModerationTab />
@@ -229,7 +259,7 @@ const AdminDashboard = () => {
 
           <TabsContent value="requests" className="mt-6">
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-2 gap-4 mb-6 lg:grid-cols-4">
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">

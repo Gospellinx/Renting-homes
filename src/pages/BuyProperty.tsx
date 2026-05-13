@@ -18,6 +18,7 @@ import LiveViewModal from "@/components/LiveViewModal";
 import { useAuth } from "@/context/AuthContext";
 import { useIntendedAction } from "@/hooks/useIntendedAction";
 import ScrollAuthGate from "@/components/ScrollAuthGate";
+import { useApprovedProperties } from "@/hooks/useApprovedProperties";
 
 // Mock data for properties for sale
 const properties = [
@@ -132,31 +133,33 @@ const BuyProperty = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const { saveAction, getAction, clearAction } = useIntendedAction();
+  const { properties: approvedSales } = useApprovedProperties("sale");
+  const allProperties: any[] = [...approvedSales, ...properties];
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedArea, setSelectedArea] = useState("");
   const [selectedBedrooms, setSelectedBedrooms] = useState("");
   const [priceRange, setPriceRange] = useState("");
   const { addProperty, removeProperty, isSelected, properties: compareProperties } = useCompareProperties();
-  const [liveViewProperty, setLiveViewProperty] = useState<typeof properties[0] | null>(null);
+  const [liveViewProperty, setLiveViewProperty] = useState<any | null>(null);
 
   // Resume intended action after login
   useEffect(() => {
     if (user) {
       const action = getAction();
       if (action && action.page === '/buy-property' && action.type === 'live_view') {
-        const prop = properties.find(p => p.id === action.propertyId);
+        const prop = allProperties.find(p => String(p.id) === String(action.propertyId));
         if (prop) {
           setLiveViewProperty(prop);
         }
         clearAction();
       }
     }
-  }, [user]);
+  }, [user, approvedSales]);
 
   const isGuest = !loading && !user;
 
-  const handleLiveView = (property: typeof properties[0]) => {
+  const handleLiveView = (property: any) => {
     if (!user) {
       saveAction({
         type: 'live_view',
@@ -181,7 +184,7 @@ const BuyProperty = () => {
     setSelectedArea("");
   };
 
-  const filteredProperties = properties.filter(property => {
+  const filteredProperties = allProperties.filter(property => {
     const cityObj = nigerianCities.find(c => c.value === selectedCity);
     const areaObj = availableAreas.find(a => a.value === selectedArea);
     const areaLabel = areaObj?.label || "";
@@ -198,7 +201,7 @@ const BuyProperty = () => {
     return matchesSearch && (selectedCity ? matchesCity : true) && (selectedArea ? matchesArea : true);
   });
 
-  const handleCompareToggle = (property: typeof properties[0]) => {
+  const handleCompareToggle = (property: any) => {
     if (isSelected(property.id, 'sale')) {
       removeProperty(property.id, 'sale');
       toast({
@@ -511,7 +514,7 @@ const BuyProperty = () => {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                       <Button 
                         className="flex items-center gap-2 col-span-2 md:col-span-2"
-                        onClick={() => window.location.href = `/property/sale/${property.id}`}
+                        onClick={() => navigate(`/property/${property.source === "database" ? "building" : "sale"}/${property.id}`)}
                       >
                         View Property
                       </Button>

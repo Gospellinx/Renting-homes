@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { MapPin, Store, Ruler } from "lucide-react";
 
 interface ShopProperty {
-  id: number;
+  id: number | string;
   title: string;
   location: string;
   price: string;
@@ -25,7 +25,7 @@ interface ShopViewModalProps {
   property: ShopProperty;
 }
 
-const shopGalleryImages: Record<number, string[]> = {
+const shopGalleryImages: Record<string, string[]> = {
   101: [
     "https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=800&h=500&fit=crop",
     "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=800&h=500&fit=crop",

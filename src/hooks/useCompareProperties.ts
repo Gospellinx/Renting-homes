@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export interface CompareProperty {
-  id: number;
+  id: number | string;
   type: 'rent' | 'sale';
   title: string;
   location: string;
@@ -25,9 +25,9 @@ export interface CompareProperty {
 interface CompareStore {
   properties: CompareProperty[];
   addProperty: (property: CompareProperty) => void;
-  removeProperty: (id: number, type: 'rent' | 'sale') => void;
+  removeProperty: (id: number | string, type: 'rent' | 'sale') => void;
   clearAll: () => void;
-  isSelected: (id: number, type: 'rent' | 'sale') => boolean;
+  isSelected: (id: number | string, type: 'rent' | 'sale') => boolean;
 }
 
 export const useCompareProperties = create<CompareStore>()(

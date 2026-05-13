@@ -12,7 +12,7 @@ interface LiveViewModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   property: {
-    id: number;
+    id: number | string;
     title: string;
     location: string;
     image: string;
@@ -22,7 +22,7 @@ interface LiveViewModalProps {
 const LIVE_VIEW_FEE = 500;
 
 // Mock video URLs for demo (in production these would come from your storage)
-const mockVideos: Record<number, string> = {
+const mockVideos: Record<string, string> = {
   1: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
   5: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
   9: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
@@ -156,7 +156,7 @@ const LiveViewModal = ({ open, onOpenChange, property }: LiveViewModalProps) => 
                   autoPlay
                   className="w-full h-full"
                   poster={property.image}
-                  src={mockVideos[property.id] || mockVideos[1]}
+                  src={mockVideos[String(property.id)] || mockVideos["1"]}
                 >
                   Your browser does not support the video tag.
                 </video>
