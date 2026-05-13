@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import { addStepCount } from "@/lib/utils";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,12 +17,13 @@ import {
   ArrowLeft, MapPin, Bed, Bath, Square, Phone, MessageSquare, Mail,
   Heart, Share2, Star, Home, Car, Shield, Zap, Waves, Dumbbell,
   Trees, Wifi, AirVent, Camera, Calendar, Eye, GraduationCap,
-  Hospital, UtensilsCrossed, Bus, Train, ShoppingBag, Flag
+  Hospital, UtensilsCrossed, Bus, Train, ShoppingBag, Flag, LayoutDashboard
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import ReportPropertyModal from "@/components/ReportPropertyModal";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { useAuth } from "@/context/AuthContext";
 
 // Property data with comprehensive details
 const propertyData: Record<string, any> = {
@@ -241,6 +242,10 @@ const iconMap: Record<string, any> = {
 };
 
 type DbProperty = Tables<"properties">;
+type PropertyDetailsLocationState = {
+  fromDashboard?: boolean;
+  dashboardPath?: string;
+};
 
 const isUuid = (value?: string) =>
   !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
@@ -297,15 +302,46 @@ const normalizeDbProperty = (property: DbProperty) => {
   };
 };
 
+const getListingPath = (type?: string) => {
+  switch (type) {
+    case "rent":
+    case "rental":
+      return "/rental-properties";
+    case "shop-rental":
+      return "/shop-rentals";
+    case "buy":
+    case "sale":
+    case "building":
+      return "/buy-property";
+    case "land":
+      return "/buy-land";
+    case "joint-venture":
+      return "/joint-ventures";
+    default:
+      return "/";
+  }
+};
+
+const getDashboardPath = (userType?: string) =>
+  userType === "agent" || userType === "landlord" || userType === "owner"
+    ? "/dashboard/manager"
+    : "/dashboard/user";
+
 const PropertyDetails = () => {
   const { id, type } = useParams<{ id: string; type: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
   const [isFavorite, setIsFavorite] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [dbProperty, setDbProperty] = useState<DbProperty | null>(null);
   const [isLoading, setIsLoading] = useState(() => isUuid(id));
   const [loadError, setLoadError] = useState<string | null>(null);
   const property = dbProperty ? normalizeDbProperty(dbProperty) : propertyData[id || "1"];
+  const routeState = (location.state ?? {}) as PropertyDetailsLocationState;
+  const userDashboardPath = getDashboardPath(user?.user_metadata?.user_type);
+  const backTarget = routeState.fromDashboard ? routeState.dashboardPath ?? userDashboardPath : getListingPath(type);
+  const backLabel = routeState.fromDashboard ? "Back to Dashboard" : "Back to Properties";
 
   useEffect(() => {
     if (!isUuid(id)) {
@@ -358,7 +394,9 @@ const PropertyDetails = () => {
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Property not found</h2>
           {loadError && <p className="mb-4 max-w-md text-sm text-muted-foreground">{loadError}</p>}
-          <Button onClick={() => navigate(-1)}>Go Back</Button>
+          <Button onClick={() => navigate(routeState.fromDashboard ? routeState.dashboardPath ?? userDashboardPath : getListingPath(type))}>
+            {routeState.fromDashboard ? "Back to Dashboard" : "Back to Properties"}
+          </Button>
         </div>
       </div>
     );
@@ -391,13 +429,23 @@ const PropertyDetails = () => {
         <div className="container flex h-16 items-center justify-between">
           <Button 
             variant="ghost" 
-            onClick={() => navigate(type === 'rent' ? '/rental-properties' : type === 'buy' ? '/buy-property' : '/')}
+            onClick={() => navigate(backTarget)}
             className="flex items-center gap-2 text-[#1f1a54] hover:text-[#26225f] hover:bg-[#eef1ff]"
           >
             <ArrowLeft className="h-5 w-5" />
-            <span className="hidden sm:inline">Back to Listings</span>
+            <span className="hidden sm:inline">{backLabel}</span>
           </Button>
           <div className="flex items-center gap-2">
+            {user && !routeState.fromDashboard && (
+              <Button
+                variant="outline"
+                onClick={() => navigate(userDashboardPath)}
+                className="hidden border-[#d7daf0] text-[#1f1a54] hover:bg-[#eef1ff] sm:inline-flex"
+              >
+                <LayoutDashboard className="mr-2 h-4 w-4" />
+                Dashboard
+              </Button>
+            )}
             <Button 
               size="icon" 
               variant="ghost"

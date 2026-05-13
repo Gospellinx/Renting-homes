@@ -515,7 +515,14 @@ const PropertyManagerDashboard = () => {
                       variant="outline" 
                       size="sm" 
                       className="flex-1 text-gray-600 hover:text-gray-900 bg-white"
-                      onClick={() => navigate(getPropertyDetailPath(property))}
+                      onClick={() =>
+                        navigate(getPropertyDetailPath(property), {
+                          state: {
+                            fromDashboard: true,
+                            dashboardPath: "/dashboard/manager",
+                          },
+                        })
+                      }
                     >
                       <Eye className="h-4 w-4 mr-1.5" />
                       View
