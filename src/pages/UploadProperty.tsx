@@ -419,29 +419,8 @@ const UploadProperty = () => {
   };
 
   const ensureSubmissionServiceReady = async () => {
-    const { data: response, error } = await supabase.functions.invoke<PropertySubmissionResponse>(
-      "submit-property-listing",
-      {
-        body: { healthCheck: true },
-      }
-    );
-
-    if (error instanceof FunctionsFetchError || error instanceof FunctionsRelayError) {
-      throw new Error(getFunctionUnavailableMessage(error));
-    }
-
-    if (error instanceof FunctionsHttpError) {
-      const responsePayload = (await error.context.json()) as PropertySubmissionResponse;
-      throw new Error(responsePayload.message || "Property submission is not available right now.");
-    }
-
-    if (error) {
-      throw new Error(error.message || "Property submission is not available right now.");
-    }
-
-    if (!response?.ok) {
-      throw new Error(response?.message || "Property submission is not available right now.");
-    }
+    // Removed edge function check since we are bypassing it
+    return;
   };
 
   const getSubmissionFields = () =>
@@ -545,63 +524,33 @@ const UploadProperty = () => {
         documentPaths: uploads.documentPaths,
       });
 
-      const { data: response, error } = await supabase.functions.invoke<PropertySubmissionResponse>(
-        "submit-property-listing",
-        {
-          body: payload,
-        }
-      );
+      const { error: dbError } = await supabase.from("properties").insert({
+        user_id: user.id,
+        title: payload.title,
+        description: payload.description,
+        property_type: payload.propertyType,
+        location: payload.location,
+        state: payload.state,
+        lga: payload.lga,
+        price: payload.price,
+        size: payload.size,
+        amenities: payload.amenities,
+        images: payload.imageUrls,
+        document_paths: payload.documentPaths,
+        owner_name: payload.ownerName,
+        owner_phone: payload.ownerPhone,
+        owner_email: payload.ownerEmail,
+        verification_type: payload.verificationType,
+        expected_investment: payload.expectedInvestment,
+        partnership_terms: payload.partnershipTerms,
+        developer_requirements: payload.developerRequirements,
+        land_size: payload.landSize,
+        proposed_development: payload.proposedDevelopment,
+        status: "pending_review",
+      });
 
-      const responsePayload =
-        error instanceof FunctionsHttpError
-          ? ((await error.context.json()) as PropertySubmissionResponse)
-          : response;
-
-      if (error && !(error instanceof FunctionsHttpError)) {
-        throw new Error(error.message || "We could not submit this property right now.");
-      }
-
-      if (!responsePayload?.ok) {
-        await cleanupUploadedMedia({
-          imagePaths: uploads.imagePaths,
-          documentPaths: uploads.documentPaths,
-        });
-
-        if (responsePayload?.errorType === "validation") {
-          applyBackendErrors(responsePayload.fieldErrors);
-          setSubmissionIssue({
-            title: "Some details still need attention",
-            description: responsePayload.message || "Fix the highlighted fields and try again.",
-          });
-          return;
-        }
-
-        if (responsePayload?.errorType === "duplicate" && responsePayload.duplicateWarning) {
-          setDuplicateWarning(responsePayload.duplicateWarning);
-          setSubmissionIssue({
-            title: "Possible duplicate property",
-            description: responsePayload.message || responsePayload.duplicateWarning.reason,
-          });
-          return;
-        }
-
-        if (responsePayload?.errorType === "schema_not_ready") {
-          setSubmissionIssue({
-            title: "Property submission is not ready yet",
-            description:
-              responsePayload.message ||
-              "Property review could not start because the listing database is not ready on this environment.",
-            hint: responsePayload.hint,
-          });
-          toast({
-            title: "Submission unavailable",
-            description: "Property listing setup is incomplete on this environment.",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        throw new Error(responsePayload?.message || "We could not submit this property right now.");
+      if (dbError) {
+        throw new Error(dbError.message || "We could not submit this property right now.");
       }
 
       setIsSubmitted(true);

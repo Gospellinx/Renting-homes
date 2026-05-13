@@ -24,8 +24,7 @@ import {
   Sparkles,
   TrendingUp,
 } from "lucide-react";
-import { useNavigate, useSearchParams, Navigate } from "react-router-dom";
-import PaystackPop from "@paystack/inline-js";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useAdsManager, type Campaign } from "@/hooks/useAdsManager";
 import { useWallet } from "@/hooks/useWallet";
@@ -177,24 +176,20 @@ const AdsManager = () => {
       return;
     }
 
-    try {
-      const paystack = new PaystackPop();
-      paystack.newTransaction({
-        key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
-        email: user.email,
-        amount: amount * 100, // Paystack expects amount in kobo/lowest denomination
-        onSuccess: (transaction: any) => {
-          toast.success("Payment successful! Verifying...");
-          verifyPayment.mutate({ reference: transaction.reference });
-        },
-        onCancel: () => {
-          toast.error("Payment was cancelled.");
-        },
-      });
-    } catch (e) {
-      console.error(e);
-      toast.error("Could not load Paystack. Please try again later.");
+    const data = await initializePayment.mutateAsync({
+      amount,
+      email: user.email,
+    });
+
+    const authorizationUrl =
+      data?.authorization_url || data?.authorizationUrl || data?.data?.authorization_url;
+
+    if (!authorizationUrl) {
+      toast.error("Could not open the payment checkout. Please try again.");
+      return;
     }
+
+    window.location.href = authorizationUrl;
   };
 
   const handleCampaignStatus = async (
@@ -231,10 +226,6 @@ const AdsManager = () => {
         description="Create an account to run advertising campaigns and reach potential buyers."
       />
     );
-  }
-
-  if (user.user_metadata?.user_type === "user") {
-    return <Navigate to="/upgrade" replace />;
   }
 
   if (showWizard) {

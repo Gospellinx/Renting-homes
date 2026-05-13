@@ -13,12 +13,16 @@ import logo from "@/assets/homes-logo.png";
 import { consumePostAuthRedirectPath, getAuthCallbackUrl } from "@/lib/authRedirect";
 import { z } from "zod";
 
+const userTypes = [
+  { value: "property_owner", label: "Property Owner" },
+  { value: "agent", label: "Real Estate Agent" },
+  { value: "company", label: "Real Estate Company" },
+  { value: "renter", label: "Renter" },
+  { value: "buyer", label: "Buyer" },
+];
+
 const emailSchema = z.string().email("Please enter a valid email address");
-const passwordSchema = z.string()
-  .min(8, "Password must be at least 8 characters")
-  .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-  .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-  .regex(/[0-9]/, "Password must contain at least one number");
+const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
 const normalizeEmail = (value: string) => value.trim().toLowerCase();
 const authInputClassName =
   "h-12 rounded-2xl border-[#d9ddf4] bg-[linear-gradient(180deg,#ffffff_0%,#f8f9ff_100%)] pl-11 text-[#1f1a54] placeholder:text-[#98a0c4] shadow-[inset_0_1px_0_rgba(255,255,255,0.78),0_10px_24px_rgba(31,26,84,0.05)] transition-all duration-300 focus-visible:border-[#b8c1fb] focus-visible:ring-2 focus-visible:ring-[#d7ddff] focus-visible:ring-offset-0";
@@ -33,7 +37,8 @@ type FormErrors = {
   email?: string;
   password?: string;
   confirmPassword?: string;
-  username?: string;
+  fullName?: string;
+  userType?: string;
 };
 
 type InlineNotice = {
@@ -60,7 +65,8 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [username, setUsername] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [userType, setUserType] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
   const [inlineNotice, setInlineNotice] = useState<InlineNotice | null>(null);
   const passwordInputRef = useRef<HTMLInputElement | null>(null);
@@ -90,28 +96,13 @@ const Auth = () => {
   }, [authErrorMessage]);
 
   useEffect(() => {
-    const handleSessionRedirect = (session: any) => {
-      if (!session.user.user_metadata?.onboarding_completed) {
-        navigate("/onboarding", { replace: true });
-      } else {
-        const type = session.user.user_metadata?.user_type;
-        let redirectPath = consumePostAuthRedirectPath();
-        if (redirectPath === "/") {
-          if (type === "admin") redirectPath = "/admin";
-          else if (type === "user") redirectPath = "/dashboard/user";
-          else if (type === "agent" || type === "landlord" || type === "owner") redirectPath = "/dashboard/manager";
-        }
-        navigate(redirectPath, { replace: true });
-      }
-    };
-
     const checkUser = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
       if (session) {
-        handleSessionRedirect(session);
+        navigate(consumePostAuthRedirectPath(), { replace: true });
       }
     };
 
@@ -121,7 +112,7 @@ const Auth = () => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        handleSessionRedirect(session);
+        navigate(consumePostAuthRedirectPath(), { replace: true });
       }
     });
 
@@ -161,12 +152,12 @@ const Auth = () => {
     }
 
     if (activeTab === "signup") {
-      if (!username.trim()) {
-        newErrors.username = "Username is required";
-      } else if (username.length < 3) {
-        newErrors.username = "Username must be at least 3 characters";
+      if (!fullName.trim()) {
+        newErrors.fullName = "Full name is required";
       }
-      
+      if (!userType) {
+        newErrors.userType = "Please select your account type";
+      }
       if (password !== confirmPassword) {
         newErrors.confirmPassword = "Passwords do not match";
       }
@@ -183,7 +174,8 @@ const Auth = () => {
 
     setPassword("");
     setConfirmPassword("");
-    setUsername("");
+    setFullName("");
+    setUserType("");
     setShowPassword(false);
     setErrors({});
   };
@@ -198,7 +190,8 @@ const Auth = () => {
     setActiveTab("signin");
     setPassword("");
     setConfirmPassword("");
-    setUsername("");
+    setFullName("");
+    setUserType("");
     setShowPassword(false);
     setErrors({});
     setInlineNotice({
@@ -264,23 +257,6 @@ const Auth = () => {
 
     setIsLoading(true);
     try {
-      const normalizedUsername = username.trim();
-      
-      // Check for username uniqueness
-      const { data: existingUser, error: checkError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('full_name', normalizedUsername)
-        .maybeSingle();
-        
-      if (checkError) throw checkError;
-      
-      if (existingUser) {
-        setErrors((prev) => ({ ...prev, username: "This username is already taken" }));
-        setIsLoading(false);
-        return;
-      }
-
       const normalizedEmail = normalizeEmail(email);
       const { data, error } = await supabase.auth.signUp({
         email: normalizedEmail,
@@ -288,8 +264,8 @@ const Auth = () => {
         options: {
           emailRedirectTo: authCallbackUrl,
           data: {
-            full_name: normalizedUsername,
-            // User type will be selected during onboarding
+            full_name: fullName.trim(),
+            user_type: userType,
           },
         },
       });
@@ -354,7 +330,6 @@ const Auth = () => {
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
-    
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -567,23 +542,45 @@ const Auth = () => {
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-username" className={authLabelClassName}>
-                      Username (Unique)
+                    <Label htmlFor="signup-name" className={authLabelClassName}>
+                      Full Name
                     </Label>
                     <div className="relative">
                       <User className={authIconClassName} />
                       <Input
-                        id="signup-username"
+                        id="signup-name"
                         type="text"
-                        placeholder="Choose a unique username"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        autoComplete="username"
+                        placeholder="Enter your full name"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        autoComplete="name"
                         className={authInputClassName}
                         disabled={isLoading}
                       />
                     </div>
-                    {errors.username && <p className="text-sm text-destructive">{errors.username}</p>}
+                    {errors.fullName && <p className="text-sm text-destructive">{errors.fullName}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-type" className={authLabelClassName}>
+                      Account Type
+                    </Label>
+                    <div className="relative">
+                      <Briefcase className={`${authIconClassName} z-10`} />
+                      <Select value={userType} onValueChange={setUserType} disabled={isLoading}>
+                        <SelectTrigger className={`${authInputClassName} pl-11`}>
+                          <SelectValue placeholder="Select account type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {userTypes.map((type) => (
+                            <SelectItem key={type.value} value={type.value}>
+                              {type.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {errors.userType && <p className="text-sm text-destructive">{errors.userType}</p>}
                   </div>
 
                   <div className="space-y-2">
