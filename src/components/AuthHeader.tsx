@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuthContext } from "@/context/AuthContext";
 import { NotificationBell } from "@/components/NotificationBell";
-import { User, LogOut, MessageCircle } from "lucide-react";
+import { getDashboardPathForUser } from "@/lib/dashboardPath";
+import { LayoutDashboard, User, LogOut, MessageCircle } from "lucide-react";
 
 export const AuthHeader = () => {
   const { user, loading, signOut } = useAuthContext();
@@ -51,6 +52,7 @@ export const AuthHeader = () => {
 
   if (user) {
     const userName = user.user_metadata?.full_name;
+    const dashboardPath = getDashboardPathForUser(user);
     
     return (
       <div className="flex items-center space-x-2">
@@ -83,6 +85,12 @@ export const AuthHeader = () => {
               </div>
             </div>
             <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link to={dashboardPath} className="flex items-center cursor-pointer">
+                <LayoutDashboard className="mr-2 h-4 w-4" />
+                <span>Dashboard</span>
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link to="/profile" className="flex items-center cursor-pointer">
                 <User className="mr-2 h-4 w-4" />

@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { consumePostAuthRedirectPath } from "@/lib/authRedirect";
+import { getDashboardPathForUser } from "@/lib/dashboardPath";
 
 /**
  * OAuth Callback Handler
@@ -29,7 +30,7 @@ export default function AuthCallback() {
     if (!loading && user) {
       console.log("OAuth callback successful, redirecting user:", user.email);
 
-      navigate(consumePostAuthRedirectPath(), { replace: true });
+      navigate(consumePostAuthRedirectPath(getDashboardPathForUser(user)), { replace: true });
     }
   }, [user, loading, navigate, searchParams]);
 

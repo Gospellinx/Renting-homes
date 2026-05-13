@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { getDashboardPathForUser } from "@/lib/dashboardPath";
 import logo from "@/assets/homes-logo.png";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -31,10 +32,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     navigate("/");
   };
 
-  const userType = user?.user_metadata?.user_type;
-  const dashboardPath = (userType === 'agent' || userType === 'landlord' || userType === 'owner') 
-    ? "/dashboard/manager" 
-    : "/dashboard/user";
+  const dashboardPath = getDashboardPathForUser(user);
 
   const navItems = [
     { label: "Dashboard", path: dashboardPath, icon: LayoutDashboard },

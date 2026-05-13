@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
+import { getDashboardPathForUser } from "@/lib/dashboardPath";
 import { 
   Plus, 
   X, 
@@ -19,9 +20,10 @@ const FloatingQuickActions = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const dashboardPath = getDashboardPathForUser(user);
 
   const actions = [
-    { icon: LayoutDashboard, label: "Dashboard", href: "/profile", color: "bg-slate-700", requiresAuth: true },
+    { icon: LayoutDashboard, label: "Dashboard", href: dashboardPath, color: "bg-slate-700", requiresAuth: true },
     { icon: Upload, label: "Upload Property", href: "/upload-property", color: "bg-primary" },
     { icon: Home, label: "Rent Property", href: "/rental-properties", color: "bg-blue-500" },
     { icon: Store, label: "Rent a Shop", href: "/shop-rentals", color: "bg-amber-500" },

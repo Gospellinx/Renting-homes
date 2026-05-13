@@ -28,6 +28,7 @@ import cardLand from "@/assets/card-land.jpg";
 import cardRent from "@/assets/card-rent.jpg";
 import cardShop from "@/assets/card-shop.jpg";
 import { useAuth } from "@/context/AuthContext";
+import { getDashboardPathForUser } from "@/lib/dashboardPath";
 import { useAISearch } from "@/hooks/useAISearch";
 import { toast } from "@/hooks/use-toast";
 
@@ -143,10 +144,7 @@ const Index = () => {
       "there"
     : "Visitor";
 
-  const userType = user?.user_metadata?.user_type;
-  const dashboardPath = (userType === 'agent' || userType === 'landlord' || userType === 'owner') 
-    ? "/dashboard/manager" 
-    : "/dashboard/user";
+  const dashboardPath = getDashboardPathForUser(user);
 
   const handleQuickActionClick = (href: string) => {
     if (!user) {
@@ -291,8 +289,8 @@ const Index = () => {
                   </button>
 
                   <Link
-                    to={user ? "/profile" : "/auth?mode=signin"}
-                    onClick={() => handleQuickActionClick("/profile")}
+                    to={user ? dashboardPath : "/auth?mode=signin"}
+                    onClick={() => handleQuickActionClick(dashboardPath)}
                     className="inline-flex h-10 items-center justify-center gap-2 rounded-full px-3 text-[#5c6494] transition-all duration-300 hover:bg-[#eef1ff] hover:text-[#2b2770]"
                     aria-label={user ? "Open dashboard" : "Sign in"}
                   >

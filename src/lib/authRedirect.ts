@@ -37,28 +37,28 @@ export const getAppOrigin = () => {
 
 export const getAuthCallbackUrl = () => `${getAppOrigin()}/auth/callback`;
 
-export const consumePostAuthRedirectPath = () => {
+export const consumePostAuthRedirectPath = (defaultPath = DEFAULT_AUTH_PATH) => {
   if (typeof window === "undefined") {
-    return DEFAULT_AUTH_PATH;
+    return defaultPath;
   }
 
   const storedReturnUrl = sessionStorage.getItem(RETURN_URL_KEY);
   if (storedReturnUrl) {
     sessionStorage.removeItem(RETURN_URL_KEY);
-    return toSafePath(storedReturnUrl) ?? DEFAULT_AUTH_PATH;
+    return toSafePath(storedReturnUrl) ?? defaultPath;
   }
 
   const storedIntendedAction = sessionStorage.getItem(INTENDED_ACTION_KEY);
   if (!storedIntendedAction) {
-    return DEFAULT_AUTH_PATH;
+    return defaultPath;
   }
 
   sessionStorage.removeItem(INTENDED_ACTION_KEY);
 
   try {
     const parsed = JSON.parse(storedIntendedAction) as { page?: string };
-    return toSafePath(parsed.page) ?? DEFAULT_AUTH_PATH;
+    return toSafePath(parsed.page) ?? defaultPath;
   } catch {
-    return DEFAULT_AUTH_PATH;
+    return defaultPath;
   }
 };

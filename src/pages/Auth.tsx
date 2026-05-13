@@ -11,6 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ArrowLeft, Briefcase, CircleAlert, Eye, EyeOff, Lock, Mail, User } from "lucide-react";
 import logo from "@/assets/homes-logo.png";
 import { consumePostAuthRedirectPath, getAuthCallbackUrl } from "@/lib/authRedirect";
+import { getDashboardPathForUser } from "@/lib/dashboardPath";
 import { z } from "zod";
 
 const userTypes = [
@@ -102,7 +103,7 @@ const Auth = () => {
       } = await supabase.auth.getSession();
 
       if (session) {
-        navigate(consumePostAuthRedirectPath(), { replace: true });
+        navigate(consumePostAuthRedirectPath(getDashboardPathForUser(session.user)), { replace: true });
       }
     };
 
@@ -112,7 +113,7 @@ const Auth = () => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        navigate(consumePostAuthRedirectPath(), { replace: true });
+        navigate(consumePostAuthRedirectPath(getDashboardPathForUser(session.user)), { replace: true });
       }
     });
 

@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useAISearch } from "@/hooks/useAISearch";
 import { toast } from "@/hooks/use-toast";
 import HomesLogo from "@/components/HomesLogo";
+import { getDashboardPathForUser } from "@/lib/dashboardPath";
 // hero bg no longer used as background image — Booking.com style uses solid dark green
 import cardRent from "@/assets/card-rent.jpg";
 import cardBuy from "@/assets/card-buy.jpg";
@@ -19,6 +20,7 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
   const { parseSearchQuery, isProcessing } = useAISearch();
+  const dashboardPath = getDashboardPathForUser(user);
 
   const handleProtectedLink = (href: string) => {
     if (!user) {
@@ -86,7 +88,7 @@ const Index = () => {
   };
 
   const shortcuts = [
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, href: user ? "/profile" : "/auth?mode=signin" },
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, href: user ? dashboardPath : "/auth?mode=signin" },
     { id: "upload", label: "Upload property", icon: Upload, href: "/upload-property" },
     { id: "jv", label: "JV opportunities", icon: Handshake, href: "/joint-ventures" },
     { id: "buy", label: "Buy property", icon: Home, href: "/buy-property" },
@@ -151,7 +153,7 @@ const Index = () => {
         <header className="relative z-10 flex justify-between items-center px-6 py-3">
           <HomesLogo />
           {user ? (
-            <Link to="/profile" className="flex items-center gap-2">
+            <Link to={dashboardPath} className="flex items-center gap-2">
               <Avatar className="h-9 w-9 border-2 border-white/20">
                 <AvatarImage src={user.user_metadata?.avatar_url} />
                 <AvatarFallback className="bg-accent text-accent-foreground text-sm font-bold">
@@ -216,8 +218,8 @@ const Index = () => {
                   <Mic className="h-5 w-5 text-muted-foreground" />
                 </button>
                 <Link
-                  to={user ? "/profile" : "/auth?mode=signin"}
-                  onClick={() => handleProtectedLink("/profile")}
+                  to={user ? dashboardPath : "/auth?mode=signin"}
+                  onClick={() => handleProtectedLink(dashboardPath)}
                   className="p-2 hover:bg-muted rounded-full transition-colors"
                   aria-label={user ? "Open dashboard" : "Sign in"}
                 >
