@@ -7,47 +7,118 @@ import { PlusCircle, Building, LayoutList, User, MapPin, Phone, Mail, Loader2, U
 import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+
+type ManagedProperty = {
+  id: string;
+  user_id: string;
+  title: string;
+  description: string;
+  property_type: string;
+  location: string;
+  state: string;
+  lga?: string | null;
+  price: string;
+  size?: string | null;
+  images?: string[] | null;
+  document_paths?: string[] | null;
+  owner_name?: string | null;
+  owner_phone?: string | null;
+  owner_email?: string | null;
+  verification_type?: string | null;
+  status: string;
+  created_at?: string;
+};
+
+type EditablePropertyFields = Pick<
+  ManagedProperty,
+  "title" | "description" | "location" | "state" | "lga" | "price" | "size" | "owner_phone" | "owner_email"
+>;
+
+const fallbackPropertyImage =
+  "https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80";
+
+const getPropertyDetailPath = (property: ManagedProperty) =>
+  `/property/${property.property_type.replace("_", "-")}/${property.id}`;
+
+const getPropertyImageUrl = (image?: string | null) => {
+  if (!image) return fallbackPropertyImage;
+  if (/^https?:\/\//i.test(image)) return image;
+  return supabase.storage.from("property-images").getPublicUrl(image).data.publicUrl;
+};
+
+const getEditFormValues = (property: ManagedProperty): EditablePropertyFields => ({
+  title: property.title ?? "",
+  description: property.description ?? "",
+  location: property.location ?? "",
+  state: property.state ?? "",
+  lga: property.lga ?? "",
+  price: property.price ?? "",
+  size: property.size ?? "",
+  owner_phone: property.owner_phone ?? "",
+  owner_email: property.owner_email ?? "",
+});
 
 const PropertyManagerDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [profile, setProfile] = useState<any>(null);
-  const [properties, setProperties] = useState<any[]>([]);
+  const [properties, setProperties] = useState<ManagedProperty[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [editingProperty, setEditingProperty] = useState<ManagedProperty | null>(null);
+  const [editForm, setEditForm] = useState<EditablePropertyFields | null>(null);
+  const [propertyToDelete, setPropertyToDelete] = useState<ManagedProperty | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      // Fetch Profile
-      supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", user.id)
-        .single()
-        .then(({ data }) => {
-          if (data) setProfile(data);
-        });
-
-      // Fetch Properties
-      const fetchProperties = async () => {
-        setIsLoading(true);
-        try {
-          const { data, error } = await supabase
-            .from("properties")
-            .select("*")
-            .eq("user_id", user.id)
-            .order("created_at", { ascending: false });
-
-          if (error) throw error;
-          if (data) setProperties(data);
-        } catch (error) {
-          console.error("Error fetching properties:", error);
-        } finally {
-          setIsLoading(false);
-        }
-      };
-
-      fetchProperties();
+    if (!user) {
+      setProfile(null);
+      setProperties([]);
+      setIsLoading(false);
+      return;
     }
+
+    let isMounted = true;
+
+    const fetchDashboardData = async () => {
+      setIsLoading(true);
+      setProperties([]);
+
+      const [{ data: profileData }, { data: propertyData, error: propertyError }] = await Promise.all([
+        supabase.from("profiles").select("*").eq("user_id", user.id).single(),
+        supabase.from("properties").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+      ]);
+
+      if (!isMounted) return;
+
+      if (profileData) setProfile(profileData);
+
+      if (propertyError) {
+        console.error("Error fetching properties:", propertyError);
+        toast({
+          title: "Could not load your properties",
+          description: propertyError.message,
+          variant: "destructive",
+        });
+        setProperties([]);
+      } else {
+        setProperties((propertyData ?? []) as ManagedProperty[]);
+      }
+
+      setIsLoading(false);
+    };
+
+    fetchDashboardData();
+
+    return () => {
+      isMounted = false;
+    };
   }, [user]);
 
   const getInitials = (name: string | null) => {
@@ -71,6 +142,96 @@ const PropertyManagerDashboard = () => {
   };
 
   const activeListings = properties.filter(p => p.status === 'approved').length;
+
+  const openEditDialog = (property: ManagedProperty) => {
+    setEditingProperty(property);
+    setEditForm(getEditFormValues(property));
+  };
+
+  const closeEditDialog = () => {
+    if (isSaving) return;
+    setEditingProperty(null);
+    setEditForm(null);
+  };
+
+  const updateEditField = (field: keyof EditablePropertyFields, value: string) => {
+    setEditForm((current) => (current ? { ...current, [field]: value } : current));
+  };
+
+  const handleUpdateProperty = async () => {
+    if (!user || !editingProperty || !editForm) return;
+
+    const trimmedForm = Object.fromEntries(
+      Object.entries(editForm).map(([key, value]) => [key, typeof value === "string" ? value.trim() : value])
+    ) as EditablePropertyFields;
+
+    if (!trimmedForm.title || !trimmedForm.description || !trimmedForm.location || !trimmedForm.state || !trimmedForm.price) {
+      toast({
+        title: "Missing listing details",
+        description: "Title, description, location, state, and price are required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    const { data, error } = await supabase
+      .from("properties")
+      .update(trimmedForm)
+      .eq("id", editingProperty.id)
+      .eq("user_id", user.id)
+      .select("*")
+      .single();
+
+    setIsSaving(false);
+
+    if (error) {
+      toast({
+        title: "Property was not updated",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setProperties((current) =>
+      current.map((property) => (property.id === editingProperty.id ? (data as ManagedProperty) : property))
+    );
+    closeEditDialog();
+    toast({
+      title: "Property updated",
+      description: "Your dashboard now shows the latest listing details.",
+    });
+  };
+
+  const handleDeleteProperty = async () => {
+    if (!user || !propertyToDelete) return;
+
+    setIsDeleting(true);
+    const { error } = await supabase
+      .from("properties")
+      .delete()
+      .eq("id", propertyToDelete.id)
+      .eq("user_id", user.id);
+
+    setIsDeleting(false);
+
+    if (error) {
+      toast({
+        title: "Property was not deleted",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setProperties((current) => current.filter((property) => property.id !== propertyToDelete.id));
+    setPropertyToDelete(null);
+    toast({
+      title: "Property deleted",
+      description: "The listing has been removed from your dashboard.",
+    });
+  };
 
   return (
     <DashboardLayout>
@@ -222,9 +383,7 @@ const PropertyManagerDashboard = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {properties.map((property) => {
-              const mainImage = property.images && property.images.length > 0 
-                ? `${supabase.storage.from('property-images').getPublicUrl(property.images[0]).data.publicUrl}`
-                : "https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"; // Fallback image
+              const mainImage = getPropertyImageUrl(property.images?.[0]);
                 
               return (
                 <Card key={property.id} className="overflow-hidden hover:shadow-md transition-shadow bg-white flex flex-col">
@@ -234,7 +393,7 @@ const PropertyManagerDashboard = () => {
                       alt={property.title}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80";
+                        (e.target as HTMLImageElement).src = fallbackPropertyImage;
                       }}
                     />
                     <div className="absolute top-3 right-3">
@@ -266,16 +425,27 @@ const PropertyManagerDashboard = () => {
                       variant="outline" 
                       size="sm" 
                       className="flex-1 text-gray-600 hover:text-gray-900 bg-white"
-                      onClick={() => navigate(`/property/${property.property_type.replace('_', '-')}/${property.id}`)}
+                      onClick={() => navigate(getPropertyDetailPath(property))}
                     >
                       <Eye className="h-4 w-4 mr-1.5" />
                       View
                     </Button>
-                    <Button variant="outline" size="sm" className="flex-1 text-gray-600 hover:text-gray-900 bg-white">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 text-gray-600 hover:text-gray-900 bg-white"
+                      onClick={() => openEditDialog(property)}
+                    >
                       <Edit className="h-4 w-4 mr-1.5" />
                       Edit
                     </Button>
-                    <Button variant="outline" size="sm" className="w-10 px-0 text-red-500 hover:text-red-700 hover:bg-red-50 bg-white border-gray-200">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-10 px-0 text-red-500 hover:text-red-700 hover:bg-red-50 bg-white border-gray-200"
+                      onClick={() => setPropertyToDelete(property)}
+                      aria-label={`Delete ${property.title}`}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </CardFooter>
@@ -285,6 +455,107 @@ const PropertyManagerDashboard = () => {
           </div>
         )}
       </div>
+
+      <Dialog open={!!editingProperty} onOpenChange={(open) => !open && closeEditDialog()}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Property</DialogTitle>
+            <DialogDescription>Update the listing details shown in your dashboard and public property page.</DialogDescription>
+          </DialogHeader>
+
+          {editForm && (
+            <div className="grid gap-4 py-2">
+              <div className="grid gap-2">
+                <label className="text-sm font-medium text-gray-700" htmlFor="edit-title">Title</label>
+                <Input id="edit-title" value={editForm.title} onChange={(event) => updateEditField("title", event.target.value)} />
+              </div>
+
+              <div className="grid gap-2">
+                <label className="text-sm font-medium text-gray-700" htmlFor="edit-description">Description</label>
+                <Textarea
+                  id="edit-description"
+                  className="min-h-[120px]"
+                  value={editForm.description}
+                  onChange={(event) => updateEditField("description", event.target.value)}
+                />
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium text-gray-700" htmlFor="edit-price">Price</label>
+                  <Input id="edit-price" value={editForm.price} onChange={(event) => updateEditField("price", event.target.value)} />
+                </div>
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium text-gray-700" htmlFor="edit-size">Size</label>
+                  <Input id="edit-size" value={editForm.size ?? ""} onChange={(event) => updateEditField("size", event.target.value)} />
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <label className="text-sm font-medium text-gray-700" htmlFor="edit-location">Location</label>
+                <Input id="edit-location" value={editForm.location} onChange={(event) => updateEditField("location", event.target.value)} />
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium text-gray-700" htmlFor="edit-state">State</label>
+                  <Input id="edit-state" value={editForm.state} onChange={(event) => updateEditField("state", event.target.value)} />
+                </div>
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium text-gray-700" htmlFor="edit-lga">LGA</label>
+                  <Input id="edit-lga" value={editForm.lga ?? ""} onChange={(event) => updateEditField("lga", event.target.value)} />
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium text-gray-700" htmlFor="edit-phone">Owner phone</label>
+                  <Input id="edit-phone" value={editForm.owner_phone ?? ""} onChange={(event) => updateEditField("owner_phone", event.target.value)} />
+                </div>
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium text-gray-700" htmlFor="edit-email">Owner email</label>
+                  <Input id="edit-email" type="email" value={editForm.owner_email ?? ""} onChange={(event) => updateEditField("owner_email", event.target.value)} />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={closeEditDialog} disabled={isSaving}>
+              Cancel
+            </Button>
+            <Button type="button" className="bg-[#26225f] hover:bg-[#1f1b50]" onClick={handleUpdateProperty} disabled={isSaving}>
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!propertyToDelete} onOpenChange={(open) => !open && !isDeleting && setPropertyToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this property?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This removes "{propertyToDelete?.title}" from your uploaded properties. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 text-white hover:bg-red-700"
+              disabled={isDeleting}
+              onClick={(event) => {
+                event.preventDefault();
+                handleDeleteProperty();
+              }}
+            >
+              {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 };
