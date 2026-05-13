@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import { addStepCount } from "@/lib/utils";
 import { useParams, useNavigate } from "react-router-dom";
@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import ReportPropertyModal from "@/components/ReportPropertyModal";
+import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 
 // Property data with comprehensive details
 const propertyData: Record<string, any> = {
@@ -238,18 +240,124 @@ const iconMap: Record<string, any> = {
   Car, Shield, Zap, Waves, Dumbbell, Trees, Wifi, AirVent, Camera
 };
 
+type DbProperty = Tables<"properties">;
+
+const isUuid = (value?: string) =>
+  !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+
+const fallbackDetailImage = "/placeholder.svg";
+
+const getPropertyImageUrl = (image?: string | null) => {
+  if (!image) return fallbackDetailImage;
+  if (/^https?:\/\//i.test(image)) return image;
+  return supabase.storage.from("property-images").getPublicUrl(image).data.publicUrl;
+};
+
+const getDisplayPrice = (price: string) => (price.trim().startsWith("₦") ? price : `₦${price}`);
+
+const toTitleCase = (value: string) =>
+  value
+    .replace(/[_-]/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+
+const normalizeDbProperty = (property: DbProperty) => {
+  const images = property.images?.map(getPropertyImageUrl).filter(Boolean) ?? [];
+  const amenities = property.amenities?.length
+    ? property.amenities.map((label) => ({ icon: "Home", label }))
+    : [{ icon: "Shield", label: property.status === "approved" ? "Approved listing" : "Pending review" }];
+
+  return {
+    id: property.id,
+    title: property.title,
+    location: `${property.location}, ${property.state}`,
+    address: `${property.location}, ${property.lga}, ${property.state}`,
+    price: getDisplayPrice(property.price),
+    salePrice: getDisplayPrice(property.price),
+    bedrooms: 0,
+    bathrooms: 0,
+    area: property.size,
+    propertyType: toTitleCase(property.property_type),
+    yearBuilt: new Date(property.created_at).getFullYear(),
+    rating: property.status === "approved" ? 5 : 4.5,
+    verified: property.status === "approved",
+    description: property.description,
+    amenities,
+    images: images.length > 0 ? images : [fallbackDetailImage],
+    gallery: (images.length > 0 ? images : [fallbackDetailImage]).map((image, index) => ({
+      label: `Photo ${index + 1}`,
+      image,
+    })),
+    neighborhood: null,
+    agentName: property.owner_name,
+    agentCompany: "Homes Nigeria",
+    agentPhone: property.owner_phone,
+    agentEmail: property.owner_email,
+    agentWhatsapp: property.owner_phone,
+    agentImage: "/placeholder.svg",
+  };
+};
+
 const PropertyDetails = () => {
   const { id, type } = useParams<{ id: string; type: string }>();
   const navigate = useNavigate();
   const [isFavorite, setIsFavorite] = useState(false);
   const [showReport, setShowReport] = useState(false);
-  const property = propertyData[id || "1"];
+  const [dbProperty, setDbProperty] = useState<DbProperty | null>(null);
+  const [isLoading, setIsLoading] = useState(() => isUuid(id));
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const property = dbProperty ? normalizeDbProperty(dbProperty) : propertyData[id || "1"];
+
+  useEffect(() => {
+    if (!isUuid(id)) {
+      setDbProperty(null);
+      setIsLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+
+    const fetchProperty = async () => {
+      setIsLoading(true);
+      setLoadError(null);
+
+      const { data, error } = await supabase.from("properties").select("*").eq("id", id).single();
+
+      if (!isMounted) return;
+
+      if (error) {
+        setDbProperty(null);
+        setLoadError(error.message);
+      } else {
+        setDbProperty(data);
+      }
+
+      setIsLoading(false);
+    };
+
+    fetchProperty();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-[#26225f] border-t-transparent" />
+          <p className="text-muted-foreground">Loading property details...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!property) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Property not found</h2>
+          {loadError && <p className="mb-4 max-w-md text-sm text-muted-foreground">{loadError}</p>}
           <Button onClick={() => navigate(-1)}>Go Back</Button>
         </div>
       </div>
@@ -368,8 +476,8 @@ const PropertyDetails = () => {
                 </div>
 
                 <div className="text-3xl md:text-4xl font-bold text-[#26225f]">
-                  {type === "rent" ? property.price : property.salePrice}
-                  {type === "rent" && (
+                  {type === "rent" || type === "rental" || type === "shop-rental" ? property.price : property.salePrice}
+                  {(type === "rent" || type === "rental" || type === "shop-rental") && (
                     <span className="text-lg font-normal text-[#6f7599] ml-2">
                       per month
                     </span>

@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { PlusCircle, Building, LayoutList, User, MapPin, Phone, Mail, Loader2, Users, DollarSign, Home, Tag, Edit, Eye, Trash2 } from "lucide-react";
+import { PlusCircle, Building, LayoutList, User, MapPin, Phone, Mail, Loader2, Users, DollarSign, Home, Tag, Edit, Eye, Trash2, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -12,6 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { buildStoragePath, PROPERTY_IMAGE_BUCKET } from "@/lib/propertySubmission";
 
 type ManagedProperty = {
   id: string;
@@ -39,8 +40,7 @@ type EditablePropertyFields = Pick<
   "title" | "description" | "location" | "state" | "lga" | "price" | "size" | "owner_phone" | "owner_email"
 >;
 
-const fallbackPropertyImage =
-  "https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80";
+const fallbackPropertyImage = "/placeholder.svg";
 
 const getPropertyDetailPath = (property: ManagedProperty) =>
   `/property/${property.property_type.replace("_", "-")}/${property.id}`;
@@ -48,7 +48,17 @@ const getPropertyDetailPath = (property: ManagedProperty) =>
 const getPropertyImageUrl = (image?: string | null) => {
   if (!image) return fallbackPropertyImage;
   if (/^https?:\/\//i.test(image)) return image;
-  return supabase.storage.from("property-images").getPublicUrl(image).data.publicUrl;
+  return supabase.storage.from(PROPERTY_IMAGE_BUCKET).getPublicUrl(image).data.publicUrl;
+};
+
+const getStoragePathFromImage = (image: string) => {
+  if (!/^https?:\/\//i.test(image)) return image;
+
+  const marker = `/storage/v1/object/public/${PROPERTY_IMAGE_BUCKET}/`;
+  const markerIndex = image.indexOf(marker);
+  if (markerIndex === -1) return null;
+
+  return decodeURIComponent(image.slice(markerIndex + marker.length).split("?")[0]);
 };
 
 const getEditFormValues = (property: ManagedProperty): EditablePropertyFields => ({
@@ -72,6 +82,8 @@ const PropertyManagerDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [editingProperty, setEditingProperty] = useState<ManagedProperty | null>(null);
   const [editForm, setEditForm] = useState<EditablePropertyFields | null>(null);
+  const [editImages, setEditImages] = useState<string[]>([]);
+  const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
   const [propertyToDelete, setPropertyToDelete] = useState<ManagedProperty | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -146,16 +158,74 @@ const PropertyManagerDashboard = () => {
   const openEditDialog = (property: ManagedProperty) => {
     setEditingProperty(property);
     setEditForm(getEditFormValues(property));
+    setEditImages(property.images ?? []);
+    setNewImageFiles([]);
   };
 
   const closeEditDialog = () => {
     if (isSaving) return;
     setEditingProperty(null);
     setEditForm(null);
+    setEditImages([]);
+    setNewImageFiles([]);
   };
 
   const updateEditField = (field: keyof EditablePropertyFields, value: string) => {
     setEditForm((current) => (current ? { ...current, [field]: value } : current));
+  };
+
+  const handleAddEditImages = (files: FileList | null) => {
+    if (!files) return;
+
+    const imageFiles = Array.from(files).filter((file) => file.type.startsWith("image/"));
+    if (imageFiles.length === 0) {
+      toast({
+        title: "Choose image files",
+        description: "Only property photos can be added here.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setNewImageFiles((current) => [...current, ...imageFiles]);
+  };
+
+  const removeExistingImage = (image: string) => {
+    setEditImages((current) => current.filter((item) => item !== image));
+  };
+
+  const removeNewImage = (indexToRemove: number) => {
+    setNewImageFiles((current) => current.filter((_, index) => index !== indexToRemove));
+  };
+
+  const uploadNewImages = async (property: ManagedProperty) => {
+    if (!user || newImageFiles.length === 0) return [];
+
+    const uploadedImages: string[] = [];
+
+    for (const file of newImageFiles) {
+      const storagePath = buildStoragePath(user.id, property.property_type, "image", file.name);
+      const { error } = await supabase.storage.from(PROPERTY_IMAGE_BUCKET).upload(storagePath, file, {
+        cacheControl: "3600",
+        contentType: file.type || undefined,
+        upsert: false,
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      uploadedImages.push(supabase.storage.from(PROPERTY_IMAGE_BUCKET).getPublicUrl(storagePath).data.publicUrl);
+    }
+
+    return uploadedImages;
+  };
+
+  const removeImagesFromStorage = async (images: string[]) => {
+    const paths = images.map(getStoragePathFromImage).filter((path): path is string => Boolean(path));
+    if (paths.length === 0) return;
+
+    await supabase.storage.from(PROPERTY_IMAGE_BUCKET).remove(paths);
   };
 
   const handleUpdateProperty = async () => {
@@ -175,33 +245,52 @@ const PropertyManagerDashboard = () => {
     }
 
     setIsSaving(true);
-    const { data, error } = await supabase
-      .from("properties")
-      .update(trimmedForm)
-      .eq("id", editingProperty.id)
-      .eq("user_id", user.id)
-      .select("*")
-      .single();
+    try {
+      const uploadedImages = await uploadNewImages(editingProperty);
+      const nextImages = [...editImages, ...uploadedImages];
 
-    setIsSaving(false);
+      if (nextImages.length === 0) {
+        toast({
+          title: "Add at least one property photo",
+          description: "Listings need a photo so viewers can recognize the property.",
+          variant: "destructive",
+        });
+        setIsSaving(false);
+        return;
+      }
 
-    if (error) {
+      const { data, error } = await supabase
+        .from("properties")
+        .update({ ...trimmedForm, images: nextImages })
+        .eq("id", editingProperty.id)
+        .eq("user_id", user.id)
+        .select("*")
+        .single();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      const removedImages = (editingProperty.images ?? []).filter((image) => !editImages.includes(image));
+      await removeImagesFromStorage(removedImages);
+
+      setProperties((current) =>
+        current.map((property) => (property.id === editingProperty.id ? (data as ManagedProperty) : property))
+      );
+      closeEditDialog();
+      toast({
+        title: "Property updated",
+        description: "Your dashboard now shows the latest listing details.",
+      });
+    } catch (error) {
       toast({
         title: "Property was not updated",
-        description: error.message,
+        description: error instanceof Error ? error.message : "Please try again.",
         variant: "destructive",
       });
-      return;
+    } finally {
+      setIsSaving(false);
     }
-
-    setProperties((current) =>
-      current.map((property) => (property.id === editingProperty.id ? (data as ManagedProperty) : property))
-    );
-    closeEditDialog();
-    toast({
-      title: "Property updated",
-      description: "Your dashboard now shows the latest listing details.",
-    });
   };
 
   const handleDeleteProperty = async () => {
@@ -226,6 +315,7 @@ const PropertyManagerDashboard = () => {
     }
 
     setProperties((current) => current.filter((property) => property.id !== propertyToDelete.id));
+    await removeImagesFromStorage(propertyToDelete.images ?? []);
     setPropertyToDelete(null);
     toast({
       title: "Property deleted",
@@ -515,6 +605,60 @@ const PropertyManagerDashboard = () => {
                 <div className="grid gap-2">
                   <label className="text-sm font-medium text-gray-700" htmlFor="edit-email">Owner email</label>
                   <Input id="edit-email" type="email" value={editForm.owner_email ?? ""} onChange={(event) => updateEditField("owner_email", event.target.value)} />
+                </div>
+              </div>
+
+              <div className="grid gap-3">
+                <div className="flex items-center justify-between gap-3">
+                  <label className="text-sm font-medium text-gray-700">Property photos</label>
+                  <Button asChild type="button" variant="outline" size="sm">
+                    <label htmlFor="edit-images" className="cursor-pointer">
+                      <Upload className="mr-2 h-4 w-4" />
+                      Add Photos
+                    </label>
+                  </Button>
+                  <input
+                    id="edit-images"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={(event) => {
+                      handleAddEditImages(event.target.files);
+                      event.currentTarget.value = "";
+                    }}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+                  {editImages.map((image) => (
+                    <div key={image} className="relative overflow-hidden rounded-lg border bg-gray-50">
+                      <img src={getPropertyImageUrl(image)} alt="Property" className="h-24 w-full object-cover" />
+                      <button
+                        type="button"
+                        className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white"
+                        onClick={() => removeExistingImage(image)}
+                        aria-label="Remove existing photo"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+
+                  {newImageFiles.map((file, index) => (
+                    <div key={`${file.name}-${file.lastModified}-${index}`} className="relative overflow-hidden rounded-lg border bg-gray-50 p-3">
+                      <p className="line-clamp-2 pr-7 text-sm font-medium text-gray-700">{file.name}</p>
+                      <p className="mt-1 text-xs text-gray-500">New photo</p>
+                      <button
+                        type="button"
+                        className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white"
+                        onClick={() => removeNewImage(index)}
+                        aria-label={`Remove ${file.name}`}
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
