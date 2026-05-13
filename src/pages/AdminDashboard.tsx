@@ -15,6 +15,7 @@ import { useAdminAnalytics } from "@/hooks/useAdminAnalytics";
 import { AnalyticsDashboard } from "@/components/admin/AnalyticsDashboard";
 import AdModerationTab from "@/components/admin/AdModerationTab";
 import AdminPropertiesTab from "@/components/admin/AdminPropertiesTab";
+import AdminUsersTab from "@/components/admin/AdminUsersTab";
 import { 
   Shield, 
   CheckCircle, 
@@ -29,7 +30,8 @@ import {
   RefreshCw,
   BarChart3,
   Megaphone,
-  Home
+  Home,
+  Users
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -183,6 +185,10 @@ const AdminDashboard = () => {
               <Home className="h-4 w-4" />
               Properties
             </TabsTrigger>
+            <TabsTrigger value="users" className="gap-2">
+              <Users className="h-4 w-4" />
+              Users
+            </TabsTrigger>
             <TabsTrigger value="ads" className="gap-2">
               <Megaphone className="h-4 w-4" />
               Ads
@@ -199,6 +205,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="properties" className="mt-6">
             <AdminPropertiesTab />
+          </TabsContent>
+
+          <TabsContent value="users" className="mt-6">
+            <AdminUsersTab />
           </TabsContent>
 
           <TabsContent value="analytics" className="mt-6">
