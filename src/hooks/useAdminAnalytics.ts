@@ -57,15 +57,18 @@ export const useAdminAnalytics = () => {
     }
 
     const fetchAnalytics = async () => {
+      const metadataIsAdmin =
+        user.user_metadata?.user_type === "admin" || user.app_metadata?.role === "admin";
+
       // Check if user is admin
-      const { data: roleData } = await supabase
+      const { data: roleData, error: roleError } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", user.id)
         .eq("role", "admin")
         .maybeSingle();
 
-      if (!roleData) {
+      if ((!roleData && !metadataIsAdmin) || (roleError && !metadataIsAdmin)) {
         setIsAdmin(false);
         setLoading(false);
         return;

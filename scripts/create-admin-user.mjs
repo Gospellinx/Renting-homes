@@ -130,7 +130,18 @@ const { error: roleError } = await supabase.from("user_roles").upsert(
   { onConflict: "user_id,role" }
 );
 
-if (roleError) throw roleError;
+if (roleError) {
+  const missingRoleTable =
+    roleError.code === "PGRST205" ||
+    roleError.message?.toLowerCase().includes("user_roles");
+
+  if (!missingRoleTable) {
+    throw roleError;
+  }
+
+  console.warn("Admin auth user was created, but public.user_roles is missing.");
+  console.warn("Run supabase/migrations/20260513_admin_property_moderation.sql in the Supabase SQL editor.");
+}
 
 console.log("Admin user is ready.");
 console.log(`Email: ${adminEmail}`);

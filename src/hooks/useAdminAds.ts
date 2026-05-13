@@ -32,9 +32,11 @@ export const useAdminAds = () => {
     queryKey: ['is-admin', user?.id],
     queryFn: async () => {
       if (!user?.id) return false;
+      const metadataIsAdmin =
+        user.user_metadata?.user_type === "admin" || user.app_metadata?.role === "admin";
       const { data, error } = await supabase
         .rpc('has_role', { _role: 'admin', _user_id: user.id });
-      if (error) throw error;
+      if (error) return metadataIsAdmin;
       return data as boolean;
     },
     enabled: !!user?.id,
