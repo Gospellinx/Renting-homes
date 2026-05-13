@@ -3,7 +3,7 @@ const STORAGE_KEY = 'intended_action';
 export interface IntendedAction {
   type: 'live_view' | 'tour';
   page: string;
-  propertyId: number;
+  propertyId: number | string;
   propertyTitle: string;
 }
 

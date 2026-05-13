@@ -19,6 +19,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useIntendedAction } from "@/hooks/useIntendedAction";
 import ScrollAuthGate from "@/components/ScrollAuthGate";
 import { useApprovedProperties } from "@/hooks/useApprovedProperties";
+import type { PublicApprovedProperty } from "@/hooks/useApprovedProperties";
 
 const shopProperties = [
   {
@@ -132,6 +133,9 @@ const shopProperties = [
   },
 ];
 
+type MockShopProperty = (typeof shopProperties)[number];
+type ShopRentalProperty = PublicApprovedProperty | MockShopProperty;
+
 const ShopRentals = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
@@ -145,8 +149,8 @@ const ShopRentals = () => {
   const [priceRange, setPriceRange] = useState("");
   const [shopType, setShopType] = useState("");
   const { addProperty, removeProperty, isSelected, properties: compareProperties } = useCompareProperties();
-  const [liveViewProperty, setLiveViewProperty] = useState<typeof shopProperties[0] | null>(null);
-  const [viewShopProperty, setViewShopProperty] = useState<typeof shopProperties[0] | null>(null);
+  const [liveViewProperty, setLiveViewProperty] = useState<ShopRentalProperty | null>(null);
+  const [viewShopProperty, setViewShopProperty] = useState<ShopRentalProperty | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -159,7 +163,7 @@ const ShopRentals = () => {
     }
   }, [user, approvedShops]);
 
-  const handleLiveView = (property: typeof shopProperties[0]) => {
+  const handleLiveView = (property: ShopRentalProperty) => {
     if (!user) {
       saveAction({ type: 'live_view', page: '/shop-rentals', propertyId: property.id, propertyTitle: property.title });
       toast({ title: "Sign In Required", description: "Please create an account or sign in to access Live View." });
@@ -182,7 +186,7 @@ const ShopRentals = () => {
     return matchesSearch && (selectedCity ? matchesCity : true) && (selectedArea ? matchesArea : true);
   });
 
-  const handleCompareToggle = (property: typeof shopProperties[0]) => {
+  const handleCompareToggle = (property: ShopRentalProperty) => {
     if (isSelected(property.id, 'rent')) {
       removeProperty(property.id, 'rent');
       toast({ title: "Removed from comparison", description: `${property.title} removed` });
@@ -299,7 +303,7 @@ const ShopRentals = () => {
                         <Scale className="h-4 w-4 mr-1" />{isSelected(property.id, 'rent') ? "Added" : "Compare"}
                       </Button>
                       <Button size="sm" variant="secondary" className="bg-background/80" onClick={() => toast({ title: "Saved", description: `${property.title} added to favorites` })}><Heart className="h-4 w-4" /></Button>
-                      <Button size="sm" variant="secondary" className="bg-background/80" onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/property/${property.source === "database" ? "shop-rental" : "rent"}/${property.id}`); toast({ title: "Link Copied" }); }}><Share2 className="h-4 w-4" /></Button>
+                      <Button size="sm" variant="secondary" className="bg-background/80" onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/property/${"source" in property && property.source === "database" ? "shop-rental" : "rent"}/${property.id}`); toast({ title: "Link Copied" }); }}><Share2 className="h-4 w-4" /></Button>
                     </div>
                   </div>
 

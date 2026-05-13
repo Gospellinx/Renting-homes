@@ -9,10 +9,10 @@ interface ShopProperty {
   title: string;
   location: string;
   price: string;
-  period: string;
+  period?: string;
   area: string;
-  width: string;
-  length: string;
+  width?: string;
+  length?: string;
   features: string[];
   image: string;
   agentName: string;
@@ -51,7 +51,7 @@ const defaultGallery = [
 ];
 
 const ShopViewModal = ({ open, onOpenChange, property }: ShopViewModalProps) => {
-  const images = shopGalleryImages[property.id] || defaultGallery;
+  const images = shopGalleryImages[property.id] || [property.image, ...defaultGallery.slice(1)];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -91,11 +91,11 @@ const ShopViewModal = ({ open, onOpenChange, property }: ShopViewModalProps) => 
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
                 <p className="text-xs text-muted-foreground">Width</p>
-                <p className="font-bold text-lg">{property.width}</p>
+                <p className="font-bold text-lg">{property.width || "See listing"}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Length</p>
-                <p className="font-bold text-lg">{property.length}</p>
+                <p className="font-bold text-lg">{property.length || "See listing"}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Total Area</p>
