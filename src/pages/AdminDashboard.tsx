@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import BackButton from "@/components/BackButton";
+import { useAuth } from "@/context/AuthContext";
 import { useAdminVerifications, AdminVerificationRequest } from "@/hooks/useAdminVerifications";
 import { useAdminAnalytics } from "@/hooks/useAdminAnalytics";
 import { AnalyticsDashboard } from "@/components/admin/AnalyticsDashboard";
@@ -27,7 +28,7 @@ import {
   FileText,
   AlertTriangle,
   Loader2,
-  RefreshCw,
+  LogOut,
   BarChart3,
   Megaphone,
   Home,
@@ -36,6 +37,7 @@ import {
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const { requests, loading, isAdmin, approveRequest, rejectRequest, flagRequest, unflagRequest } = useAdminVerifications();
   const { analytics, loading: analyticsLoading } = useAdminAnalytics();
   const [searchQuery, setSearchQuery] = useState('');
@@ -45,6 +47,11 @@ const AdminDashboard = () => {
   const [rejectReason, setRejectReason] = useState('');
   const [flagReason, setFlagReason] = useState('');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/", { replace: true });
+  };
 
   if (loading) {
     return (
@@ -165,9 +172,9 @@ const AdminDashboard = () => {
                 <p className="text-sm text-[#6f7599]">Moderate listings, users, ads, and platform trust signals</p>
               </div>
             </div>
-            <Button variant="outline" className="w-full gap-2 sm:w-auto" onClick={() => window.location.reload()}>
-              <RefreshCw className="h-4 w-4" />
-              Refresh
+            <Button variant="outline" className="w-full gap-2 sm:w-auto" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4" />
+              Log Out
             </Button>
           </div>
         </div>

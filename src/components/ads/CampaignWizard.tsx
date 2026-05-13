@@ -38,6 +38,20 @@ const userTypeOptions = ["buyer", "renter", "agent", "company", "property_owner"
 const propertyTypeOptions = ["apartment", "house", "duplex", "land", "shop"];
 const commonLocationOptions = ["Lagos", "Abuja", "Port Harcourt", "Ibadan", "Enugu"];
 
+type FieldErrors = Partial<Record<
+  | "campaignName"
+  | "totalBudget"
+  | "dailyBudget"
+  | "dateRange"
+  | "targetLocations"
+  | "targetUserTypes"
+  | "headline"
+  | "ctaText"
+  | "creative"
+  | "budgetRange",
+  string
+>>;
+
 const parseList = (value: string) =>
   value
     .split(",")
@@ -92,6 +106,7 @@ export default function CampaignWizard({
   const { upsertCampaignBundle } = useAdsManager();
   const { user } = useAuth();
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   const [campaignName, setCampaignName] = useState("");
   const [objective, setObjective] = useState("awareness");
@@ -174,6 +189,73 @@ export default function CampaignWizard({
     (description.trim().length > 0 || imageUrl.trim().length > 0);
   const progressCount = [basicsComplete, audienceComplete, creativeComplete].filter(Boolean).length;
 
+  const scrollToField = (fieldId: string) => {
+    requestAnimationFrame(() => {
+      const element = document.getElementById(fieldId);
+      element?.scrollIntoView({ behavior: "smooth", block: "center" });
+      if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
+        element.focus();
+      }
+    });
+  };
+
+  const validateBeforeSave = (mode: "draft" | "pending_review") => {
+    const errors: FieldErrors = {};
+    const totalBudgetValue = Number(totalBudget || 0);
+    const dailyBudgetValue = toNumberOrNull(dailyBudget);
+    const minBudgetValue = toNumberOrNull(minBudget);
+    const maxBudgetValue = toNumberOrNull(maxBudget);
+
+    if (mode === "pending_review") {
+      if (!campaignName.trim()) errors.campaignName = "Enter a campaign name.";
+      if (totalBudgetValue <= 0) errors.totalBudget = "Enter a total budget greater than zero.";
+      if (mergedLocations.length === 0) errors.targetLocations = "Select or type at least one target location.";
+      if (targetUserTypes.length === 0) errors.targetUserTypes = "Select at least one user type.";
+      if (!headline.trim()) errors.headline = "Enter the ad headline.";
+      if (!ctaText.trim()) errors.ctaText = "Enter the call-to-action text.";
+      if (!description.trim() && !imageUrl.trim()) {
+        errors.creative = "Add a description or upload an image for the ad.";
+      }
+    }
+
+    if (dailyBudgetValue !== null && dailyBudgetValue > totalBudgetValue) {
+      errors.dailyBudget = "Daily budget cannot be greater than the total budget.";
+    }
+
+    if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
+      errors.dateRange = "End date cannot be earlier than the start date.";
+    }
+
+    if (minBudgetValue !== null && maxBudgetValue !== null && maxBudgetValue < minBudgetValue) {
+      errors.budgetRange = "Maximum audience budget cannot be lower than the minimum.";
+    }
+
+    setFieldErrors(errors);
+
+    const firstError = Object.entries(errors)[0];
+    if (firstError) {
+      const [field, message] = firstError;
+      const fieldIds: Record<string, string> = {
+        campaignName: "campaign-name",
+        totalBudget: "total-budget",
+        dailyBudget: "daily-budget",
+        dateRange: "end-date",
+        targetLocations: "custom-locations",
+        targetUserTypes: "target-user-types",
+        headline: "headline",
+        ctaText: "cta-text",
+        creative: "description",
+        budgetRange: "max-budget",
+      };
+
+      toast.error(message);
+      scrollToField(fieldIds[field] || "campaign-name");
+      return false;
+    }
+
+    return true;
+  };
+
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
       setIsUploadingImage(true);
@@ -207,47 +289,55 @@ export default function CampaignWizard({
   };
 
   const handleSave = async (mode: "draft" | "pending_review") => {
-    const result = await upsertCampaignBundle.mutateAsync({
-      campaignId: campaign?.id,
-      adSetId: primaryAdSet?.id,
-      adId: primaryAd?.id,
-      mode,
-      campaign: {
-        name: campaignName,
-        objective,
-        total_budget: Number(totalBudget || 0),
-        daily_budget: toNumberOrNull(dailyBudget),
-        start_date: startDate || null,
-        end_date: endDate || null,
-      },
-      adSet: {
-        name: adSetName,
-        target_locations: mergedLocations,
-        target_user_types: targetUserTypes,
-        target_property_types: targetPropertyTypes,
-        target_budget_min: toNumberOrNull(minBudget),
-        target_budget_max: toNumberOrNull(maxBudget),
-        schedule_start: startDate || null,
-        schedule_end: endDate || null,
-        budget: Number(totalBudget || 0),
-      },
-      ad: {
-        name: adName,
-        ad_type: adType,
-        headline,
-        description,
-        cta_text: ctaText,
-        cta_link: ctaLink,
-        image_url: imageUrl,
-        property_id: primaryAd?.property_id || null,
-        price,
-        location,
-        badge,
-      },
-    });
+    if (!validateBeforeSave(mode)) {
+      return;
+    }
 
-    if (result) {
-      onComplete?.();
+    try {
+      const result = await upsertCampaignBundle.mutateAsync({
+        campaignId: campaign?.id,
+        adSetId: primaryAdSet?.id,
+        adId: primaryAd?.id,
+        mode,
+        campaign: {
+          name: campaignName,
+          objective,
+          total_budget: Number(totalBudget || 0),
+          daily_budget: toNumberOrNull(dailyBudget),
+          start_date: startDate || null,
+          end_date: endDate || null,
+        },
+        adSet: {
+          name: adSetName,
+          target_locations: mergedLocations,
+          target_user_types: targetUserTypes,
+          target_property_types: targetPropertyTypes,
+          target_budget_min: toNumberOrNull(minBudget),
+          target_budget_max: toNumberOrNull(maxBudget),
+          schedule_start: startDate || null,
+          schedule_end: endDate || null,
+          budget: Number(totalBudget || 0),
+        },
+        ad: {
+          name: adName,
+          ad_type: adType,
+          headline,
+          description,
+          cta_text: ctaText,
+          cta_link: ctaLink,
+          image_url: imageUrl,
+          property_id: primaryAd?.property_id || null,
+          price,
+          location,
+          badge,
+        },
+      });
+
+      if (result) {
+        onComplete?.();
+      }
+    } catch {
+      // The mutation already shows the database or validation error.
     }
   };
 
@@ -334,9 +424,14 @@ export default function CampaignWizard({
                 <Input
                   id="campaign-name"
                   value={campaignName}
-                  onChange={(event) => setCampaignName(event.target.value)}
+                  onChange={(event) => {
+                    setCampaignName(event.target.value);
+                    setFieldErrors((current) => ({ ...current, campaignName: undefined }));
+                  }}
                   placeholder="Lekki duplex promotion"
+                  className={cn(fieldErrors.campaignName && "border-red-400 focus-visible:ring-red-200")}
                 />
+                {fieldErrors.campaignName && <p className="text-sm text-red-600">{fieldErrors.campaignName}</p>}
               </div>
 
               <div className="space-y-2">
@@ -375,9 +470,14 @@ export default function CampaignWizard({
                   min="0"
                   step="100"
                   value={totalBudget}
-                  onChange={(event) => setTotalBudget(event.target.value)}
+                  onChange={(event) => {
+                    setTotalBudget(event.target.value);
+                    setFieldErrors((current) => ({ ...current, totalBudget: undefined, dailyBudget: undefined }));
+                  }}
                   placeholder="50000"
+                  className={cn(fieldErrors.totalBudget && "border-red-400 focus-visible:ring-red-200")}
                 />
+                {fieldErrors.totalBudget && <p className="text-sm text-red-600">{fieldErrors.totalBudget}</p>}
               </div>
 
               <div className="space-y-2">
@@ -388,9 +488,14 @@ export default function CampaignWizard({
                   min="0"
                   step="100"
                   value={dailyBudget}
-                  onChange={(event) => setDailyBudget(event.target.value)}
+                  onChange={(event) => {
+                    setDailyBudget(event.target.value);
+                    setFieldErrors((current) => ({ ...current, dailyBudget: undefined }));
+                  }}
                   placeholder="5000"
+                  className={cn(fieldErrors.dailyBudget && "border-red-400 focus-visible:ring-red-200")}
                 />
+                {fieldErrors.dailyBudget && <p className="text-sm text-red-600">{fieldErrors.dailyBudget}</p>}
               </div>
 
               <div className="space-y-2">
@@ -399,7 +504,11 @@ export default function CampaignWizard({
                   id="start-date"
                   type="date"
                   value={startDate}
-                  onChange={(event) => setStartDate(event.target.value)}
+                  onChange={(event) => {
+                    setStartDate(event.target.value);
+                    setFieldErrors((current) => ({ ...current, dateRange: undefined }));
+                  }}
+                  className={cn(fieldErrors.dateRange && "border-red-400 focus-visible:ring-red-200")}
                 />
               </div>
 
@@ -409,8 +518,13 @@ export default function CampaignWizard({
                   id="end-date"
                   type="date"
                   value={endDate}
-                  onChange={(event) => setEndDate(event.target.value)}
+                  onChange={(event) => {
+                    setEndDate(event.target.value);
+                    setFieldErrors((current) => ({ ...current, dateRange: undefined }));
+                  }}
+                  className={cn(fieldErrors.dateRange && "border-red-400 focus-visible:ring-red-200")}
                 />
+                {fieldErrors.dateRange && <p className="text-sm text-red-600">{fieldErrors.dateRange}</p>}
               </div>
             </CardContent>
           </Card>
@@ -446,9 +560,10 @@ export default function CampaignWizard({
                       size="sm"
                       className="rounded-full"
                       onClick={() =>
-                        setTargetLocations((currentValues) =>
-                          toggleListValue(currentValues, option)
-                        )
+                        setTargetLocations((currentValues) => {
+                          setFieldErrors((current) => ({ ...current, targetLocations: undefined }));
+                          return toggleListValue(currentValues, option);
+                        })
                       }
                     >
                       {option}
@@ -456,15 +571,21 @@ export default function CampaignWizard({
                   ))}
                 </div>
                 <Input
+                  id="custom-locations"
                   value={customLocations}
-                  onChange={(event) => setCustomLocations(event.target.value)}
+                  onChange={(event) => {
+                    setCustomLocations(event.target.value);
+                    setFieldErrors((current) => ({ ...current, targetLocations: undefined }));
+                  }}
                   placeholder="Add more locations, separated by commas"
+                  className={cn(fieldErrors.targetLocations && "border-red-400 focus-visible:ring-red-200")}
                 />
+                {fieldErrors.targetLocations && <p className="text-sm text-red-600">{fieldErrors.targetLocations}</p>}
               </div>
 
               <div className="space-y-3">
                 <Label>User types</Label>
-                <div className="flex flex-wrap gap-2">
+                <div id="target-user-types" className={cn("flex flex-wrap gap-2 rounded-2xl", fieldErrors.targetUserTypes && "ring-2 ring-red-200 ring-offset-2")}>
                   {userTypeOptions.map((option) => (
                     <Button
                       key={option}
@@ -473,15 +594,17 @@ export default function CampaignWizard({
                       size="sm"
                       className="rounded-full capitalize"
                       onClick={() =>
-                        setTargetUserTypes((currentValues) =>
-                          toggleListValue(currentValues, option)
-                        )
+                        setTargetUserTypes((currentValues) => {
+                          setFieldErrors((current) => ({ ...current, targetUserTypes: undefined }));
+                          return toggleListValue(currentValues, option);
+                        })
                       }
                     >
                       {option.replace(/_/g, " ")}
                     </Button>
                   ))}
                 </div>
+                {fieldErrors.targetUserTypes && <p className="text-sm text-red-600">{fieldErrors.targetUserTypes}</p>}
               </div>
 
               <div className="space-y-3">
@@ -515,8 +638,12 @@ export default function CampaignWizard({
                     min="0"
                     step="100"
                     value={minBudget}
-                    onChange={(event) => setMinBudget(event.target.value)}
+                    onChange={(event) => {
+                      setMinBudget(event.target.value);
+                      setFieldErrors((current) => ({ ...current, budgetRange: undefined }));
+                    }}
                     placeholder="10000000"
+                    className={cn(fieldErrors.budgetRange && "border-red-400 focus-visible:ring-red-200")}
                   />
                 </div>
 
@@ -528,9 +655,14 @@ export default function CampaignWizard({
                     min="0"
                     step="100"
                     value={maxBudget}
-                    onChange={(event) => setMaxBudget(event.target.value)}
+                    onChange={(event) => {
+                      setMaxBudget(event.target.value);
+                      setFieldErrors((current) => ({ ...current, budgetRange: undefined }));
+                    }}
                     placeholder="150000000"
+                    className={cn(fieldErrors.budgetRange && "border-red-400 focus-visible:ring-red-200")}
                   />
+                  {fieldErrors.budgetRange && <p className="text-sm text-red-600">{fieldErrors.budgetRange}</p>}
                 </div>
               </div>
             </CardContent>
@@ -571,9 +703,14 @@ export default function CampaignWizard({
                 <Input
                   id="headline"
                   value={headline}
-                  onChange={(event) => setHeadline(event.target.value)}
+                  onChange={(event) => {
+                    setHeadline(event.target.value);
+                    setFieldErrors((current) => ({ ...current, headline: undefined }));
+                  }}
                   placeholder="Luxury 4-bedroom duplex in Lekki Phase 1"
+                  className={cn(fieldErrors.headline && "border-red-400 focus-visible:ring-red-200")}
                 />
+                {fieldErrors.headline && <p className="text-sm text-red-600">{fieldErrors.headline}</p>}
               </div>
 
               <div className="space-y-2 md:col-span-2">
@@ -581,10 +718,17 @@ export default function CampaignWizard({
                 <Textarea
                   id="description"
                   value={description}
-                  onChange={(event) => setDescription(event.target.value)}
+                  onChange={(event) => {
+                    setDescription(event.target.value);
+                    setFieldErrors((current) => ({ ...current, creative: undefined }));
+                  }}
                   placeholder="Highlight the property's value, location, and strongest features."
-                  className="min-h-[140px] rounded-[24px] border-[#dbe0f4] bg-[#fbfbfe] p-4"
+                  className={cn(
+                    "min-h-[140px] rounded-[24px] border-[#dbe0f4] bg-[#fbfbfe] p-4",
+                    fieldErrors.creative && "border-red-400 focus-visible:ring-red-200"
+                  )}
                 />
+                {fieldErrors.creative && <p className="text-sm text-red-600">{fieldErrors.creative}</p>}
               </div>
 
               <div className="space-y-2">
@@ -592,9 +736,14 @@ export default function CampaignWizard({
                 <Input
                   id="cta-text"
                   value={ctaText}
-                  onChange={(event) => setCtaText(event.target.value)}
+                  onChange={(event) => {
+                    setCtaText(event.target.value);
+                    setFieldErrors((current) => ({ ...current, ctaText: undefined }));
+                  }}
                   placeholder="Book Inspection"
+                  className={cn(fieldErrors.ctaText && "border-red-400 focus-visible:ring-red-200")}
                 />
+                {fieldErrors.ctaText && <p className="text-sm text-red-600">{fieldErrors.ctaText}</p>}
               </div>
 
               <div className="space-y-2">
@@ -614,7 +763,10 @@ export default function CampaignWizard({
                     id="image-upload"
                     type="file"
                     accept="image/*"
-                    onChange={handleImageUpload}
+                    onChange={(event) => {
+                      setFieldErrors((current) => ({ ...current, creative: undefined }));
+                      handleImageUpload(event);
+                    }}
                     disabled={isUploadingImage}
                     className="flex-1"
                   />
@@ -784,7 +936,7 @@ export default function CampaignWizard({
               type="button"
               className="w-full gap-2 rounded-full"
               onClick={() => handleSave("pending_review")}
-              disabled={upsertCampaignBundle.isPending || isUploadingImage || progressCount < 3}
+              disabled={upsertCampaignBundle.isPending || isUploadingImage}
             >
               {upsertCampaignBundle.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               Submit For Review
