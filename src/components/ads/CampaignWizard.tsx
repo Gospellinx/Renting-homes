@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useAdsManager, type Campaign } from "@/hooks/useAdsManager";
+import { useWallet } from "@/hooks/useWallet";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -104,6 +105,7 @@ export default function CampaignWizard({
   onCancel,
 }: CampaignWizardProps) {
   const { upsertCampaignBundle } = useAdsManager();
+  const { initializePayment } = useWallet();
   const { user } = useAuth();
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -294,11 +296,13 @@ export default function CampaignWizard({
     }
 
     try {
+      const paymentAmount = Number(totalBudget || 0);
       const result = await upsertCampaignBundle.mutateAsync({
         campaignId: campaign?.id,
         adSetId: primaryAdSet?.id,
         adId: primaryAd?.id,
-        mode,
+        mode: mode === "pending_review" ? "draft" : mode,
+        silent: mode === "pending_review",
         campaign: {
           name: campaignName,
           objective,
@@ -332,6 +336,35 @@ export default function CampaignWizard({
           badge,
         },
       });
+
+      if (result && mode === "pending_review") {
+        if (!user?.email) {
+          toast.error("Please sign in with a valid email address before paying for this campaign.");
+          return;
+        }
+
+        toast.info("Opening Paystack checkout for your campaign budget...");
+        const paymentData = await initializePayment.mutateAsync({
+          amount: paymentAmount,
+          email: user.email,
+          campaignId: result.campaignId,
+          purpose: "ad_campaign",
+          callbackUrl: `${window.location.origin}/ads-manager?payment=verify&campaignId=${result.campaignId}`,
+        });
+
+        const authorizationUrl =
+          paymentData?.authorization_url ||
+          paymentData?.authorizationUrl ||
+          paymentData?.data?.authorization_url;
+
+        if (!authorizationUrl) {
+          toast.error("Could not open Paystack checkout. Please try again.");
+          return;
+        }
+
+        window.location.href = authorizationUrl;
+        return;
+      }
 
       if (result) {
         onComplete?.();
@@ -927,7 +960,7 @@ export default function CampaignWizard({
               variant="outline"
               className="w-full gap-2 rounded-full"
               onClick={() => handleSave("draft")}
-              disabled={upsertCampaignBundle.isPending || isUploadingImage}
+              disabled={upsertCampaignBundle.isPending || initializePayment.isPending || isUploadingImage}
             >
               {upsertCampaignBundle.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Save Draft
@@ -936,10 +969,10 @@ export default function CampaignWizard({
               type="button"
               className="w-full gap-2 rounded-full"
               onClick={() => handleSave("pending_review")}
-              disabled={upsertCampaignBundle.isPending || isUploadingImage}
+              disabled={upsertCampaignBundle.isPending || initializePayment.isPending || isUploadingImage}
             >
-              {upsertCampaignBundle.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-              Submit For Review
+              {upsertCampaignBundle.isPending || initializePayment.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              Pay & Submit For Review
             </Button>
             <Button
               type="button"

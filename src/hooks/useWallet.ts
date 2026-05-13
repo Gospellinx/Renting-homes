@@ -81,9 +81,21 @@ export const useWallet = () => {
 
   // Initialize Paystack payment
   const initializePayment = useMutation({
-    mutationFn: async ({ amount, email }: { amount: number; email: string }) => {
+    mutationFn: async ({
+      amount,
+      email,
+      campaignId,
+      purpose = 'wallet_topup',
+      callbackUrl,
+    }: {
+      amount: number;
+      email: string;
+      campaignId?: string;
+      purpose?: 'wallet_topup' | 'ad_campaign';
+      callbackUrl?: string;
+    }) => {
       const { data, error } = await supabase.functions.invoke('paystack-initialize', {
-        body: { amount, email },
+        body: { amount, email, campaignId, purpose, callbackUrl },
       });
       
       if (error) throw error;
@@ -108,6 +120,8 @@ export const useWallet = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['wallet'] });
       queryClient.invalidateQueries({ queryKey: ['wallet-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['ad-campaigns'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-ads'] });
       toast.success('Payment verified successfully!');
     },
     onError: (error) => {

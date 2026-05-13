@@ -53,6 +53,7 @@ export interface CampaignBundleInput {
   adSetId?: string;
   adId?: string;
   mode: Extract<CampaignStatus, "draft" | "pending_review">;
+  silent?: boolean;
   campaign: {
     name: string;
     objective: string;
@@ -362,11 +363,14 @@ export const useAdsManager = () => {
         campaignId: campaignRecord.id,
         mode: input.mode,
         isEdit: !!input.campaignId,
+        silent: input.silent,
       };
     },
-    onSuccess: ({ mode, isEdit }) => {
+    onSuccess: ({ mode, isEdit, silent }) => {
       queryClient.invalidateQueries({ queryKey: ["ad-campaigns"] });
       queryClient.invalidateQueries({ queryKey: ["approved-ads"] });
+      if (silent) return;
+
       toast.success(
         mode === "draft"
           ? isEdit
