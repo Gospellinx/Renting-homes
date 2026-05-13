@@ -78,6 +78,59 @@ CREATE POLICY "Admins can manage all properties"
   USING (public.has_role(auth.uid(), 'admin'))
   WITH CHECK (public.has_role(auth.uid(), 'admin'));
 
+ALTER TABLE public.verification_requests ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Admins can manage all verification requests" ON public.verification_requests;
+CREATE POLICY "Admins can manage all verification requests"
+  ON public.verification_requests
+  FOR ALL
+  TO authenticated
+  USING (public.has_role(auth.uid(), 'admin'))
+  WITH CHECK (public.has_role(auth.uid(), 'admin'));
+
+ALTER TABLE public.ad_campaigns ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.ad_sets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.ads ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Admins can manage all ad campaigns" ON public.ad_campaigns;
+CREATE POLICY "Admins can manage all ad campaigns"
+  ON public.ad_campaigns
+  FOR ALL
+  TO authenticated
+  USING (public.has_role(auth.uid(), 'admin'))
+  WITH CHECK (public.has_role(auth.uid(), 'admin'));
+
+DROP POLICY IF EXISTS "Admins can manage all ad sets" ON public.ad_sets;
+CREATE POLICY "Admins can manage all ad sets"
+  ON public.ad_sets
+  FOR ALL
+  TO authenticated
+  USING (public.has_role(auth.uid(), 'admin'))
+  WITH CHECK (public.has_role(auth.uid(), 'admin'));
+
+DROP POLICY IF EXISTS "Admins can manage all ads" ON public.ads;
+CREATE POLICY "Admins can manage all ads"
+  ON public.ads
+  FOR ALL
+  TO authenticated
+  USING (public.has_role(auth.uid(), 'admin'))
+  WITH CHECK (public.has_role(auth.uid(), 'admin'));
+
+DO $$
+BEGIN
+  IF to_regclass('public.property_reports') IS NOT NULL THEN
+    ALTER TABLE public.property_reports ENABLE ROW LEVEL SECURITY;
+
+    DROP POLICY IF EXISTS "Admins can manage all property reports" ON public.property_reports;
+    CREATE POLICY "Admins can manage all property reports"
+      ON public.property_reports
+      FOR ALL
+      TO authenticated
+      USING (public.has_role(auth.uid(), 'admin'))
+      WITH CHECK (public.has_role(auth.uid(), 'admin'));
+  END IF;
+END $$;
+
 DROP POLICY IF EXISTS "Admins can view property documents" ON storage.objects;
 CREATE POLICY "Admins can view property documents"
   ON storage.objects
