@@ -42,6 +42,12 @@ type AdStatus = "pending_review" | "approved" | "rejected" | "paused";
 
 const userTypes: UserType[] = ["user", "agent", "landlord", "owner"];
 
+const throwTableError = (table: string, error: unknown) => {
+  if (!error) return;
+  const message = error instanceof Error ? error.message : "Permission denied or query failed.";
+  throw new Error(`${table}: ${message}`);
+};
+
 const roleLabel = (value?: string | null) => {
   switch (value) {
     case "agent":
@@ -98,13 +104,13 @@ const AdminUsersTab = () => {
         supabase.from("ads").select("*").order("created_at", { ascending: false }),
       ]);
 
-      if (profilesError) throw profilesError;
-      if (rolesError) throw rolesError;
-      if (propertiesError) throw propertiesError;
-      if (campaignsError) throw campaignsError;
-      if (verificationsError) throw verificationsError;
-      if (adSetsError) throw adSetsError;
-      if (adsError) throw adsError;
+      throwTableError("profiles", profilesError);
+      throwTableError("user_roles", rolesError);
+      throwTableError("properties", propertiesError);
+      throwTableError("ad_campaigns", campaignsError);
+      throwTableError("verification_requests", verificationsError);
+      throwTableError("ad_sets", adSetsError);
+      throwTableError("ads", adsError);
 
       return {
         profiles: (profiles ?? []) as ProfileRow[],
