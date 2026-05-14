@@ -109,6 +109,8 @@ export default function CampaignWizard({
   const { user } = useAuth();
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [submitErrorCount, setSubmitErrorCount] = useState(0);
+  const [isPaymentInitiated, setIsPaymentInitiated] = useState(false);
 
   const [campaignName, setCampaignName] = useState("");
   const [objective, setObjective] = useState("awareness");
@@ -208,6 +210,7 @@ export default function CampaignWizard({
     const minBudgetValue = toNumberOrNull(minBudget);
     const maxBudgetValue = toNumberOrNull(maxBudget);
 
+    // Required-field validation only runs when submitting for review
     if (mode === "pending_review") {
       if (!campaignName.trim()) errors.campaignName = "Enter a campaign name.";
       if (totalBudgetValue <= 0) errors.totalBudget = "Enter a total budget greater than zero.";
@@ -220,23 +223,22 @@ export default function CampaignWizard({
       }
     }
 
-    if (dailyBudgetValue !== null && dailyBudgetValue > totalBudgetValue) {
+    // Cross-field logical checks always apply (even when saving as draft)
+    if (dailyBudgetValue !== null && totalBudgetValue > 0 && dailyBudgetValue > totalBudgetValue) {
       errors.dailyBudget = "Daily budget cannot be greater than the total budget.";
     }
-
     if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
       errors.dateRange = "End date cannot be earlier than the start date.";
     }
-
     if (minBudgetValue !== null && maxBudgetValue !== null && maxBudgetValue < minBudgetValue) {
       errors.budgetRange = "Maximum audience budget cannot be lower than the minimum.";
     }
 
     setFieldErrors(errors);
 
-    const firstError = Object.entries(errors)[0];
-    if (firstError) {
-      const [field, message] = firstError;
+    const errorEntries = Object.entries(errors);
+    if (errorEntries.length > 0) {
+      const [field, message] = errorEntries[0];
       const fieldIds: Record<string, string> = {
         campaignName: "campaign-name",
         totalBudget: "total-budget",
@@ -250,38 +252,66 @@ export default function CampaignWizard({
         budgetRange: "max-budget",
       };
 
-      toast.error(message);
+      if (mode === "pending_review") {
+        // Show a count banner (set state) – the toast would be redundant
+        setSubmitErrorCount(errorEntries.length);
+      } else {
+        // For draft, only cross-field errors can reach here – show a toast
+        toast.error(message);
+      }
       scrollToField(fieldIds[field] || "campaign-name");
       return false;
     }
 
+    setSubmitErrorCount(0);
     return true;
   };
+
+  const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
+  const MAX_IMAGE_SIZE_MB = 5;
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
       setIsUploadingImage(true);
-      
+
       if (!event.target.files || event.target.files.length === 0) {
-        throw new Error('You must select an image to upload.');
+        throw new Error("You must select an image to upload.");
       }
 
       const file = event.target.files[0];
-      const fileExt = file.name.split('.').pop();
-      const filePath = `ads/${user?.id || 'anonymous'}-${Math.random()}.${fileExt}`;
+
+      // Validate file type
+      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+        event.target.value = "";
+        throw new Error(
+          `Unsupported file type "${file.type || "unknown"}". Please upload a JPEG, PNG, WebP, or GIF image and try again.`
+        );
+      }
+
+      // Validate file size (max 5 MB)
+      const fileSizeMB = file.size / (1024 * 1024);
+      if (fileSizeMB > MAX_IMAGE_SIZE_MB) {
+        event.target.value = "";
+        throw new Error(
+          `Image is too large (${fileSizeMB.toFixed(1)} MB). The maximum allowed size is ${MAX_IMAGE_SIZE_MB} MB. Please compress or resize the image and try again.`
+        );
+      }
+
+      const fileExt = file.name.split(".").pop();
+      const filePath = `ads/${user?.id || "anonymous"}-${Math.random()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('property-images')
+        .from("property-images")
         .upload(filePath, file);
 
       if (uploadError) {
         throw uploadError;
       }
 
-      const { data } = supabase.storage.from('property-images').getPublicUrl(filePath);
-      
+      const { data } = supabase.storage.from("property-images").getPublicUrl(filePath);
+
       setImageUrl(data.publicUrl);
-      
+      setFieldErrors((current) => ({ ...current, creative: undefined }));
       toast.success("Image uploaded successfully.");
     } catch (error: any) {
       toast.error(error.message || "Failed to upload image.");
@@ -297,12 +327,14 @@ export default function CampaignWizard({
 
     try {
       const paymentAmount = Number(totalBudget || 0);
+
+      // Save the campaign bundle. Pass the real mode (was incorrectly swapped before).
       const result = await upsertCampaignBundle.mutateAsync({
         campaignId: campaign?.id,
         adSetId: primaryAdSet?.id,
         adId: primaryAd?.id,
-        mode: mode === "pending_review" ? "draft" : mode,
-        silent: mode === "pending_review",
+        mode,                          // ✅ fixed: was wrongly mapping pending_review → draft
+        silent: mode === "pending_review", // suppress toast – we will redirect to Paystack
         campaign: {
           name: campaignName,
           objective,
@@ -343,7 +375,9 @@ export default function CampaignWizard({
           return;
         }
 
-        toast.info("Opening Paystack checkout for your campaign budget...");
+        // Show the payment-initiated screen while we set up the redirect
+        setIsPaymentInitiated(true);
+
         const paymentData = await initializePayment.mutateAsync({
           amount: paymentAmount,
           email: user.email,
@@ -358,6 +392,7 @@ export default function CampaignWizard({
           paymentData?.data?.authorization_url;
 
         if (!authorizationUrl) {
+          setIsPaymentInitiated(false);
           toast.error("Could not open Paystack checkout. Please try again.");
           return;
         }
@@ -370,11 +405,35 @@ export default function CampaignWizard({
         onComplete?.();
       }
     } catch {
+      setIsPaymentInitiated(false);
       // The mutation already shows the database or validation error.
     }
   };
 
   const isSaving = upsertCampaignBundle.isPending;
+  const isSubmitting = upsertCampaignBundle.isPending || initializePayment.isPending || isUploadingImage;
+
+  // ── Payment-initiated success/loading screen ─────────────────────────────
+  if (isPaymentInitiated) {
+    return (
+      <div className="mx-auto flex max-w-lg flex-col items-center justify-center gap-6 py-24 text-center">
+        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#eef1ff] shadow-[0_0_0_10px_rgba(101,93,202,0.08)]">
+          <Loader2 className="h-9 w-9 animate-spin text-[#26225f]" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-bold text-[#1f1a54]">Opening Paystack…</h2>
+          <p className="text-sm leading-6 text-[#6d7599]">
+            Your campaign has been saved. We are redirecting you to the secure Paystack checkout to
+            complete payment for your ad budget. Please do not close this tab.
+          </p>
+        </div>
+        <div className="mt-2 rounded-2xl border border-[#dbe0f4] bg-white/80 px-6 py-4 text-sm text-[#5c637f]">
+          <span className="font-semibold text-[#1f1a54]">Total budget: </span>
+          NGN {Number(totalBudget || 0).toLocaleString()}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -955,23 +1014,52 @@ export default function CampaignWizard({
           </Card>
 
           <div className="space-y-3">
+            {/* Inline submit error banner */}
+            {submitErrorCount > 0 && (
+              <div className="rounded-2xl border border-red-200 bg-red-50 p-4">
+                <p className="text-sm font-semibold text-red-800">
+                  {submitErrorCount} field{submitErrorCount > 1 ? "s" : ""} need attention before you can submit.
+                </p>
+                <p className="mt-1 text-xs text-red-600">
+                  Scroll up and fix the highlighted fields, then try again. You can still{" "}
+                  <button
+                    type="button"
+                    className="underline underline-offset-2 hover:text-red-800"
+                    onClick={() => handleSave("draft")}
+                    disabled={isSubmitting}
+                  >
+                    save as draft
+                  </button>{" "}
+                  at any time without filling every field.
+                </p>
+              </div>
+            )}
+
             <Button
               type="button"
               variant="outline"
               className="w-full gap-2 rounded-full"
               onClick={() => handleSave("draft")}
-              disabled={upsertCampaignBundle.isPending || initializePayment.isPending || isUploadingImage}
+              disabled={isSubmitting}
             >
-              {upsertCampaignBundle.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              {upsertCampaignBundle.isPending && !initializePayment.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
               Save Draft
             </Button>
             <Button
               type="button"
-              className="w-full gap-2 rounded-full"
+              className="w-full gap-2 rounded-full bg-[#26225f] text-white hover:bg-[#1f1b50]"
               onClick={() => handleSave("pending_review")}
-              disabled={upsertCampaignBundle.isPending || initializePayment.isPending || isUploadingImage}
+              disabled={isSubmitting}
             >
-              {upsertCampaignBundle.isPending || initializePayment.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              {initializePayment.isPending || (upsertCampaignBundle.isPending && !isUploadingImage) ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
               Pay & Submit For Review
             </Button>
             <Button
@@ -979,7 +1067,7 @@ export default function CampaignWizard({
               variant="ghost"
               className="w-full rounded-full"
               onClick={onCancel}
-              disabled={isSaving}
+              disabled={isSubmitting}
             >
               Cancel
             </Button>

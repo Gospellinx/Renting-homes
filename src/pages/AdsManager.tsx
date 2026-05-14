@@ -137,17 +137,22 @@ const AdsManager = () => {
   const [showWizard, setShowWizard] = useState(false);
   const [activeTab, setActiveTab] = useState("campaigns");
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   useEffect(() => {
     const paymentAction = searchParams.get("payment");
     const reference = searchParams.get("reference");
 
     if (paymentAction === "verify" && reference) {
-      toast.info("Verifying wallet payment...");
+      toast.info("Verifying your payment…");
       verifyPayment.mutate(
         { reference },
         {
-          onSettled: () => {
+          onSuccess: () => {
+            setPaymentSuccess(true);
+            navigate("/ads-manager", { replace: true });
+          },
+          onError: () => {
             navigate("/ads-manager", { replace: true });
           },
         }
@@ -225,6 +230,47 @@ const AdsManager = () => {
         title="Ads Manager"
         description="Create an account to run advertising campaigns and reach potential buyers."
       />
+    );
+  }
+
+  // ── Payment success screen (shown after Paystack redirect) ────────────────
+  if (paymentSuccess) {
+    return (
+      <div className="min-h-screen bg-[linear-gradient(180deg,#f2f4fb_0%,#f4f1ec_100%)] flex items-center justify-center px-4">
+        <div className="mx-auto flex max-w-lg flex-col items-center gap-7 text-center">
+          <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-emerald-100 shadow-[0_0_0_12px_rgba(52,211,153,0.12)]">
+            <CheckCircle2 className="h-12 w-12 text-emerald-600" />
+          </div>
+          <div className="space-y-3">
+            <h2 className="text-3xl font-bold text-[#1f1a54]">Payment Successful!</h2>
+            <p className="text-base leading-7 text-[#6d7599]">
+              Your campaign budget has been received and your ad is now <strong>queued for review</strong>.
+              Our moderation team will evaluate your creative and you will be notified once it goes live.
+            </p>
+          </div>
+          <div className="w-full rounded-[24px] border border-emerald-200 bg-white/80 p-5 text-sm text-left space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="h-2 w-2 rounded-full bg-emerald-500" />
+              <span className="text-[#374151]">Budget charged to your campaign</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="h-2 w-2 rounded-full bg-emerald-500" />
+              <span className="text-[#374151]">Campaign status updated to <strong>In Review</strong></span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="h-2 w-2 rounded-full bg-sky-400" />
+              <span className="text-[#374151]">You will be notified once the ad is approved</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setPaymentSuccess(false)}
+            className="mt-2 rounded-full bg-[#26225f] px-8 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#1f1b50]"
+          >
+            View My Campaigns
+          </button>
+        </div>
+      </div>
     );
   }
 
