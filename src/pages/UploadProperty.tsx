@@ -25,6 +25,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { FunctionsFetchError, FunctionsHttpError, FunctionsRelayError } from "@supabase/supabase-js";
 
 import AdBanner from "@/components/AdBanner";
+import { VideoUploader } from "@/components/VideoUploader";
+import type { CloudinaryUploadResult } from "@/lib/cloudinaryUpload";
 import AuthPrompt from "@/components/AuthPrompt";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -153,6 +155,7 @@ const UploadProperty = () => {
   const [documentFiles, setDocumentFiles] = useState<SelectedMediaFile[]>([]);
   const [duplicateWarning, setDuplicateWarning] = useState<DuplicateWarning | null>(null);
   const [mediaErrors, setMediaErrors] = useState<MediaValidationErrors>({});
+  const [videoUploadResult, setVideoUploadResult] = useState<CloudinaryUploadResult | null>(null);
   const [submissionIssue, setSubmissionIssue] = useState<{
     title: string;
     description: string;
@@ -235,6 +238,7 @@ const UploadProperty = () => {
     setCurrentStep(1);
     clearSubmissionState();
     setSubmissionPhase(null);
+    setVideoUploadResult(null);
     form.reset({
       ...propertyFormDefaults,
       ownerEmail: user?.email ?? "",
@@ -524,33 +528,50 @@ const UploadProperty = () => {
         documentPaths: uploads.documentPaths,
       });
 
-      const { error: dbError } = await supabase.from("properties").insert({
-        user_id: user.id,
-        title: payload.title,
-        description: payload.description,
-        property_type: payload.propertyType,
-        location: payload.location,
-        state: payload.state,
-        lga: payload.lga,
-        price: payload.price,
-        size: payload.size,
-        amenities: payload.amenities,
-        images: payload.imageUrls,
-        document_paths: payload.documentPaths,
-        owner_name: payload.ownerName,
-        owner_phone: payload.ownerPhone,
-        owner_email: payload.ownerEmail,
-        verification_type: payload.verificationType,
-        expected_investment: payload.expectedInvestment,
-        partnership_terms: payload.partnershipTerms,
-        developer_requirements: payload.developerRequirements,
-        land_size: payload.landSize,
-        proposed_development: payload.proposedDevelopment,
-        status: "pending_review",
-      });
+      const { error: dbError, data: insertedProperty } = await supabase
+        .from("properties")
+        .insert({
+          user_id: user.id,
+          title: payload.title,
+          description: payload.description,
+          property_type: payload.propertyType,
+          location: payload.location,
+          state: payload.state,
+          lga: payload.lga,
+          price: payload.price,
+          size: payload.size,
+          amenities: payload.amenities,
+          images: payload.imageUrls,
+          document_paths: payload.documentPaths,
+          owner_name: payload.ownerName,
+          owner_phone: payload.ownerPhone,
+          owner_email: payload.ownerEmail,
+          verification_type: payload.verificationType,
+          expected_investment: payload.expectedInvestment,
+          partnership_terms: payload.partnershipTerms,
+          developer_requirements: payload.developerRequirements,
+          land_size: payload.landSize,
+          proposed_development: payload.proposedDevelopment,
+          status: "pending_review",
+        })
+        .select("id")
+        .single();
 
       if (dbError) {
         throw new Error(dbError.message || "We could not submit this property right now.");
+      }
+
+      // Save Cloudinary video metadata if the user uploaded a video
+      if (videoUploadResult && insertedProperty?.id) {
+        const { saveVideoMetadata } = await import("@/lib/cloudinaryUpload");
+        await saveVideoMetadata({
+          propertyId: insertedProperty.id,
+          userId: user.id,
+          result: videoUploadResult,
+        }).catch(() => {
+          // Video metadata save is non-fatal — property was already created
+          console.warn("Video metadata could not be saved. It can be re-linked later.");
+        });
       }
 
       setIsSubmitted(true);
@@ -1194,6 +1215,15 @@ const UploadProperty = () => {
                             ))}
                           </div>
                         )}
+
+                        {/* ── Property Video Upload (Cloudinary CDN) ── */}
+                        <div className="border-t pt-6 mt-2">
+                          <VideoUploader
+                            onUploadComplete={(result) => setVideoUploadResult(result)}
+                            showInstructions={true}
+                            label="Property Video Tour"
+                          />
+                        </div>
 
                         <div className="rounded-lg border bg-muted/30 p-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                           <div>
