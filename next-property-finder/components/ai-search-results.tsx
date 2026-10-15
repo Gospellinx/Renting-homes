@@ -15,7 +15,7 @@ const LoadingPreview = () => (
     <div className="h-16 rounded-2xl bg-slate-100" />
     <div className="grid gap-3 md:grid-cols-2">
       <div className="h-36 rounded-2xl bg-slate-100" />
-      <div className="h-36 rounded-2xl bg-slate-100" />
+      <div className="h-36 rounded-2xl bg-slate-120" />
     </div>
   </div>
 );
