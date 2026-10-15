@@ -26,7 +26,7 @@ import { FunctionsFetchError, FunctionsHttpError, FunctionsRelayError } from "@s
 
 import AdBanner from "@/components/AdBanner";
 import { VideoUploader } from "@/components/VideoUploader";
-import type { CloudinaryUploadResult } from "@/lib/cloudinaryUpload";
+import { type CloudinaryUploadResult, saveVideoMetadata } from "@/lib/cloudinaryUpload";
 import AuthPrompt from "@/components/AuthPrompt";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -563,7 +563,6 @@ const UploadProperty = () => {
 
       // Save Cloudinary video metadata if the user uploaded a video
       if (videoUploadResult && insertedProperty?.id) {
-        const { saveVideoMetadata } = await import("@/lib/cloudinaryUpload");
         await saveVideoMetadata({
           propertyId: insertedProperty.id,
           userId: user.id,

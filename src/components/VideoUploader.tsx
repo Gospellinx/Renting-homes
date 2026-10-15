@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
   type CloudinaryUploadResult, type UploadState,
-  uploadVideoToCloudinary, validateVideoFile, VIDEO_LIMITS,
+  uploadVideoToCloudinary, validateVideoFile, VIDEO_LIMITS, saveVideoMetadata,
 } from "@/lib/cloudinaryUpload";
 
 const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME as string | undefined;
@@ -288,7 +288,6 @@ export function VideoUploader({
       });
       setUploadState({ phase: "processing" });
       if (propertyId) {
-        const { saveVideoMetadata } = await import("@/lib/cloudinaryUpload");
         const { supabase } = await import("@/integrations/supabase/client");
         const { data: { user } } = await supabase.auth.getUser();
         if (user) await saveVideoMetadata({ propertyId, userId: user.id, result });

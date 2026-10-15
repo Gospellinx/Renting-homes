@@ -249,8 +249,8 @@ export interface SaveVideoMetadataParams {
 export async function saveVideoMetadata(params: SaveVideoMetadataParams): Promise<string> {
   const { propertyId, userId, result } = params;
 
-  const { data, error } = await supabase
-    .from("property_videos" as never)
+  const { data, error } = await (supabase as any)
+    .from("property_videos")
     .insert({
       property_id: propertyId,
       user_id: userId,
@@ -279,8 +279,8 @@ export async function saveVideoMetadata(params: SaveVideoMetadataParams): Promis
  * Fetch all videos for a given property.
  */
 export async function fetchPropertyVideos(propertyId: string) {
-  const { data, error } = await supabase
-    .from("property_videos" as never)
+  const { data, error } = await (supabase as any)
+    .from("property_videos")
     .select("*")
     .eq("property_id", propertyId)
     .order("created_at", { ascending: true });
@@ -296,8 +296,8 @@ export async function fetchPropertyVideos(propertyId: string) {
  * Delete a video record from Supabase (Cloudinary deletion requires server-side).
  */
 export async function deleteVideoRecord(videoId: string): Promise<void> {
-  const { error } = await supabase
-    .from("property_videos" as never)
+  const { error } = await (supabase as any)
+    .from("property_videos")
     .delete()
     .eq("id", videoId);
 
