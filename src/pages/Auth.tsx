@@ -332,6 +332,10 @@ const Auth = () => {
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     try {
+      if (activeTab === "signup" && userType) {
+        sessionStorage.setItem("pending_user_role", userType);
+      }
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
