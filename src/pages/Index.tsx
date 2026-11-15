@@ -3,24 +3,27 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   ArrowUpRight,
-  BadgeCheck,
+  Bot,
+  LayoutDashboard,
   Loader2,
   Megaphone,
   Mic,
   Search,
   Upload,
+  UserRound,
 } from "lucide-react";
 
-import SiteHeader from "@/components/SiteHeader";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import HomesLogo from "@/components/HomesLogo";
 import SiteFooter from "@/components/SiteFooter";
-import PlotCorners from "@/components/PlotCorners";
-import heroEstate from "@/assets/hero-estate.jpg";
 import cardBuy from "@/assets/card-buy.jpg";
 import cardInvest from "@/assets/card-invest.jpg";
 import cardLand from "@/assets/card-land.jpg";
 import cardRent from "@/assets/card-rent.jpg";
 import cardShop from "@/assets/card-shop.jpg";
 import { useAuth } from "@/context/AuthContext";
+import { getDashboardPathForUser } from "@/lib/dashboardPath";
 import { toast } from "@/hooks/use-toast";
 
 const suggestedSearches = [
@@ -108,6 +111,7 @@ const Index = () => {
       "there"
     : "Visitor";
 
+  const dashboardPath = getDashboardPathForUser(user);
 
   const handleQuickActionClick = (href: string) => {
     if (!user) {
@@ -165,114 +169,145 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-paper text-ink">
-      <SiteHeader />
-
-      <main>
-        {/* Hero: the search is the product */}
-        <section className="mx-auto grid max-w-7xl items-center gap-12 px-4 pb-16 pt-12 sm:px-6 sm:pt-16 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16 lg:pb-24 lg:pt-20">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <header className="flex items-start justify-between gap-4 px-1 py-5 sm:py-7">
           <div>
-            <p className="plot-label rise-in text-leaf">
-              {user ? `Welcome back, ${displayName}` : "Property search · Nigeria"}
+            <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-leaf">
+              Welcome Home
+            </p>
+            <p className="mt-2 max-w-[16rem] break-words text-base font-semibold text-[#0c2a1e] sm:max-w-none sm:text-xl">
+              {user ? `Welcome ${displayName}` : "Welcome to Homes Nigeria"}
+            </p>
+          </div>
+
+          <Button
+            asChild
+            variant="outline"
+            className="h-11 rounded-full border-[#dce3da] bg-white/85 px-4 text-[#0c2a1e] shadow-[0_10px_25px_rgba(12,42,30,0.08)] transition-all duration-300 hover:border-[#bfd1c2] hover:bg-white"
+          >
+            <Link to={user ? dashboardPath : "/auth"} className="flex items-center gap-2">
+              {user ? (
+                <Avatar className="h-7 w-7 border border-[#dce3da]">
+                  <AvatarImage src={user.user_metadata?.avatar_url} />
+                  <AvatarFallback className="bg-[#e8efe6] text-xs font-semibold text-[#0c2a1e]">
+                    {user.user_metadata?.full_name?.[0]?.toUpperCase() ||
+                      user.email?.[0]?.toUpperCase() ||
+                      "U"}
+                  </AvatarFallback>
+                </Avatar>
+              ) : (
+                <UserRound className="h-4 w-4" />
+              )}
+              <span>{user ? "Dashboard" : "Sign In"}</span>
+            </Link>
+          </Button>
+        </header>
+
+        <main className="px-1 pb-16 pt-8 sm:pb-20">
+          <div className="mx-auto flex w-full max-w-5xl flex-col items-center text-center">
+            <div className="mx-auto flex w-full justify-center">
+              <div className="w-full max-w-[180px] sm:max-w-[220px]">
+                <HomesLogo />
+              </div>
+            </div>
+
+            <p className="mt-10 w-full plot-label text-center text-leaf">
+              Search smarter
             </p>
 
-            <h1 className="rise-in rise-in-2 mt-5 text-balance font-display text-[2.75rem] font-extrabold leading-[0.98] tracking-[-0.045em] text-ink sm:text-6xl lg:text-[4.75rem]">
-              Describe the place.
-              <br />
-              We'll find the{" "}
-              <span className="relative whitespace-nowrap">
-                <span className="relative z-10">space.</span>
-                <span
-                  aria-hidden
-                  className="absolute inset-x-[-0.06em] bottom-[0.08em] z-0 h-[0.34em] bg-beacon"
-                />
-              </span>
+            <h1 className="mx-auto mt-5 max-w-4xl text-balance text-center font-display text-4xl font-bold leading-[1.05] tracking-[-0.035em] text-[#0c2a1e] sm:text-5xl lg:text-[3.75rem]">
+              Looking to rent, buy, list, or develop? Just ask our AI.
             </h1>
 
-            <p className="rise-in rise-in-3 mt-6 max-w-xl text-lg leading-relaxed text-[#4a5b52]">
-              Type what you need the way you'd say it to an agent: the area, the budget, the
-              number of rooms. Our AI search turns it into homes, land and shops that fit.
+            <p className="mx-auto mt-5 max-w-2xl text-center text-sm leading-7 text-[#5b6b62] sm:text-lg">
+              Tell our AI assistant exactly what you're looking for—from budget to location—and let it guide you to the best homes, land, and commercial spaces.
             </p>
 
-            <form onSubmit={handleSearch} className="rise-in rise-in-4 mt-9 max-w-2xl">
-              <div className="flex items-center gap-1 rounded-2xl border-2 border-ink bg-white p-1.5 pl-4 shadow-[6px_6px_0_0_#0c2a1e] transition-shadow focus-within:shadow-[6px_6px_0_0_#1e8e4e] sm:pl-5">
+            <form onSubmit={handleSearch} className="mx-auto mt-8 w-full max-w-4xl sm:mt-10">
+              <div className="group flex items-center gap-2 rounded-[28px] border border-white/80 bg-white/90 p-2 pl-4 shadow-[0_20px_50px_rgba(12,42,30,0.12)] ring-1 ring-[#eceffa] transition-all duration-300 hover:shadow-[0_24px_60px_rgba(12,42,30,0.16)] focus-within:ring-2 focus-within:ring-[#bfd1c2] sm:gap-3 sm:rounded-full sm:pl-6">
                 {isProcessing ? (
-                  <Loader2 className="h-5 w-5 shrink-0 animate-spin text-leaf" />
+                  <Loader2 className="h-5 w-5 shrink-0 animate-spin text-[#1e8e4e]" />
                 ) : (
-                  <Search className="h-5 w-5 shrink-0 text-ink/50" />
+                  <Search className="h-5 w-5 shrink-0 text-[#74837a]" />
                 )}
-                <label htmlFor="home-search" className="sr-only">
-                  Describe the property you are looking for
-                </label>
+
                 <input
-                  id="home-search"
                   type="text"
-                  placeholder="3 bedroom flat in Lekki under ₦5M a year"
+                  placeholder="Try: 'I want a 3 bedroom in Lekki' or 'shops for rent in Abuja'"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   disabled={isProcessing}
-                  className="h-12 min-w-0 flex-1 bg-transparent px-2 text-base text-ink outline-none placeholder:text-ink/40 focus-visible:outline-none disabled:opacity-60 sm:h-14 sm:text-lg"
+                  className="h-12 min-w-0 flex-1 bg-transparent text-sm text-[#0c2a1e] outline-none placeholder:text-[#9aa69f] disabled:cursor-not-allowed disabled:opacity-60 sm:h-14 sm:text-base"
                 />
-                <button
-                  type="button"
-                  onClick={handleVoiceSearch}
-                  disabled={isProcessing}
-                  aria-label="Search by voice"
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-ink/60 transition-colors hover:bg-ink/5 hover:text-ink disabled:opacity-50"
-                >
-                  <Mic className="h-5 w-5" />
-                </button>
-                <button
-                  type="submit"
-                  disabled={isProcessing || !searchQuery.trim()}
-                  className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-ink px-4 text-[15px] font-semibold text-white transition-colors hover:bg-[#0f3d2a] disabled:cursor-not-allowed disabled:opacity-40 sm:h-12 sm:px-6"
-                >
-                  <span className="hidden sm:inline">Search</span>
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              </div>
 
-              <div className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-2">
-                <span className="plot-label mr-1 text-ink/50">Try</span>
-                {suggestedSearches.map((suggestion) => (
+                <div className="flex items-center gap-1 sm:gap-2">
                   <button
-                    key={suggestion}
                     type="button"
-                    onClick={() => setSearchQuery(suggestion)}
-                    className="rounded-full border border-ink/15 bg-white/60 px-3.5 py-1.5 text-sm text-ink/80 transition-colors hover:border-ink hover:bg-white hover:text-ink"
+                    onClick={handleVoiceSearch}
+                    disabled={isProcessing}
+                    className="flex h-10 w-10 items-center justify-center rounded-full text-[#5b6b62] transition-all duration-300 hover:bg-[#e8efe6] hover:text-[#0c2a1e] disabled:cursor-not-allowed disabled:opacity-50"
+                    aria-label="Voice search"
                   >
-                    {suggestion}
+                    <Mic className="h-4 w-4 sm:h-5 sm:w-5" />
                   </button>
-                ))}
+
+                  <Link
+                    to={user ? dashboardPath : "/auth?mode=signin"}
+                    onClick={() => handleQuickActionClick(dashboardPath)}
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full px-3 text-[#5b6b62] transition-all duration-300 hover:bg-[#e8efe6] hover:text-[#0c2a1e]"
+                    aria-label={user ? "Open dashboard" : "Sign in"}
+                  >
+                    <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <span className="hidden text-sm font-medium sm:inline">
+                      {user ? "Dashboard" : "Sign in"}
+                    </span>
+                  </Link>
+
+                  <Button
+                    type="submit"
+                    disabled={isProcessing || !searchQuery.trim()}
+                    className="h-10 rounded-full bg-[#0f3d2a] px-3 text-sm font-medium text-white shadow-[0_12px_24px_rgba(15,61,42,0.22)] transition-all duration-300 hover:bg-[#0a2e1f] hover:shadow-[0_16px_28px_rgba(15,61,42,0.28)] sm:h-11 sm:px-5"
+                  >
+                    <span className="hidden sm:inline">Search</span>
+                    <Search className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </form>
-          </div>
 
-          <div className="rise-in rise-in-3 relative mx-2 mb-6 lg:mx-0">
-            <div className="relative">
-              <PlotCorners />
-              <img
-                src={heroEstate}
-                alt="A street of two-storey homes lined with palm trees"
-                className="aspect-[4/5] w-full object-cover object-[72%_50%] sm:aspect-[16/10] lg:aspect-[4/5]"
-              />
+            <div className="mx-auto mt-5 max-w-2xl rounded-2xl border border-[#dce3da] bg-[#f7f9f5]/80 px-5 py-3.5 text-sm text-[#5b6b62] shadow-sm">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 text-center sm:text-left">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#e8efe6] text-[#1e8e4e]">
+                  <Bot className="h-4 w-4" />
+                </div>
+                <p className="leading-relaxed">
+                  <strong className="text-[#0c2a1e]">AI-Powered Search:</strong> Type naturally to describe your dream property, budget, or specifications, and let our assistant find the perfect match.
+                </p>
+              </div>
             </div>
-            <div className="absolute -bottom-6 left-4 flex max-w-[17rem] items-start gap-3 rounded-xl bg-white p-4 shadow-[0_18px_40px_rgba(12,42,30,0.18)] sm:-left-8">
-              <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-leaf text-white">
-                <BadgeCheck className="h-4 w-4" />
-              </span>
-              <p className="text-sm leading-snug text-ink/70">
-                <span className="block font-semibold text-ink">Look for the Verified mark</span>
-                It shows on listings whose details have been checked.
-              </p>
+
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+              {suggestedSearches.map((suggestion) => (
+                <button
+                  key={suggestion}
+                  type="button"
+                  onClick={() => setSearchQuery(suggestion)}
+                  className="rounded-full border border-white/70 bg-white/70 px-4 py-2 text-sm text-[#5b6b62] shadow-[0_8px_20px_rgba(12,42,30,0.06)] transition-all duration-300 hover:border-[#bfd1c2] hover:bg-white hover:text-[#0c2a1e]"
+                >
+                  {suggestion}
+                </button>
+              ))}
             </div>
           </div>
-        </section>
+        </main>
+      </div>
 
+      <div>
         {/* Categories */}
         <section className="mx-auto max-w-7xl px-4 pb-20 pt-6 sm:px-6">
           <div className="flex flex-wrap items-end justify-between gap-4 border-t border-ink/15 pt-8">
             <h2 className="font-display text-3xl font-bold tracking-[-0.035em] text-ink sm:text-4xl">
-              Or start with what you're after
+              Browse by category
             </h2>
             <Link
               to="/search"
@@ -359,7 +394,7 @@ const Index = () => {
             </div>
           </div>
         </section>
-      </main>
+      </div>
 
       <SiteFooter />
     </div>

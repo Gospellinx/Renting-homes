@@ -1,3 +1,4 @@
+import WhatsAppIcon from "@/components/WhatsAppIcon";
 import { useState } from "react";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import { addStepCount } from "@/lib/utils";
@@ -221,7 +222,7 @@ const PropertyTour = () => {
                         className="flex items-center gap-2"
                         onClick={() => handleContactAgent('whatsapp')}
                       >
-                        <MessageSquare className="h-4 w-4" />
+                        <WhatsAppIcon className="h-4 w-4" />
                         WhatsApp
                       </Button>
                       <Button 
@@ -285,7 +286,7 @@ const PropertyTour = () => {
                       className="flex items-center gap-2"
                       onClick={() => handleContactAgent('whatsapp')}
                     >
-                      <MessageSquare className="h-4 w-4" />
+                      <WhatsAppIcon className="h-4 w-4" />
                       WhatsApp
                     </Button>
                     <Button 

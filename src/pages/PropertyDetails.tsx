@@ -1,3 +1,4 @@
+import WhatsAppIcon from "@/components/WhatsAppIcon";
 import { useEffect, useState } from "react";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import { addStepCount } from "@/lib/utils";
@@ -814,7 +815,7 @@ const PropertyDetails = () => {
                         className="w-full justify-start"
                         onClick={() => handleContactAgent('whatsapp')}
                       >
-                        <MessageSquare className="h-4 w-4 mr-3" />
+                        <WhatsAppIcon className="h-4 w-4 mr-3" />
                         WhatsApp
                       </Button>
                       <Button 

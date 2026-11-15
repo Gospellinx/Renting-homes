@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Wordmark } from "@/components/SiteHeader";
+import WhatsAppIcon from "@/components/WhatsAppIcon";
 
 const columns = [
   {
@@ -43,9 +44,10 @@ const SiteFooter = () => (
           href="https://wa.me/2347067710319"
           target="_blank"
           rel="noopener noreferrer"
-          className="plot-label mt-6 inline-block border-b border-beacon pb-1 text-beacon hover:text-white"
+          className="mt-6 inline-flex items-center gap-2.5 rounded-full bg-white/10 py-2 pl-2.5 pr-4 text-[15px] font-semibold text-white transition-colors hover:bg-white/15"
         >
-          WhatsApp +234 706 771 0319
+          <WhatsAppIcon className="h-5 w-5 text-[#25D366]" />
+          +234 706 771 0319
         </a>
       </div>
 

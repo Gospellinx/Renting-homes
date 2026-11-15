@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { FileText, MessageCircle } from "lucide-react";
+import { FileText } from "lucide-react";
+import WhatsAppIcon from "@/components/WhatsAppIcon";
 import {
   Dialog,
   DialogContent,
@@ -80,9 +81,9 @@ const JVPromoPopup = () => {
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => setOpen(false)}
-              className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-beacon px-5 text-[15px] font-bold text-ink transition-colors hover:bg-white"
+              className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-[#25D366] px-5 text-[15px] font-bold text-[#06170f] transition-colors hover:bg-[#3fe07c]"
             >
-              <MessageCircle className="h-4 w-4" />
+              <WhatsAppIcon className="h-5 w-5" />
               Contact Us
             </a>
             <a

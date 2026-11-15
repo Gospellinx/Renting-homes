@@ -1,3 +1,4 @@
+import WhatsAppIcon from "@/components/WhatsAppIcon";
 import { useState, useEffect } from "react";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import { addStepCount } from "@/lib/utils";
@@ -539,7 +540,7 @@ const BuyProperty = () => {
                         className="flex items-center gap-2"
                         onClick={() => handleContactAgent('whatsapp', property)}
                       >
-                        <MessageSquare className="h-4 w-4" />
+                        <WhatsAppIcon className="h-4 w-4" />
                         WhatsApp
                       </Button>
                       <Button 

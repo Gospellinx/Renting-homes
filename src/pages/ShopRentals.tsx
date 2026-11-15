@@ -1,3 +1,4 @@
+import WhatsAppIcon from "@/components/WhatsAppIcon";
 import { useState, useEffect } from "react";
 import { addStepCount } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -349,7 +350,7 @@ const ShopRentals = () => {
                         <Video className="h-4 w-4" />Live View — ₦500
                       </Button>
                       <Button variant="outline" className="flex items-center gap-2" onClick={() => handleContactAgent('phone', property)}><Phone className="h-4 w-4" />Call</Button>
-                      <Button variant="outline" className="flex items-center gap-2" onClick={() => handleContactAgent('whatsapp', property)}><MessageSquare className="h-4 w-4" />WhatsApp</Button>
+                      <Button variant="outline" className="flex items-center gap-2" onClick={() => handleContactAgent('whatsapp', property)}><WhatsAppIcon className="h-4 w-4" />WhatsApp</Button>
                       <Button variant="outline" className="flex items-center gap-2 col-span-2" onClick={() => handleContactAgent('email', property)}><Mail className="h-4 w-4" />Email</Button>
                     </div>
                   </div>

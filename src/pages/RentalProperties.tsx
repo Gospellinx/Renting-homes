@@ -1,3 +1,4 @@
+import WhatsAppIcon from "@/components/WhatsAppIcon";
 import { useState, useEffect } from "react";
 import { addStepCount } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -511,7 +512,7 @@ const RentalProperties = () => {
                         className="flex items-center gap-2"
                         onClick={() => handleContactAgent('whatsapp', property)}
                       >
-                        <MessageSquare className="h-4 w-4" />
+                        <WhatsAppIcon className="h-4 w-4" />
                         WhatsApp
                       </Button>
                       <Button 
