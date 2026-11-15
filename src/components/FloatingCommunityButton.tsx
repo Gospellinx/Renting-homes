@@ -1,13 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Users } from "lucide-react";
-import { motion } from "framer-motion";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 const FloatingCommunityButton = () => {
   const location = useLocation();
@@ -15,47 +7,17 @@ const FloatingCommunityButton = () => {
   if (location.pathname !== "/") return null;
 
   return (
-    <TooltipProvider>
-      <motion.div
-        className="fixed bottom-6 left-6 z-50 flex items-center gap-3"
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3, delay: 0.2 }}
-      >
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link to="/community">
-              <Button
-                size="lg"
-                className="h-14 w-14 rounded-full shadow-lg bg-[#1f2b44] hover:bg-[#162033] text-white border-0 transition-all duration-300 hover:shadow-xl hover:scale-110"
-              >
-                <motion.div
-                  animate={{ scale: [1, 1.1, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="flex flex-col items-center justify-center"
-                >
-                  <Users className="h-6 w-6" />
-                </motion.div>
-              </Button>
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent side="right" className="bg-slate-900 text-white border-slate-700">
-            <p className="text-sm font-semibold">Join Our Community</p>
-            <p className="text-xs text-slate-300">Connect & Engage</p>
-          </TooltipContent>
-        </Tooltip>
-
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="bg-white text-[#0f3d2a] px-4 py-2 rounded-full font-semibold text-sm shadow-lg"
-        >
-          Community
-        </motion.div>
-      </motion.div>
-    </TooltipProvider>
+    <Link
+      to="/community"
+      className="group fixed bottom-6 left-6 z-50 inline-flex h-12 items-center gap-2.5 rounded-full border border-ink/10 bg-white pl-1.5 pr-5 text-[15px] font-semibold text-ink shadow-[0_14px_30px_rgba(12,42,30,0.18)] transition-transform hover:-translate-y-0.5"
+    >
+      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-leaf text-white">
+        <Users className="h-4 w-4" />
+      </span>
+      Community
+    </Link>
   );
 };
 
 export default FloatingCommunityButton;
+

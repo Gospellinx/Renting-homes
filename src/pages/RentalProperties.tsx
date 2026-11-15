@@ -242,7 +242,7 @@ const RentalProperties = () => {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f2f4fb_0%,#f7f7fb_42%,#f4f1ec_100%)]">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(91,104,228,0.16),transparent_34%),radial-gradient(circle_at_top_right,rgba(72,153,255,0.16),transparent_28%),radial-gradient(circle_at_bottom,rgba(162,153,255,0.12),transparent_42%)] z-0" />
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(30,142,78,0.06),transparent_34%),radial-gradient(circle_at_top_right,rgba(30,142,78,0.06),transparent_28%),radial-gradient(circle_at_bottom,rgba(30,142,78,0.06),transparent_42%)] z-0" />
       
       {/* Header */}
       <header className="relative z-40 border-b border-[#dce3da] bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0">

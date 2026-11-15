@@ -361,7 +361,7 @@ const Auth = () => {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f2f4fb_0%,#f7f7fb_42%,#f4f1ec_100%)] px-4 py-4 sm:px-6 sm:py-6 flex flex-col">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(91,104,228,0.16),transparent_34%),radial-gradient(circle_at_top_right,rgba(72,153,255,0.16),transparent_28%),radial-gradient(circle_at_bottom,rgba(162,153,255,0.12),transparent_42%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(30,142,78,0.06),transparent_34%),radial-gradient(circle_at_top_right,rgba(30,142,78,0.06),transparent_28%),radial-gradient(circle_at_bottom,rgba(30,142,78,0.06),transparent_42%)]" />
       <div className="pointer-events-none absolute -left-16 top-28 h-48 w-48 rounded-full bg-[#e8efe6] blur-3xl sm:h-72 sm:w-72" />
       <div className="pointer-events-none absolute -right-14 bottom-16 h-44 w-44 rounded-full bg-[#e8efe6] blur-3xl sm:h-64 sm:w-64" />
 

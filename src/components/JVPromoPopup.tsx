@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Building2, FileText, MessageCircle } from "lucide-react";
+import { FileText, MessageCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import PlotCorners from "@/components/PlotCorners";
 
 const WHATSAPP_NUMBER = "2347067710319";
 const WHATSAPP_MESSAGE =
@@ -54,43 +54,48 @@ const JVPromoPopup = () => {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-md rounded-2xl p-0 overflow-hidden">
-        <div className="bg-primary px-6 pt-6 pb-5 text-primary-foreground">
-          <div className="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-full bg-secondary">
-            <Building2 className="h-5 w-5 text-secondary-foreground" />
-          </div>
-          <DialogHeader className="text-left">
-            <DialogTitle className="text-xl font-semibold leading-snug text-primary-foreground">
-              Transform your idle property into a premium real estate asset
+      <DialogContent className="max-w-[calc(100%-2rem)] gap-0 overflow-visible rounded-none border-0 bg-ink p-0 text-white shadow-[0_30px_80px_rgba(6,23,15,0.5)] sm:max-w-[30rem] sm:rounded-none [&>button]:right-4 [&>button]:top-4 [&>button]:text-white">
+        <PlotCorners />
+        <div className="survey-grid px-6 pb-7 pt-8 sm:px-9 sm:pt-10">
+          <p className="plot-label text-beacon">Joint venture · FCT landowners</p>
+          <DialogHeader className="mt-4 text-left">
+            <DialogTitle className="font-display text-[1.9rem] font-bold leading-[1.04] tracking-[-0.035em] text-white sm:text-[2.25rem]">
+              Transform your idle property into a premium real estate asset.
             </DialogTitle>
           </DialogHeader>
-        </div>
 
-        <div className="space-y-3 px-6 text-sm text-muted-foreground">
-          <DialogDescription className="text-sm text-muted-foreground">
-            At <span className="font-medium text-foreground">findaspace.help</span>, we partner
-            with landowners across the FCT for highly profitable Joint Venture (JV) developments.
+          <DialogDescription className="mt-5 text-[15px] leading-relaxed text-white/75">
+            At <span className="font-semibold text-white">findaspace.help</span>, we partner with
+            landowners across the FCT for highly profitable Joint Venture (JV) developments.
           </DialogDescription>
-          <p>
+          <p className="mt-3 text-[15px] leading-relaxed text-white/75">
             You provide the land, and we bring the financing, architectural design, and
-            construction expertise. Let's collaborate to build a landmark project that maximizes
-            your equity with zero development stress on your end.
+            construction expertise. Let&apos;s collaborate to build a landmark project that
+            maximizes your equity with zero development stress on your end.
           </p>
-        </div>
 
-        <div className="flex flex-col gap-2 px-6 pb-6 pt-2 sm:flex-row">
-          <Button asChild className="flex-1 bg-secondary text-secondary-foreground hover:bg-secondary/90">
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}>
-              <MessageCircle className="mr-2 h-4 w-4" />
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setOpen(false)}
+              className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-beacon px-5 text-[15px] font-bold text-ink transition-colors hover:bg-white"
+            >
+              <MessageCircle className="h-4 w-4" />
               Contact Us
             </a>
-          </Button>
-          <Button asChild variant="outline" className="flex-1">
-            <a href={PROFILE_URL} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}>
-              <FileText className="mr-2 h-4 w-4" />
+            <a
+              href={PROFILE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setOpen(false)}
+              className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-white/30 px-5 text-[15px] font-semibold text-white transition-colors hover:border-white hover:bg-white/10"
+            >
+              <FileText className="h-4 w-4" />
               View Our Profile
             </a>
-          </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

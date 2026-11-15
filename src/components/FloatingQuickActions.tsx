@@ -23,13 +23,13 @@ const FloatingQuickActions = () => {
   const dashboardPath = getDashboardPathForUser(user);
 
   const actions = [
-    { icon: LayoutDashboard, label: "Dashboard", href: dashboardPath, color: "bg-slate-700", requiresAuth: true },
-    { icon: Upload, label: "Upload Property", href: "/upload-property", color: "bg-primary" },
-    { icon: Home, label: "Rent Property", href: "/rental-properties", color: "bg-blue-500" },
-    { icon: Store, label: "Rent a Shop", href: "/shop-rentals", color: "bg-amber-500" },
-    { icon: Building, label: "Buy Property", href: "/buy-property", color: "bg-orange-500" },
-    { icon: Handshake, label: "Joint Ventures", href: "/joint-ventures", color: "bg-purple-500" },
-    { icon: Megaphone, label: "Ads Manager", href: "/ads-manager", color: "bg-pink-500", requiresAuth: true },
+    { icon: LayoutDashboard, label: "Dashboard", href: dashboardPath, color: "bg-ink", requiresAuth: true },
+    { icon: Upload, label: "Upload Property", href: "/upload-property", color: "bg-ink" },
+    { icon: Home, label: "Rent Property", href: "/rental-properties", color: "bg-ink" },
+    { icon: Store, label: "Rent a Shop", href: "/shop-rentals", color: "bg-ink" },
+    { icon: Building, label: "Buy Property", href: "/buy-property", color: "bg-ink" },
+    { icon: Handshake, label: "Joint Ventures", href: "/joint-ventures", color: "bg-ink" },
+    { icon: Megaphone, label: "Ads Manager", href: "/ads-manager", color: "bg-ink", requiresAuth: true },
   ];
 
   const handleActionClick = (href: string, requiresAuth?: boolean) => {
@@ -55,8 +55,8 @@ const FloatingQuickActions = () => {
             transition={{ duration: 0.2 }}
             className="absolute bottom-16 right-0 mb-2"
           >
-            <div className="bg-card border shadow-xl rounded-2xl p-3 min-w-[200px]">
-              <p className="text-xs text-muted-foreground mb-2 px-2">Quick Actions</p>
+            <div className="min-w-[220px] rounded-2xl border border-ink/10 bg-white p-2 shadow-[0_24px_60px_rgba(12,42,30,0.22)]">
+              <p className="plot-label px-3 pb-1 pt-2 text-ink/50">Go to</p>
               <div className="space-y-1">
                 {actions.map((action) => (
                   <button
@@ -65,7 +65,7 @@ const FloatingQuickActions = () => {
                     onClick={() => handleActionClick(action.href, action.requiresAuth)}
                     className="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted transition-colors group text-left"
                   >
-                    <div className={`p-1.5 rounded-lg ${action.color} text-white`}>
+                    <div className={`p-1.5 rounded-lg ${action.color} text-beacon`}>
                       <action.icon className="h-4 w-4" />
                     </div>
                     <span className="text-sm font-medium group-hover:text-primary transition-colors">
@@ -81,9 +81,10 @@ const FloatingQuickActions = () => {
 
       <Button
         onClick={() => setIsOpen(!isOpen)}
+        aria-label={isOpen ? "Close quick actions" : "Open quick actions"}
         size="lg"
-        className={`h-14 w-14 rounded-full shadow-lg transition-all duration-300 ${
-          isOpen ? "rotate-45 bg-muted-foreground hover:bg-muted-foreground" : ""
+        className={`h-14 w-14 rounded-full bg-ink text-beacon shadow-[0_14px_30px_rgba(12,42,30,0.3)] transition-all duration-300 hover:bg-[#0f3d2a] ${
+          isOpen ? "bg-[#0f3d2a]" : ""
         }`}
       >
         {isOpen ? <X className="h-6 w-6" /> : <Plus className="h-6 w-6" />}
