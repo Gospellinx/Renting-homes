@@ -97,20 +97,20 @@ const OverviewStatCard = ({
   hint: string;
   tone?: "primary" | "accent";
 }) => (
-  <Card className="border-[#dbe0f4] bg-white/90 shadow-[0_18px_45px_rgba(31,26,84,0.06)] backdrop-blur">
+  <Card className="border-[#dce3da] bg-white/90 shadow-[0_18px_45px_rgba(12,42,30,0.06)] backdrop-blur">
     <CardContent className="p-5">
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7b82a8]">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#74837a]">
             {label}
           </p>
-          <p className="text-2xl font-bold text-[#1f1a54]">{value}</p>
+          <p className="text-2xl font-bold text-[#0c2a1e]">{value}</p>
           <p className="text-sm text-[#71789f]">{hint}</p>
         </div>
         <div
           className={cn(
             "rounded-2xl p-3",
-            tone === "primary" ? "bg-[#eef1ff] text-[#26225f]" : "bg-[#f6efe5] text-[#8a6135]"
+            tone === "primary" ? "bg-[#e8efe6] text-[#0f3d2a]" : "bg-[#f6efe5] text-[#8a6135]"
           )}
         >
           <Icon className="h-5 w-5" />
@@ -242,8 +242,8 @@ const AdsManager = () => {
             <CheckCircle2 className="h-12 w-12 text-emerald-600" />
           </div>
           <div className="space-y-3">
-            <h2 className="text-3xl font-bold text-[#1f1a54]">Payment Successful!</h2>
-            <p className="text-base leading-7 text-[#6d7599]">
+            <h2 className="text-3xl font-bold text-[#0c2a1e]">Payment Successful!</h2>
+            <p className="text-base leading-7 text-[#5b6b62]">
               Your campaign budget has been received and your ad is now <strong>queued for review</strong>.
               Our moderation team will evaluate your creative and you will be notified once it goes live.
             </p>
@@ -265,7 +265,7 @@ const AdsManager = () => {
           <button
             type="button"
             onClick={() => setPaymentSuccess(false)}
-            className="mt-2 rounded-full bg-[#26225f] px-8 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#1f1b50]"
+            className="mt-2 rounded-full bg-[#0f3d2a] px-8 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#0a2e1f]"
           >
             View My Campaigns
           </button>
@@ -290,7 +290,7 @@ const AdsManager = () => {
     <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f2f4fb_0%,#f7f7fb_42%,#f4f1ec_100%)]">
       <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_top_left,rgba(91,104,228,0.16),transparent_34%),radial-gradient(circle_at_top_right,rgba(72,153,255,0.16),transparent_28%),radial-gradient(circle_at_bottom,rgba(162,153,255,0.12),transparent_42%)]" />
 
-      <header className="relative z-40 border-b border-[#d7daf0] bg-white/80 backdrop-blur">
+      <header className="relative z-40 border-b border-[#dce3da] bg-white/80 backdrop-blur">
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
@@ -299,15 +299,15 @@ const AdsManager = () => {
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7a82a9]">
                   Advertising Workspace
                 </p>
-                <h1 className="text-2xl font-bold text-[#1f1a54]">Ads Manager</h1>
-                <p className="text-sm text-[#6f7599]">
+                <h1 className="text-2xl font-bold text-[#0c2a1e]">Ads Manager</h1>
+                <p className="text-sm text-[#5b6b62]">
                   Build campaigns, submit ads for review, and monitor live performance.
                 </p>
               </div>
             </div>
             <Button
               onClick={openCreateWizard}
-              className="gap-2 rounded-full bg-[#26225f] px-5 text-white hover:bg-[#1f1b50]"
+              className="gap-2 rounded-full bg-[#0f3d2a] px-5 text-white hover:bg-[#0a2e1f]"
             >
               <Plus className="h-4 w-4" />
               Create Campaign
@@ -319,7 +319,7 @@ const AdsManager = () => {
       <main className="container relative z-10 mx-auto px-4 py-6">
         <div className="grid gap-6 lg:grid-cols-4">
           <div className="space-y-6 lg:col-span-3">
-            <Card className="overflow-hidden border-0 bg-[linear-gradient(135deg,#1f1a54_0%,#2e2a73_56%,#6d62c8_100%)] text-white shadow-[0_28px_60px_rgba(31,26,84,0.22)]">
+            <Card className="overflow-hidden border-0 bg-[linear-gradient(135deg,#1f1a54_0%,#2e2a73_56%,#6d62c8_100%)] text-white shadow-[0_28px_60px_rgba(12,42,30,0.22)]">
               <CardContent className="p-6 lg:p-8">
                 <div className="grid gap-8 lg:grid-cols-[1.45fr_0.95fr]">
                   <div className="space-y-5">
@@ -435,21 +435,21 @@ const AdsManager = () => {
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="space-y-1">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7b82a8]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#74837a]">
                     Campaign Views
                   </p>
-                  <h2 className="text-xl font-semibold text-[#1f1a54]">Your advertising workspace</h2>
+                  <h2 className="text-xl font-semibold text-[#0c2a1e]">Your advertising workspace</h2>
                 </div>
-                <TabsList className="rounded-full border border-[#dbe0f4] bg-white/90 p-1 shadow-sm">
+                <TabsList className="rounded-full border border-[#dce3da] bg-white/90 p-1 shadow-sm">
                   <TabsTrigger
                     value="campaigns"
-                    className="rounded-full px-4 data-[state=active]:bg-[#26225f] data-[state=active]:text-white"
+                    className="rounded-full px-4 data-[state=active]:bg-[#0f3d2a] data-[state=active]:text-white"
                   >
                     Campaigns
                   </TabsTrigger>
                   <TabsTrigger
                     value="insights"
-                    className="rounded-full px-4 data-[state=active]:bg-[#26225f] data-[state=active]:text-white"
+                    className="rounded-full px-4 data-[state=active]:bg-[#0f3d2a] data-[state=active]:text-white"
                   >
                     Insights
                   </TabsTrigger>
@@ -458,7 +458,7 @@ const AdsManager = () => {
 
               <TabsContent value="campaigns" className="mt-5 space-y-4">
                 {campaignsLoading ? (
-                  <Card className="border-[#dbe0f4] bg-white/90">
+                  <Card className="border-[#dce3da] bg-white/90">
                     <CardContent className="flex items-center justify-center p-10">
                       <Loader2 className="h-6 w-6 animate-spin text-primary" />
                     </CardContent>
@@ -472,13 +472,13 @@ const AdsManager = () => {
                     return (
                       <Card
                         key={campaign.id}
-                        className="overflow-hidden border-[#dbe0f4] bg-white/95 shadow-[0_18px_45px_rgba(31,26,84,0.06)]"
+                        className="overflow-hidden border-[#dce3da] bg-white/95 shadow-[0_18px_45px_rgba(12,42,30,0.06)]"
                       >
                         <CardContent className="p-0">
                           <div className="grid lg:grid-cols-[1.55fr_0.75fr]">
                             <div className="p-5 lg:p-6">
                               <div className="flex flex-col gap-5 md:flex-row">
-                                <div className="relative h-32 w-full overflow-hidden rounded-[24px] bg-[#eef1ff] md:h-32 md:w-36">
+                                <div className="relative h-32 w-full overflow-hidden rounded-[24px] bg-[#e8efe6] md:h-32 md:w-36">
                                   {ad?.image_url ? (
                                     <img
                                       src={ad.image_url}
@@ -515,7 +515,7 @@ const AdsManager = () => {
                                   <div className="space-y-2">
                                     <div className="flex flex-wrap items-start justify-between gap-3">
                                       <div>
-                                        <h3 className="text-xl font-semibold text-[#1f1a54]">
+                                        <h3 className="text-xl font-semibold text-[#0c2a1e]">
                                           {campaign.name}
                                         </h3>
                                         <p className="text-sm text-[#70779e]">
@@ -523,50 +523,50 @@ const AdsManager = () => {
                                         </p>
                                       </div>
                                       <div className="text-left md:text-right">
-                                        <p className="text-xs uppercase tracking-[0.16em] text-[#7b82a8]">
+                                        <p className="text-xs uppercase tracking-[0.16em] text-[#74837a]">
                                           Budget
                                         </p>
-                                        <p className="text-lg font-semibold text-[#1f1a54]">
+                                        <p className="text-lg font-semibold text-[#0c2a1e]">
                                           {formatCurrency(campaign.total_budget)}
                                         </p>
                                       </div>
                                     </div>
 
                                     {ad?.description && (
-                                      <p className="max-w-2xl text-sm leading-6 text-[#667091]">
+                                      <p className="max-w-2xl text-sm leading-6 text-[#5b6b62]">
                                         {ad.description}
                                       </p>
                                     )}
                                   </div>
 
                                   <div className="grid gap-3 md:grid-cols-3">
-                                    <div className="rounded-2xl border border-[#e7eaf8] bg-[#fbfbfe] p-3">
-                                      <p className="text-xs uppercase tracking-[0.15em] text-[#7b82a8]">
+                                    <div className="rounded-2xl border border-[#dce3da] bg-[#f7f9f5] p-3">
+                                      <p className="text-xs uppercase tracking-[0.15em] text-[#74837a]">
                                         Impressions
                                       </p>
-                                      <p className="mt-1 text-lg font-semibold text-[#1f1a54]">
+                                      <p className="mt-1 text-lg font-semibold text-[#0c2a1e]">
                                         {campaign.stats.impressions.toLocaleString()}
                                       </p>
                                     </div>
-                                    <div className="rounded-2xl border border-[#e7eaf8] bg-[#fbfbfe] p-3">
-                                      <p className="text-xs uppercase tracking-[0.15em] text-[#7b82a8]">
+                                    <div className="rounded-2xl border border-[#dce3da] bg-[#f7f9f5] p-3">
+                                      <p className="text-xs uppercase tracking-[0.15em] text-[#74837a]">
                                         Clicks
                                       </p>
-                                      <p className="mt-1 text-lg font-semibold text-[#1f1a54]">
+                                      <p className="mt-1 text-lg font-semibold text-[#0c2a1e]">
                                         {campaign.stats.clicks.toLocaleString()}
                                       </p>
                                     </div>
-                                    <div className="rounded-2xl border border-[#e7eaf8] bg-[#fbfbfe] p-3">
-                                      <p className="text-xs uppercase tracking-[0.15em] text-[#7b82a8]">
+                                    <div className="rounded-2xl border border-[#dce3da] bg-[#f7f9f5] p-3">
+                                      <p className="text-xs uppercase tracking-[0.15em] text-[#74837a]">
                                         CTR
                                       </p>
-                                      <p className="mt-1 text-lg font-semibold text-[#1f1a54]">
+                                      <p className="mt-1 text-lg font-semibold text-[#0c2a1e]">
                                         {campaign.stats.ctr}%
                                       </p>
                                     </div>
                                   </div>
 
-                                  <div className="flex flex-wrap items-center gap-4 text-sm text-[#6f7599]">
+                                  <div className="flex flex-wrap items-center gap-4 text-sm text-[#5b6b62]">
                                     <span className="inline-flex items-center gap-1.5">
                                       <CalendarDays className="h-4 w-4" />
                                       {campaign.start_date
@@ -593,13 +593,13 @@ const AdsManager = () => {
                             <div className={cn("border-t p-5 lg:border-l lg:border-t-0 lg:p-6", statusMeta.panelClass)}>
                               <div className="space-y-4">
                                 <div>
-                                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7b82a8]">
+                                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#74837a]">
                                     Campaign State
                                   </p>
-                                  <p className="mt-2 text-lg font-semibold text-[#1f1a54]">
+                                  <p className="mt-2 text-lg font-semibold text-[#0c2a1e]">
                                     {statusMeta.label}
                                   </p>
-                                  <p className="mt-1 text-sm text-[#667091]">
+                                  <p className="mt-1 text-sm text-[#5b6b62]">
                                     Approved ads: {campaign.stats.approvedAds} • Pending:{" "}
                                     {campaign.stats.pendingAds} • Rejected: {campaign.stats.rejectedAds}
                                   </p>
@@ -669,13 +669,13 @@ const AdsManager = () => {
                     );
                   })
                 ) : (
-                  <Card className="border-[#dbe0f4] bg-white/95 shadow-[0_18px_45px_rgba(31,26,84,0.06)]">
+                  <Card className="border-[#dce3da] bg-white/95 shadow-[0_18px_45px_rgba(12,42,30,0.06)]">
                     <CardContent className="p-12 text-center">
-                      <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-3xl bg-[#eef1ff]">
-                        <Megaphone className="h-8 w-8 text-[#26225f]" />
+                      <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-3xl bg-[#e8efe6]">
+                        <Megaphone className="h-8 w-8 text-[#0f3d2a]" />
                       </div>
-                      <h3 className="mb-2 text-xl font-semibold text-[#1f1a54]">No campaigns yet</h3>
-                      <p className="mx-auto mb-6 max-w-xl text-sm leading-6 text-[#6f7599]">
+                      <h3 className="mb-2 text-xl font-semibold text-[#0c2a1e]">No campaigns yet</h3>
+                      <p className="mx-auto mb-6 max-w-xl text-sm leading-6 text-[#5b6b62]">
                         Start with a polished campaign brief, define your audience, and send your
                         first creative for approval.
                       </p>
@@ -689,9 +689,9 @@ const AdsManager = () => {
               </TabsContent>
 
               <TabsContent value="insights" className="mt-5">
-                <Card className="border-[#dbe0f4] bg-white/95 shadow-[0_18px_45px_rgba(31,26,84,0.06)]">
+                <Card className="border-[#dce3da] bg-white/95 shadow-[0_18px_45px_rgba(12,42,30,0.06)]">
                   <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-[#1f1a54]">
+                    <CardTitle className="flex items-center gap-2 text-[#0c2a1e]">
                       <BarChart3 className="h-5 w-5" />
                       Performance Insights
                     </CardTitle>
@@ -702,42 +702,42 @@ const AdsManager = () => {
                   <CardContent>
                     {campaigns.length > 0 ? (
                       <div className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
-                        <Card className="border-[#e3e7f7] bg-[#fafbff]">
+                        <Card className="border-[#dce3da] bg-[#f7f9f5]">
                           <CardContent className="p-5">
-                            <div className="mb-4 flex items-center gap-2 text-[#1f1a54]">
+                            <div className="mb-4 flex items-center gap-2 text-[#0c2a1e]">
                               <Layers3 className="h-4 w-4" />
                               <h4 className="font-semibold">Campaign health snapshot</h4>
                             </div>
                             <div className="grid gap-3 sm:grid-cols-2">
-                              <div className="rounded-2xl border border-[#e7eaf8] bg-white p-4">
-                                <p className="text-xs uppercase tracking-[0.16em] text-[#7b82a8]">
+                              <div className="rounded-2xl border border-[#dce3da] bg-white p-4">
+                                <p className="text-xs uppercase tracking-[0.16em] text-[#74837a]">
                                   Active
                                 </p>
-                                <p className="mt-1 text-2xl font-semibold text-[#1f1a54]">
+                                <p className="mt-1 text-2xl font-semibold text-[#0c2a1e]">
                                   {overview.activeCampaigns}
                                 </p>
                               </div>
-                              <div className="rounded-2xl border border-[#e7eaf8] bg-white p-4">
-                                <p className="text-xs uppercase tracking-[0.16em] text-[#7b82a8]">
+                              <div className="rounded-2xl border border-[#dce3da] bg-white p-4">
+                                <p className="text-xs uppercase tracking-[0.16em] text-[#74837a]">
                                   Pending review
                                 </p>
-                                <p className="mt-1 text-2xl font-semibold text-[#1f1a54]">
+                                <p className="mt-1 text-2xl font-semibold text-[#0c2a1e]">
                                   {overview.pendingCampaigns}
                                 </p>
                               </div>
-                              <div className="rounded-2xl border border-[#e7eaf8] bg-white p-4">
-                                <p className="text-xs uppercase tracking-[0.16em] text-[#7b82a8]">
+                              <div className="rounded-2xl border border-[#dce3da] bg-white p-4">
+                                <p className="text-xs uppercase tracking-[0.16em] text-[#74837a]">
                                   Drafts
                                 </p>
-                                <p className="mt-1 text-2xl font-semibold text-[#1f1a54]">
+                                <p className="mt-1 text-2xl font-semibold text-[#0c2a1e]">
                                   {overview.draftCampaigns}
                                 </p>
                               </div>
-                              <div className="rounded-2xl border border-[#e7eaf8] bg-white p-4">
-                                <p className="text-xs uppercase tracking-[0.16em] text-[#7b82a8]">
+                              <div className="rounded-2xl border border-[#dce3da] bg-white p-4">
+                                <p className="text-xs uppercase tracking-[0.16em] text-[#74837a]">
                                   Rejected
                                 </p>
-                                <p className="mt-1 text-2xl font-semibold text-[#1f1a54]">
+                                <p className="mt-1 text-2xl font-semibold text-[#0c2a1e]">
                                   {overview.rejectedCampaigns}
                                 </p>
                               </div>
@@ -746,32 +746,32 @@ const AdsManager = () => {
                         </Card>
 
                         <div className="space-y-4">
-                          <Card className="border-[#e3e7f7] bg-[#fafbff]">
+                          <Card className="border-[#dce3da] bg-[#f7f9f5]">
                             <CardContent className="p-5">
-                              <div className="mb-4 flex items-center gap-2 text-[#1f1a54]">
+                              <div className="mb-4 flex items-center gap-2 text-[#0c2a1e]">
                                 <CheckCircle2 className="h-4 w-4" />
                                 <h4 className="font-semibold">Delivery totals</h4>
                               </div>
                               <div className="space-y-3 text-sm">
-                                <div className="flex items-center justify-between rounded-2xl border border-[#e7eaf8] bg-white px-4 py-3">
-                                  <span className="text-[#67708f]">Total impressions</span>
-                                  <span className="font-semibold text-[#1f1a54]">
+                                <div className="flex items-center justify-between rounded-2xl border border-[#dce3da] bg-white px-4 py-3">
+                                  <span className="text-[#5b6b62]">Total impressions</span>
+                                  <span className="font-semibold text-[#0c2a1e]">
                                     {overview.totalImpressions.toLocaleString()}
                                   </span>
                                 </div>
-                                <div className="flex items-center justify-between rounded-2xl border border-[#e7eaf8] bg-white px-4 py-3">
-                                  <span className="text-[#67708f]">Total clicks</span>
-                                  <span className="font-semibold text-[#1f1a54]">
+                                <div className="flex items-center justify-between rounded-2xl border border-[#dce3da] bg-white px-4 py-3">
+                                  <span className="text-[#5b6b62]">Total clicks</span>
+                                  <span className="font-semibold text-[#0c2a1e]">
                                     {overview.totalClicks.toLocaleString()}
                                   </span>
                                 </div>
-                                <div className="flex items-center justify-between rounded-2xl border border-[#e7eaf8] bg-white px-4 py-3">
-                                  <span className="text-[#67708f]">Average CTR</span>
-                                  <span className="font-semibold text-[#1f1a54]">{overview.avgCtr}%</span>
+                                <div className="flex items-center justify-between rounded-2xl border border-[#dce3da] bg-white px-4 py-3">
+                                  <span className="text-[#5b6b62]">Average CTR</span>
+                                  <span className="font-semibold text-[#0c2a1e]">{overview.avgCtr}%</span>
                                 </div>
-                                <div className="flex items-center justify-between rounded-2xl border border-[#e7eaf8] bg-white px-4 py-3">
-                                  <span className="text-[#67708f]">Budget committed</span>
-                                  <span className="font-semibold text-[#1f1a54]">
+                                <div className="flex items-center justify-between rounded-2xl border border-[#dce3da] bg-white px-4 py-3">
+                                  <span className="text-[#5b6b62]">Budget committed</span>
+                                  <span className="font-semibold text-[#0c2a1e]">
                                     {formatCurrency(overview.totalSpend)}
                                   </span>
                                 </div>
@@ -779,7 +779,7 @@ const AdsManager = () => {
                             </CardContent>
                           </Card>
 
-                          <Card className="border-[#e3e7f7] bg-[linear-gradient(135deg,#f7efe3_0%,#fff8ef_100%)]">
+                          <Card className="border-[#dce3da] bg-[linear-gradient(135deg,#f7efe3_0%,#fff8ef_100%)]">
                             <CardContent className="p-5">
                               <div className="mb-3 flex items-center gap-2 text-[#6f4a1f]">
                                 <Clock3 className="h-4 w-4" />

@@ -65,7 +65,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               <Link to="/buy-property" className="hover:text-[#5cb85c]">Buy</Link>
               <Link to="/rental-properties" className="hover:text-[#5cb85c]">Rent</Link>
             </nav>
-            <Button asChild className="bg-[#1f1a54] text-white hover:bg-[#15113d] text-xs md:text-sm px-3 md:px-4 whitespace-nowrap">
+            <Button asChild className="bg-[#0c2a1e] text-white hover:bg-[#0c2a1e] text-xs md:text-sm px-3 md:px-4 whitespace-nowrap">
               <Link to="/upload-property">List A Property</Link>
             </Button>
           </div>

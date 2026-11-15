@@ -412,7 +412,7 @@ const AdminUsersTab = () => {
         <Card>
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">Admins</p>
-            <p className="text-2xl font-bold text-[#1f1a54]">{adminCount}</p>
+            <p className="text-2xl font-bold text-[#0c2a1e]">{adminCount}</p>
           </CardContent>
         </Card>
         <Card>
@@ -467,7 +467,7 @@ const AdminUsersTab = () => {
                           {roleLabel(profile.user_type)}
                         </Badge>
                         {isAdmin && (
-                          <Badge className="bg-[#1f1a54] text-white">
+                          <Badge className="bg-[#0c2a1e] text-white">
                             <Crown className="mr-1 h-3 w-3" />
                             Admin
                           </Badge>

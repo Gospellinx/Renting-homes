@@ -381,7 +381,7 @@ const PropertyDetails = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-[#26225f] border-t-transparent" />
+          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-[#0f3d2a] border-t-transparent" />
           <p className="text-muted-foreground">Loading property details...</p>
         </div>
       </div>
@@ -425,12 +425,12 @@ const PropertyDetails = () => {
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(91,104,228,0.16),transparent_34%),radial-gradient(circle_at_top_right,rgba(72,153,255,0.16),transparent_28%),radial-gradient(circle_at_bottom,rgba(162,153,255,0.12),transparent_42%)] z-0" />
       
       {/* Header */}
-      <header className="relative z-50 border-b border-[#d7daf0] bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0">
+      <header className="relative z-50 border-b border-[#dce3da] bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0">
         <div className="container flex h-16 items-center justify-between">
           <Button 
             variant="ghost" 
             onClick={() => navigate(backTarget)}
-            className="flex items-center gap-2 text-[#1f1a54] hover:text-[#26225f] hover:bg-[#eef1ff]"
+            className="flex items-center gap-2 text-[#0c2a1e] hover:text-[#0f3d2a] hover:bg-[#e8efe6]"
           >
             <ArrowLeft className="h-5 w-5" />
             <span className="hidden sm:inline">{backLabel}</span>
@@ -440,7 +440,7 @@ const PropertyDetails = () => {
               <Button
                 variant="outline"
                 onClick={() => navigate(userDashboardPath)}
-                className="hidden border-[#d7daf0] text-[#1f1a54] hover:bg-[#eef1ff] sm:inline-flex"
+                className="hidden border-[#dce3da] text-[#0c2a1e] hover:bg-[#e8efe6] sm:inline-flex"
               >
                 <LayoutDashboard className="mr-2 h-4 w-4" />
                 Dashboard
@@ -451,7 +451,7 @@ const PropertyDetails = () => {
               variant="ghost"
               onClick={() => setShowReport(true)}
               title="Report this property"
-              className="text-[#1f1a54] hover:text-[#26225f] hover:bg-[#eef1ff]"
+              className="text-[#0c2a1e] hover:text-[#0f3d2a] hover:bg-[#e8efe6]"
             >
               <Flag className="h-5 w-5" />
             </Button>
@@ -459,11 +459,11 @@ const PropertyDetails = () => {
               size="icon" 
               variant="ghost"
               onClick={() => setIsFavorite(!isFavorite)}
-              className="text-[#1f1a54] hover:text-[#26225f] hover:bg-[#eef1ff]"
+              className="text-[#0c2a1e] hover:text-[#0f3d2a] hover:bg-[#e8efe6]"
             >
               <Heart className={`h-5 w-5 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
             </Button>
-            <Button size="icon" variant="ghost" onClick={handleShare} className="text-[#1f1a54] hover:text-[#26225f] hover:bg-[#eef1ff]">
+            <Button size="icon" variant="ghost" onClick={handleShare} className="text-[#0c2a1e] hover:text-[#0f3d2a] hover:bg-[#e8efe6]">
               <Share2 className="h-5 w-5" />
             </Button>
           </div>
@@ -507,26 +507,26 @@ const PropertyDetails = () => {
               <div>
                 <div className="flex flex-wrap items-center gap-2 mb-3">
                   {property.verified && (
-                    <Badge className="bg-[#26225f] text-white">✓ Verified</Badge>
+                    <Badge className="bg-[#0f3d2a] text-white">✓ Verified</Badge>
                   )}
-                  <Badge variant="secondary" className="bg-[#eef1ff] text-[#26225f]">
+                  <Badge variant="secondary" className="bg-[#e8efe6] text-[#0f3d2a]">
                     <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
                     {property.rating}
                   </Badge>
-                  <Badge variant="outline" className="border-[#d7daf0] text-[#1f1a54]">{property.propertyType}</Badge>
+                  <Badge variant="outline" className="border-[#dce3da] text-[#0c2a1e]">{property.propertyType}</Badge>
                 </div>
                 
-                <h1 className="text-3xl md:text-4xl font-bold mb-2 text-[#1f1a54]">{property.title}</h1>
+                <h1 className="text-3xl md:text-4xl font-bold mb-2 text-[#0c2a1e]">{property.title}</h1>
                 
-                <div className="flex items-center text-[#6f7599] mb-4">
+                <div className="flex items-center text-[#5b6b62] mb-4">
                   <MapPin className="h-5 w-5 mr-2" />
                   <span>{property.address}</span>
                 </div>
 
-                <div className="text-3xl md:text-4xl font-bold text-[#26225f]">
+                <div className="text-3xl md:text-4xl font-bold text-[#0f3d2a]">
                   {type === "rent" || type === "rental" || type === "shop-rental" ? property.price : property.salePrice}
                   {(type === "rent" || type === "rental" || type === "shop-rental") && (
-                    <span className="text-lg font-normal text-[#6f7599] ml-2">
+                    <span className="text-lg font-normal text-[#5b6b62] ml-2">
                       per month
                     </span>
                   )}
@@ -534,43 +534,43 @@ const PropertyDetails = () => {
               </div>
 
               {/* Key Details */}
-              <Card className="border-[#d7daf0] bg-white shadow-[0_10px_25px_rgba(31,26,84,0.08)]">
+              <Card className="border-[#dce3da] bg-white shadow-[0_10px_25px_rgba(12,42,30,0.08)]">
                 <CardContent className="p-6">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                     <div className="flex items-center gap-3">
-                      <div className="p-3 rounded-lg bg-[#eef1ff]">
-                        <Bed className="h-6 w-6 text-[#26225f]" />
+                      <div className="p-3 rounded-lg bg-[#e8efe6]">
+                        <Bed className="h-6 w-6 text-[#0f3d2a]" />
                       </div>
                       <div>
-                        <p className="text-sm text-[#6f7599]">Bedrooms</p>
-                        <p className="text-xl font-bold text-[#1f1a54]">{property.bedrooms}</p>
+                        <p className="text-sm text-[#5b6b62]">Bedrooms</p>
+                        <p className="text-xl font-bold text-[#0c2a1e]">{property.bedrooms}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="p-3 rounded-lg bg-[#eef1ff]">
-                        <Bath className="h-6 w-6 text-[#26225f]" />
+                      <div className="p-3 rounded-lg bg-[#e8efe6]">
+                        <Bath className="h-6 w-6 text-[#0f3d2a]" />
                       </div>
                       <div>
-                        <p className="text-sm text-[#6f7599]">Bathrooms</p>
-                        <p className="text-xl font-bold text-[#1f1a54]">{property.bathrooms}</p>
+                        <p className="text-sm text-[#5b6b62]">Bathrooms</p>
+                        <p className="text-xl font-bold text-[#0c2a1e]">{property.bathrooms}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="p-3 rounded-lg bg-[#eef1ff]">
-                        <Square className="h-6 w-6 text-[#26225f]" />
+                      <div className="p-3 rounded-lg bg-[#e8efe6]">
+                        <Square className="h-6 w-6 text-[#0f3d2a]" />
                       </div>
                       <div>
-                        <p className="text-sm text-[#6f7599]">Area</p>
-                        <p className="text-xl font-bold text-[#1f1a54]">{addStepCount(property.area)}</p>
+                        <p className="text-sm text-[#5b6b62]">Area</p>
+                        <p className="text-xl font-bold text-[#0c2a1e]">{addStepCount(property.area)}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="p-3 rounded-lg bg-[#eef1ff]">
-                        <Home className="h-6 w-6 text-[#26225f]" />
+                      <div className="p-3 rounded-lg bg-[#e8efe6]">
+                        <Home className="h-6 w-6 text-[#0f3d2a]" />
                       </div>
                       <div>
-                        <p className="text-sm text-[#6f7599]">Built</p>
-                        <p className="text-xl font-bold text-[#1f1a54]">{property.yearBuilt}</p>
+                        <p className="text-sm text-[#5b6b62]">Built</p>
+                        <p className="text-xl font-bold text-[#0c2a1e]">{property.yearBuilt}</p>
                       </div>
                     </div>
                   </div>
@@ -578,26 +578,26 @@ const PropertyDetails = () => {
               </Card>
 
               {/* Description */}
-              <Card className="border-[#d7daf0] bg-white shadow-[0_10px_25px_rgba(31,26,84,0.08)]">
+              <Card className="border-[#dce3da] bg-white shadow-[0_10px_25px_rgba(12,42,30,0.08)]">
                 <CardContent className="p-6">
-                  <h2 className="text-2xl font-bold mb-4 text-[#1f1a54]">About This Property</h2>
-                  <p className="text-[#6f7599] leading-relaxed">
+                  <h2 className="text-2xl font-bold mb-4 text-[#0c2a1e]">About This Property</h2>
+                  <p className="text-[#5b6b62] leading-relaxed">
                     {property.description}
                   </p>
                 </CardContent>
               </Card>
 
               {/* Amenities */}
-              <Card className="border-[#d7daf0] bg-white shadow-[0_10px_25px_rgba(31,26,84,0.08)]">
+              <Card className="border-[#dce3da] bg-white shadow-[0_10px_25px_rgba(12,42,30,0.08)]">
                 <CardContent className="p-6">
-                  <h2 className="text-2xl font-bold mb-6 text-[#1f1a54]">Amenities & Features</h2>
+                  <h2 className="text-2xl font-bold mb-6 text-[#0c2a1e]">Amenities & Features</h2>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {property.amenities.map((amenity: any, index: number) => {
                       const IconComponent = iconMap[amenity.icon];
                       return (
-                        <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-[#eef1ff]">
-                          {IconComponent && <IconComponent className="h-5 w-5 text-[#26225f]" />}
-                          <span className="font-medium text-[#1f1a54]">{amenity.label}</span>
+                        <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-[#e8efe6]">
+                          {IconComponent && <IconComponent className="h-5 w-5 text-[#0f3d2a]" />}
+                          <span className="font-medium text-[#0c2a1e]">{amenity.label}</span>
                         </div>
                       );
                     })}

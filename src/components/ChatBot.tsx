@@ -115,8 +115,8 @@ const ChatBot = () => {
                     className={`flex gap-2 ${m.role === "user" ? "justify-end" : "justify-start"}`}
                   >
                     {m.role === "assistant" && (
-                      <Avatar className="h-6 w-6 shrink-0 mt-1 shadow-sm border border-[#d7daf0]">
-                        <AvatarFallback className="bg-[#eef1ff] text-[#5b68e4] text-xs"><Bot className="h-3 w-3" /></AvatarFallback>
+                      <Avatar className="h-6 w-6 shrink-0 mt-1 shadow-sm border border-[#dce3da]">
+                        <AvatarFallback className="bg-[#e8efe6] text-[#1e8e4e] text-xs"><Bot className="h-3 w-3" /></AvatarFallback>
                       </Avatar>
                     )}
                     <div

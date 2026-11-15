@@ -18,7 +18,16 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				sans: ['Figtree', 'system-ui', 'sans-serif'],
+				display: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
+				mono: ['"DM Mono"', 'ui-monospace', 'monospace']
+			},
 			colors: {
+				beacon: 'hsl(var(--beacon))',
+				ink: '#0c2a1e',
+				leaf: '#1e8e4e',
+				paper: '#f4f6f1',
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',

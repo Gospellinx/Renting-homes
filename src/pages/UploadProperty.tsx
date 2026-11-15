@@ -715,13 +715,13 @@ const UploadProperty = () => {
     <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f2f4fb_0%,#f7f7fb_42%,#f4f1ec_100%)]">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(91,104,228,0.16),transparent_34%),radial-gradient(circle_at_top_right,rgba(72,153,255,0.16),transparent_28%),radial-gradient(circle_at_bottom,rgba(162,153,255,0.12),transparent_42%)] z-0" />
 
-      <header className="relative z-40 border-b border-[#d7daf0] bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0">
+      <header className="relative z-40 border-b border-[#dce3da] bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0">
         <div className="container flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center space-x-2 text-[#1f1a54] hover:text-[#26225f]">
+          <Link to="/" className="flex items-center space-x-2 text-[#0c2a1e] hover:text-[#0f3d2a]">
             <ArrowLeft className="h-5 w-5" />
             <span className="text-lg font-semibold">Back to Home</span>
           </Link>
-          <Badge variant="outline" className="border-[#d7daf0] text-[#26225f]">
+          <Badge variant="outline" className="border-[#dce3da] text-[#0f3d2a]">
             Step {currentStep} of 4
           </Badge>
         </div>

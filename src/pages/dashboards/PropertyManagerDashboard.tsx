@@ -331,7 +331,7 @@ const PropertyManagerDashboard = () => {
             <h1 className="text-3xl font-bold text-gray-900">Landlord Dashboard</h1>
             <p className="text-gray-500">Manage your profile, properties, and track performance.</p>
           </div>
-          <Button asChild className="bg-[#26225f] hover:bg-[#1f1b50]">
+          <Button asChild className="bg-[#0f3d2a] hover:bg-[#0a2e1f]">
             <Link to="/upload-property">
               <PlusCircle className="mr-2 h-4 w-4" />
               Upload Property
@@ -450,7 +450,7 @@ const PropertyManagerDashboard = () => {
 
         {isLoading ? (
           <div className="flex justify-center items-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-[#26225f]" />
+            <Loader2 className="h-8 w-8 animate-spin text-[#0f3d2a]" />
           </div>
         ) : properties.length === 0 ? (
           <Card className="border-gray-200 bg-white">
@@ -462,7 +462,7 @@ const PropertyManagerDashboard = () => {
               <p className="text-gray-500 mb-6 max-w-sm mx-auto">
                 Get started by uploading your first property listing. It will immediately appear here and be visible to thousands of potential renters.
               </p>
-              <Button asChild className="bg-[#26225f] hover:bg-[#1f1b50]">
+              <Button asChild className="bg-[#0f3d2a] hover:bg-[#0a2e1f]">
                 <Link to="/upload-property">
                   <PlusCircle className="mr-2 h-4 w-4" />
                   Upload First Property
@@ -504,7 +504,7 @@ const PropertyManagerDashboard = () => {
                       {property.location}, {property.state}
                     </p>
                     
-                    <div className="text-xl font-bold text-[#1f1a54]">
+                    <div className="text-xl font-bold text-[#0c2a1e]">
                       ₦{property.price}
                       <span className="text-xs text-gray-500 font-normal ml-1">/ month</span>
                     </div>
@@ -675,7 +675,7 @@ const PropertyManagerDashboard = () => {
             <Button type="button" variant="outline" onClick={closeEditDialog} disabled={isSaving}>
               Cancel
             </Button>
-            <Button type="button" className="bg-[#26225f] hover:bg-[#1f1b50]" onClick={handleUpdateProperty} disabled={isSaving}>
+            <Button type="button" className="bg-[#0f3d2a] hover:bg-[#0a2e1f]" onClick={handleUpdateProperty} disabled={isSaving}>
               {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save Changes
             </Button>

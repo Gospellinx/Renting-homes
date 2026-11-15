@@ -53,8 +53,8 @@ export default function WalletCard({
   };
 
   return (
-    <Card className="overflow-hidden border-[#dbe0f4] bg-white/95 shadow-[0_18px_45px_rgba(31,26,84,0.08)]">
-      <div className="border-b border-[#dbe0f4] bg-[linear-gradient(135deg,#1f1a54_0%,#2d2873_55%,#6b60c8_100%)] text-white">
+    <Card className="overflow-hidden border-[#dce3da] bg-white/95 shadow-[0_18px_45px_rgba(12,42,30,0.08)]">
+      <div className="border-b border-[#dce3da] bg-[linear-gradient(135deg,#1f1a54_0%,#2d2873_55%,#6b60c8_100%)] text-white">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between gap-4">
             <div>
@@ -94,14 +94,14 @@ export default function WalletCard({
       <CardContent className="space-y-6 p-5">
         <div className="space-y-4">
           <div>
-            <h4 className="font-semibold text-[#1f1a54]">Top up wallet</h4>
-            <p className="text-sm text-[#6e769b]">
+            <h4 className="font-semibold text-[#0c2a1e]">Top up wallet</h4>
+            <p className="text-sm text-[#5b6b62]">
               Choose a quick amount or enter a custom value before opening checkout.
             </p>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-[#1f1a54]">Top-up amount</label>
+            <label className="text-sm font-medium text-[#0c2a1e]">Top-up amount</label>
             <Input
               type="number"
               min="100"
@@ -147,8 +147,8 @@ export default function WalletCard({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="font-semibold text-[#1f1a54]">Recent transactions</h4>
-              <p className="text-sm text-[#6e769b]">A quick look at your latest wallet movement.</p>
+              <h4 className="font-semibold text-[#0c2a1e]">Recent transactions</h4>
+              <p className="text-sm text-[#5b6b62]">A quick look at your latest wallet movement.</p>
             </div>
             <Badge variant="outline" className="rounded-full">
               {transactions.length}
@@ -156,7 +156,7 @@ export default function WalletCard({
           </div>
 
           {transactionsLoading ? (
-            <div className="flex items-center gap-2 rounded-2xl border border-[#e3e7f7] p-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 rounded-2xl border border-[#dce3da] p-4 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
               Loading transactions...
             </div>
@@ -168,7 +168,7 @@ export default function WalletCard({
                 return (
                   <div
                     key={transaction.id}
-                    className="rounded-[22px] border border-[#e3e7f7] bg-[#fbfbfe] p-4"
+                    className="rounded-[22px] border border-[#dce3da] bg-[#f7f9f5] p-4"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-start gap-3">
@@ -185,14 +185,14 @@ export default function WalletCard({
                           )}
                         </div>
                         <div>
-                          <p className="font-medium capitalize text-[#1f1a54]">{transaction.type}</p>
+                          <p className="font-medium capitalize text-[#0c2a1e]">{transaction.type}</p>
                           <p className="text-sm text-[#6f7699]">
                             {transaction.description || "Ad wallet transaction"}
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-[#1f1a54]">
+                        <p className="font-semibold text-[#0c2a1e]">
                           {isCredit ? "+" : "-"}
                           {formatCurrency(transaction.amount)}
                         </p>
@@ -206,7 +206,7 @@ export default function WalletCard({
               })}
             </div>
           ) : (
-            <div className="rounded-[24px] border border-dashed border-[#dbe0f4] bg-[#fafbff] p-5 text-sm text-[#6e769b]">
+            <div className="rounded-[24px] border border-dashed border-[#dce3da] bg-[#f7f9f5] p-5 text-sm text-[#5b6b62]">
               <div className="flex items-center gap-2">
                 <Clock3 className="h-4 w-4" />
                 No wallet transactions yet.

@@ -195,26 +195,26 @@ const AISearch = () => {
   return (
     <div className="flex h-screen w-full flex-col bg-[linear-gradient(180deg,#f2f4fb_0%,#f7f7fb_42%,#f4f1ec_100%)]">
       {/* Header */}
-      <header className="relative z-40 flex h-16 shrink-0 items-center justify-between border-b border-[#d7daf0] bg-white/80 px-4 backdrop-blur supports-[backdrop-filter]:bg-white/60 sm:px-6">
+      <header className="relative z-40 flex h-16 shrink-0 items-center justify-between border-b border-[#dce3da] bg-white/80 px-4 backdrop-blur supports-[backdrop-filter]:bg-white/60 sm:px-6">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="text-[#1f1a54] hover:bg-[#eef1ff] hover:text-[#26225f]">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="text-[#0c2a1e] hover:bg-[#e8efe6] hover:text-[#0f3d2a]">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex flex-col">
-            <h1 className="text-lg font-bold leading-tight text-[#1f1a54] flex items-center gap-2">
+            <h1 className="text-lg font-bold leading-tight text-[#0c2a1e] flex items-center gap-2">
               <Bot className="h-5 w-5 text-primary" />
               AI Search Assistant
             </h1>
           </div>
         </div>
-        <Button variant="outline" size="sm" asChild className="hidden sm:flex border-[#d7daf0] text-[#1f1a54] hover:bg-[#eef1ff] hover:text-[#26225f]">
+        <Button variant="outline" size="sm" asChild className="hidden sm:flex border-[#dce3da] text-[#0c2a1e] hover:bg-[#e8efe6] hover:text-[#0f3d2a]">
           <Link to="/">Back to Home</Link>
         </Button>
       </header>
 
       <div className="flex flex-1 overflow-hidden flex-col md:flex-row">
         {/* Left pane: AI Chat */}
-        <div className="flex w-full flex-col border-r border-[#d7daf0] bg-white/50 md:w-[400px] lg:w-[450px]">
+        <div className="flex w-full flex-col border-r border-[#dce3da] bg-white/50 md:w-[400px] lg:w-[450px]">
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.length === 0 && (
               <div className="space-y-4 pt-4">
@@ -222,7 +222,7 @@ const AISearch = () => {
                   <Bot className="h-6 w-6" />
                 </div>
                 <div className="text-center">
-                  <h3 className="text-lg font-semibold text-[#1f1a54]">HomesNG AI</h3>
+                  <h3 className="text-lg font-semibold text-[#0c2a1e]">HomesNG AI</h3>
                   <p className="text-sm text-muted-foreground mt-1">Tell me what you're looking for, your budget, or location.</p>
                 </div>
                 <div className="grid grid-cols-1 gap-2 pt-2">
@@ -230,7 +230,7 @@ const AISearch = () => {
                     <button
                       key={s}
                       onClick={() => send(s)}
-                      className="text-left text-sm px-4 py-3 rounded-xl border border-[#d7daf0] bg-white hover:border-[#cfd5fb] hover:bg-[#f8f9fe] transition-all text-[#4a507e] shadow-sm"
+                      className="text-left text-sm px-4 py-3 rounded-xl border border-[#dce3da] bg-white hover:border-[#bfd1c2] hover:bg-[#f7f9f5] transition-all text-[#5b6b62] shadow-sm"
                     >
                       {s}
                     </button>
@@ -249,19 +249,19 @@ const AISearch = () => {
                   className={`flex gap-3 ${m.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   {m.role === "assistant" && (
-                    <Avatar className="h-8 w-8 shrink-0 shadow-sm border border-[#d7daf0]">
-                      <AvatarFallback className="bg-[#eef1ff] text-[#5b68e4]"><Bot className="h-4 w-4" /></AvatarFallback>
+                    <Avatar className="h-8 w-8 shrink-0 shadow-sm border border-[#dce3da]">
+                      <AvatarFallback className="bg-[#e8efe6] text-[#1e8e4e]"><Bot className="h-4 w-4" /></AvatarFallback>
                     </Avatar>
                   )}
                   <div
                     className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
                       m.role === "user"
-                        ? "bg-[#26225f] text-white rounded-br-sm"
-                        : "bg-white border border-[#d7daf0] text-[#1f1a54] rounded-bl-sm"
+                        ? "bg-[#0f3d2a] text-white rounded-br-sm"
+                        : "bg-white border border-[#dce3da] text-[#0c2a1e] rounded-bl-sm"
                     }`}
                   >
                     {m.role === "assistant" ? (
-                      <div className="prose prose-sm max-w-none [&>p]:m-0 [&>ul]:mt-1 [&>ol]:mt-1 text-[#4a507e]">
+                      <div className="prose prose-sm max-w-none [&>p]:m-0 [&>ul]:mt-1 [&>ol]:mt-1 text-[#5b6b62]">
                         <ReactMarkdown>{m.content}</ReactMarkdown>
                       </div>
                     ) : (
@@ -270,7 +270,7 @@ const AISearch = () => {
                   </div>
                   {m.role === "user" && (
                     <Avatar className="h-8 w-8 shrink-0 shadow-sm">
-                      <AvatarFallback className="bg-[#26225f] text-white"><UserRound className="h-4 w-4" /></AvatarFallback>
+                      <AvatarFallback className="bg-[#0f3d2a] text-white"><UserRound className="h-4 w-4" /></AvatarFallback>
                     </Avatar>
                   )}
                 </motion.div>
@@ -279,29 +279,29 @@ const AISearch = () => {
             
             {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
               <div className="flex justify-start">
-                <div className="bg-white border border-[#d7daf0] rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
-                  <Loader2 className="h-4 w-4 animate-spin text-[#7d84ad]" />
+                <div className="bg-white border border-[#dce3da] rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
+                  <Loader2 className="h-4 w-4 animate-spin text-[#74837a]" />
                 </div>
               </div>
             )}
           </div>
 
-          <div className="p-4 bg-white border-t border-[#d7daf0]">
+          <div className="p-4 bg-white border-t border-[#dce3da]">
             <form
               onSubmit={(e) => { e.preventDefault(); send(input); }}
-              className="flex items-center gap-2 rounded-full border border-[#d7daf0] bg-[#f8f9fe] p-1.5 shadow-sm focus-within:border-[#cfd5fb] focus-within:ring-1 focus-within:ring-[#cfd5fb]"
+              className="flex items-center gap-2 rounded-full border border-[#dce3da] bg-[#f7f9f5] p-1.5 shadow-sm focus-within:border-[#bfd1c2] focus-within:ring-1 focus-within:ring-[#bfd1c2]"
             >
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask about properties..."
                 disabled={isLoading}
-                className="flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-[#9ca2c6] text-[#1f1a54] disabled:opacity-50"
+                className="flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-[#9aa69f] text-[#0c2a1e] disabled:opacity-50"
               />
               <Button 
                 type="submit" 
                 size="icon" 
-                className="rounded-full bg-[#26225f] text-white hover:bg-[#1f1b50] h-9 w-9 shrink-0" 
+                className="rounded-full bg-[#0f3d2a] text-white hover:bg-[#0a2e1f] h-9 w-9 shrink-0" 
                 disabled={isLoading || !input.trim()}
               >
                 <Search className="h-4 w-4" />
@@ -312,8 +312,8 @@ const AISearch = () => {
 
         {/* Right pane: Property Results */}
         <div className="flex-1 flex flex-col bg-transparent overflow-hidden">
-          <div className="p-4 sm:p-6 border-b border-[#d7daf0]/50 bg-white/30 backdrop-blur-sm flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-[#1f1a54]">
+          <div className="p-4 sm:p-6 border-b border-[#dce3da]/50 bg-white/30 backdrop-blur-sm flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-[#0c2a1e]">
               {isSearchingWeb ? "Searching the web..." : `${displayedProperties.length} Properties Found`}
             </h2>
             <p className="text-sm text-muted-foreground hidden sm:block">
@@ -324,8 +324,8 @@ const AISearch = () => {
           <div className="flex-1 overflow-y-auto p-4 sm:p-6">
             {isSearchingWeb ? (
               <div className="h-full flex flex-col items-center justify-center text-center p-6">
-                <Loader2 className="h-10 w-10 animate-spin text-[#6d62c8] mb-4" />
-                <h3 className="text-lg font-semibold text-[#1f1a54] mb-1">Searching Google...</h3>
+                <Loader2 className="h-10 w-10 animate-spin text-[#1e8e4e] mb-4" />
+                <h3 className="text-lg font-semibold text-[#0c2a1e] mb-1">Searching Google...</h3>
                 <p className="text-sm text-muted-foreground max-w-sm">
                   We're looking across the web for available properties that match your criteria.
                 </p>
@@ -342,7 +342,7 @@ const AISearch = () => {
                       exit={{ opacity: 0, scale: 0.9 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <Card className="h-full overflow-hidden hover:shadow-lg transition-shadow group border-[#d7daf0] shadow-sm">
+                      <Card className="h-full overflow-hidden hover:shadow-lg transition-shadow group border-[#dce3da] shadow-sm">
                         <div className="relative">
                           <img
                             src={property.image}
@@ -362,7 +362,7 @@ const AISearch = () => {
                           </div>
                         </div>
                         <CardContent className="p-3">
-                          <h3 className="font-semibold text-sm mb-1 line-clamp-1 text-[#1f1a54]">
+                          <h3 className="font-semibold text-sm mb-1 line-clamp-1 text-[#0c2a1e]">
                             {property.isExternal ? <ExternalLink className="inline h-3 w-3 mr-1 text-[#4285F4]" /> : null}
                             {property.title}
                           </h3>
@@ -381,13 +381,13 @@ const AISearch = () => {
                             </span>
                           </div>
                           <div className="flex items-center justify-between">
-                            <span className="text-base font-bold text-[#26225f]">{property.price}</span>
+                            <span className="text-base font-bold text-[#0f3d2a]">{property.price}</span>
                             {property.isExternal ? (
-                              <Button size="sm" variant="outline" className="h-8 px-2 border-[#d7daf0] text-[#5c6494] hover:bg-[#eef1ff] hover:text-[#26225f]" onClick={() => window.open(property.externalUrl, '_blank')}>
+                              <Button size="sm" variant="outline" className="h-8 px-2 border-[#dce3da] text-[#5b6b62] hover:bg-[#e8efe6] hover:text-[#0f3d2a]" onClick={() => window.open(property.externalUrl, '_blank')}>
                                 View Web
                               </Button>
                             ) : (
-                              <Button size="sm" variant="ghost" className="h-8 px-2 text-[#5c6494] hover:bg-[#eef1ff] hover:text-[#26225f]" asChild>
+                              <Button size="sm" variant="ghost" className="h-8 px-2 text-[#5b6b62] hover:bg-[#e8efe6] hover:text-[#0f3d2a]" asChild>
                                 <Link to={`/property/${property.type}/${property.id}`}>
                                   View
                                 </Link>
@@ -402,10 +402,10 @@ const AISearch = () => {
               </AnimatePresence>
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-center p-6">
-                <div className="h-16 w-16 rounded-full bg-white border border-[#d7daf0] flex items-center justify-center mb-4 shadow-sm">
-                  <Search className="h-6 w-6 text-[#7d84ad]" />
+                <div className="h-16 w-16 rounded-full bg-white border border-[#dce3da] flex items-center justify-center mb-4 shadow-sm">
+                  <Search className="h-6 w-6 text-[#74837a]" />
                 </div>
-                <h3 className="text-lg font-semibold text-[#1f1a54] mb-1">No matches found</h3>
+                <h3 className="text-lg font-semibold text-[#0c2a1e] mb-1">No matches found</h3>
                 <p className="text-sm text-muted-foreground max-w-sm">
                   Try asking the AI to show you different locations, property types, or a broader budget range.
                 </p>

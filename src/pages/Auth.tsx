@@ -26,11 +26,11 @@ const emailSchema = z.string().email("Please enter a valid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
 const normalizeEmail = (value: string) => value.trim().toLowerCase();
 const authInputClassName =
-  "h-12 rounded-2xl border-[#d9ddf4] bg-[linear-gradient(180deg,#ffffff_0%,#f8f9ff_100%)] pl-11 text-[#1f1a54] placeholder:text-[#98a0c4] shadow-[inset_0_1px_0_rgba(255,255,255,0.78),0_10px_24px_rgba(31,26,84,0.05)] transition-all duration-300 focus-visible:border-[#b8c1fb] focus-visible:ring-2 focus-visible:ring-[#d7ddff] focus-visible:ring-offset-0";
-const authIconClassName = "absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6f7599]";
+  "h-12 rounded-2xl border-[#dce3da] bg-[linear-gradient(180deg,#ffffff_0%,#f8f9ff_100%)] pl-11 text-[#0c2a1e] placeholder:text-[#98a0c4] shadow-[inset_0_1px_0_rgba(255,255,255,0.78),0_10px_24px_rgba(12,42,30,0.05)] transition-all duration-300 focus-visible:border-[#bfd1c2] focus-visible:ring-2 focus-visible:ring-[#e8efe6] focus-visible:ring-offset-0";
+const authIconClassName = "absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5b6b62]";
 const authPasswordToggleClassName =
-  "absolute right-3 top-1/2 -translate-y-1/2 text-[#7c82ab] transition-colors hover:text-[#1f1a54]";
-const authLabelClassName = "text-[11px] font-semibold uppercase tracking-[0.22em] text-[#5d648d]";
+  "absolute right-3 top-1/2 -translate-y-1/2 text-[#7c82ab] transition-colors hover:text-[#0c2a1e]";
+const authLabelClassName = "text-[11px] font-semibold uppercase tracking-[0.22em] text-[#5b6b62]";
 
 type AuthTab = "signin" | "signup";
 
@@ -362,8 +362,8 @@ const Auth = () => {
   return (
     <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f2f4fb_0%,#f7f7fb_42%,#f4f1ec_100%)] px-4 py-4 sm:px-6 sm:py-6 flex flex-col">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(91,104,228,0.16),transparent_34%),radial-gradient(circle_at_top_right,rgba(72,153,255,0.16),transparent_28%),radial-gradient(circle_at_bottom,rgba(162,153,255,0.12),transparent_42%)]" />
-      <div className="pointer-events-none absolute -left-16 top-28 h-48 w-48 rounded-full bg-[#eef1ff] blur-3xl sm:h-72 sm:w-72" />
-      <div className="pointer-events-none absolute -right-14 bottom-16 h-44 w-44 rounded-full bg-[#e9ecff] blur-3xl sm:h-64 sm:w-64" />
+      <div className="pointer-events-none absolute -left-16 top-28 h-48 w-48 rounded-full bg-[#e8efe6] blur-3xl sm:h-72 sm:w-72" />
+      <div className="pointer-events-none absolute -right-14 bottom-16 h-44 w-44 rounded-full bg-[#e8efe6] blur-3xl sm:h-64 sm:w-64" />
 
       <header className="relative z-10 border-0 bg-transparent">
         <div className="flex h-16 items-center justify-between px-1">
@@ -373,7 +373,7 @@ const Auth = () => {
           <Button
             asChild
             variant="outline"
-            className="rounded-full border-[#d7daf0] bg-white/85 px-4 text-[#241f66] shadow-[0_10px_25px_rgba(31,26,84,0.08)] backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:border-[#bfc6f5] hover:bg-white"
+            className="rounded-full border-[#dce3da] bg-white/85 px-4 text-[#0c2a1e] shadow-[0_10px_25px_rgba(12,42,30,0.08)] backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:border-[#bfd1c2] hover:bg-white"
           >
             <Link to="/" className="flex items-center gap-2">
               <ArrowLeft className="h-4 w-4" />
@@ -384,14 +384,14 @@ const Auth = () => {
       </header>
 
       <div className="relative z-10 flex-1 flex items-center justify-center">
-        <Card className="w-full max-w-md overflow-hidden border-[#d7daf0] bg-white/90 shadow-[0_20px_50px_rgba(31,26,84,0.12)] backdrop-blur">
+        <Card className="w-full max-w-md overflow-hidden border-[#dce3da] bg-white/90 shadow-[0_20px_50px_rgba(12,42,30,0.12)] backdrop-blur">
           <div className="h-1.5 w-full bg-[linear-gradient(90deg,#1f1a54_0%,#5564d8_55%,#d8a95b_100%)]" />
           <CardHeader className="text-center pb-2">
-            <div className="mx-auto mb-4 inline-flex items-center rounded-full border border-[#e4e7f7] bg-[#f8f9ff] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#5d648d] shadow-sm">
+            <div className="mx-auto mb-4 inline-flex items-center rounded-full border border-[#dce3da] bg-[#f7f9f5] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#5b6b62] shadow-sm">
               Homes Nigeria Secure Access
             </div>
-            <CardTitle className="text-2xl font-bold text-[#1f1a54]">Welcome to Homes</CardTitle>
-            <CardDescription className="text-[#6f7599]">
+            <CardTitle className="text-2xl font-bold text-[#0c2a1e]">Welcome to Homes</CardTitle>
+            <CardDescription className="text-[#5b6b62]">
               {activeTab === "signin"
                 ? "Sign in to access your account"
                 : "Create an account to get started"}
@@ -400,7 +400,7 @@ const Auth = () => {
           <CardContent>
             {inlineNotice && (
               <Alert
-                className={`mb-5 rounded-2xl border shadow-[0_16px_32px_rgba(31,26,84,0.08)] ${inlineNoticeStyles[inlineNotice.tone]}`}
+                className={`mb-5 rounded-2xl border shadow-[0_16px_32px_rgba(12,42,30,0.08)] ${inlineNoticeStyles[inlineNotice.tone]}`}
               >
                 <CircleAlert className="h-4 w-4" />
                 <AlertTitle className="text-sm font-semibold">{inlineNotice.title}</AlertTitle>
@@ -411,16 +411,16 @@ const Auth = () => {
             )}
 
             <Tabs value={activeTab} onValueChange={handleTabChange}>
-              <TabsList className="mb-6 grid w-full grid-cols-2 rounded-2xl border border-[#e0e4f6] bg-[#f6f7ff] p-1">
+              <TabsList className="mb-6 grid w-full grid-cols-2 rounded-2xl border border-[#dce3da] bg-[#f7f9f5] p-1">
                 <TabsTrigger
                   value="signin"
-                  className="rounded-[14px] text-[#5d648d] data-[state=active]:bg-white data-[state=active]:text-[#1f1a54] data-[state=active]:shadow-[0_10px_24px_rgba(31,26,84,0.08)]"
+                  className="rounded-[14px] text-[#5b6b62] data-[state=active]:bg-white data-[state=active]:text-[#0c2a1e] data-[state=active]:shadow-[0_10px_24px_rgba(12,42,30,0.08)]"
                 >
                   Sign In
                 </TabsTrigger>
                 <TabsTrigger
                   value="signup"
-                  className="rounded-[14px] text-[#5d648d] data-[state=active]:bg-white data-[state=active]:text-[#1f1a54] data-[state=active]:shadow-[0_10px_24px_rgba(31,26,84,0.08)]"
+                  className="rounded-[14px] text-[#5b6b62] data-[state=active]:bg-white data-[state=active]:text-[#0c2a1e] data-[state=active]:shadow-[0_10px_24px_rgba(12,42,30,0.08)]"
                 >
                   Sign Up
                 </TabsTrigger>
@@ -478,7 +478,7 @@ const Auth = () => {
 
                   <Button
                     type="submit"
-                    className="h-12 w-full rounded-2xl bg-[#26225f] text-white shadow-[0_16px_32px_rgba(38,34,95,0.18)] hover:bg-[#1f1b50]"
+                    className="h-12 w-full rounded-2xl bg-[#0f3d2a] text-white shadow-[0_16px_32px_rgba(15,61,42,0.18)] hover:bg-[#0a2e1f]"
                     disabled={isLoading || isGoogleLoading}
                   >
                     {isLoading ? "Signing in..." : "Sign In"}
@@ -496,7 +496,7 @@ const Auth = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    className="h-12 w-full rounded-2xl border-[#d9ddf4] bg-[#fbfbff] text-[#1f1a54] shadow-[0_10px_24px_rgba(31,26,84,0.05)] hover:bg-white"
+                    className="h-12 w-full rounded-2xl border-[#dce3da] bg-[#f7f9f5] text-[#0c2a1e] shadow-[0_10px_24px_rgba(12,42,30,0.05)] hover:bg-white"
                     onClick={handleGoogleSignIn}
                     disabled={isLoading || isGoogleLoading}
                   >
@@ -527,13 +527,13 @@ const Auth = () => {
                     )}
                   </Button>
 
-                  <p className="text-center text-xs leading-6 text-[#7a81a8]">
+                  <p className="text-center text-xs leading-6 text-[#74837a]">
                     Secure Google sign-in returns you to Homes Nigeria after account verification or 2-step confirmation.
                   </p>
 
-                  <div className="text-center text-sm text-[#6f7599]">
+                  <div className="text-center text-sm text-[#5b6b62]">
                     Prefer to keep browsing?{" "}
-                    <Link to="/" className="font-medium text-[#26225f] hover:text-[#1f1a54]">
+                    <Link to="/" className="font-medium text-[#0f3d2a] hover:text-[#0c2a1e]">
                       Go back home
                     </Link>
                   </div>
@@ -653,7 +653,7 @@ const Auth = () => {
 
                   <Button
                     type="submit"
-                    className="h-12 w-full rounded-2xl bg-[#26225f] text-white shadow-[0_16px_32px_rgba(38,34,95,0.18)] hover:bg-[#1f1b50]"
+                    className="h-12 w-full rounded-2xl bg-[#0f3d2a] text-white shadow-[0_16px_32px_rgba(15,61,42,0.18)] hover:bg-[#0a2e1f]"
                     disabled={isLoading || isGoogleLoading}
                   >
                     {isLoading ? "Creating account..." : "Create Account"}
@@ -671,7 +671,7 @@ const Auth = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    className="h-12 w-full rounded-2xl border-[#d9ddf4] bg-[#fbfbff] text-[#1f1a54] shadow-[0_10px_24px_rgba(31,26,84,0.05)] hover:bg-white"
+                    className="h-12 w-full rounded-2xl border-[#dce3da] bg-[#f7f9f5] text-[#0c2a1e] shadow-[0_10px_24px_rgba(12,42,30,0.05)] hover:bg-white"
                     onClick={handleGoogleSignIn}
                     disabled={isLoading || isGoogleLoading}
                   >
@@ -702,13 +702,13 @@ const Auth = () => {
                     )}
                   </Button>
 
-                  <p className="text-center text-xs leading-6 text-[#7a81a8]">
+                  <p className="text-center text-xs leading-6 text-[#74837a]">
                     If Google asks you to confirm your account or finish 2-step verification, Homes Nigeria will bring you back here automatically.
                   </p>
 
-                  <div className="text-center text-sm text-[#6f7599]">
+                  <div className="text-center text-sm text-[#5b6b62]">
                     Want to explore first?{" "}
-                    <Link to="/" className="font-medium text-[#26225f] hover:text-[#1f1a54]">
+                    <Link to="/" className="font-medium text-[#0f3d2a] hover:text-[#0c2a1e]">
                       Go back home
                     </Link>
                   </div>

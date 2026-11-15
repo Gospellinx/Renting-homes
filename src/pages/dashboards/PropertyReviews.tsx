@@ -6,7 +6,7 @@ const PropertyReviews = () => {
   return (
     <DashboardLayout>
       <div className="max-w-5xl mx-auto space-y-6">
-        <h1 className="text-3xl font-bold text-[#1f1a54]">Property Reviews</h1>
+        <h1 className="text-3xl font-bold text-[#0c2a1e]">Property Reviews</h1>
         
         <Card className="border-0 shadow-sm bg-white">
           <CardHeader className="pb-4 border-b">

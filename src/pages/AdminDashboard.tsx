@@ -162,14 +162,14 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f2f4fb_0%,#f7f7fb_42%,#f4f1ec_100%)]">
       {/* Header */}
-      <div className="sticky top-0 z-20 border-b border-[#d7daf0] bg-white/85 backdrop-blur">
+      <div className="sticky top-0 z-20 border-b border-[#dce3da] bg-white/85 backdrop-blur">
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               <BackButton showHomeLink={false} />
               <div>
-                <h1 className="text-xl font-bold text-[#1f1a54] sm:text-2xl">Admin Dashboard</h1>
-                <p className="text-sm text-[#6f7599]">Moderate listings, users, ads, and platform trust signals</p>
+                <h1 className="text-xl font-bold text-[#0c2a1e] sm:text-2xl">Admin Dashboard</h1>
+                <p className="text-sm text-[#5b6b62]">Moderate listings, users, ads, and platform trust signals</p>
               </div>
             </div>
             <Button variant="outline" className="w-full gap-2 sm:w-auto" onClick={handleSignOut}>
@@ -182,7 +182,7 @@ const AdminDashboard = () => {
 
       <div className="container mx-auto px-4 py-6">
         <div className="mb-6 grid gap-4 md:grid-cols-4">
-          <Card className="border-0 bg-[#1f1a54] text-white shadow-lg">
+          <Card className="border-0 bg-[#0c2a1e] text-white shadow-lg">
             <CardContent className="p-5">
               <p className="text-sm text-white/70">Pending Verifications</p>
               <p className="mt-2 text-3xl font-bold">{pendingCount}</p>

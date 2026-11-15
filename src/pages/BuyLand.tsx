@@ -48,7 +48,7 @@ const BuyLand = () => {
     <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#f2f4fb_0%,#f7f7fb_42%,#f4f1ec_100%)]">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(91,104,228,0.16),transparent_34%),radial-gradient(circle_at_top_right,rgba(72,153,255,0.16),transparent_28%),radial-gradient(circle_at_bottom,rgba(162,153,255,0.12),transparent_42%)] z-0" />
       
-      <div className="relative z-10 bg-gradient-to-r from-[#26225f] to-[#2b2770] text-white px-4 py-6">
+      <div className="relative z-10 bg-gradient-to-r from-[#0f3d2a] to-[#0c2a1e] text-white px-4 py-6">
         <div className="max-w-6xl mx-auto">
           <BackButton />
           <h1 className="text-2xl font-bold mt-2">Buy a Land</h1>
@@ -68,10 +68,10 @@ const BuyLand = () => {
       </div>
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 py-6">
-        <p className="text-sm text-[#6f7599] mb-4">{filteredLands.length} lands found</p>
+        <p className="text-sm text-[#5b6b62] mb-4">{filteredLands.length} lands found</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredLands.map((land) => (
-            <div key={land.id} className="border border-[#d7daf0] rounded-2xl overflow-hidden bg-white/90 hover:shadow-lg transition-shadow">
+            <div key={land.id} className="border border-[#dce3da] rounded-2xl overflow-hidden bg-white/90 hover:shadow-lg transition-shadow">
               <div className="relative h-48 overflow-hidden">
                 <img src={land.image} alt={land.title} className="w-full h-full object-cover" loading="lazy" />
                 <span className="absolute top-3 right-3 text-[10px] font-semibold uppercase tracking-widest text-primary-foreground bg-primary/80 px-2.5 py-1 rounded-full">

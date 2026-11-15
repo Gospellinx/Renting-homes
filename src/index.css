@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -10,25 +10,26 @@
 @layer base {
 :root {
     /* Core shadcn vars - updated to match JSON where possible */
-    --background: 30 50% 97%; /* JSON background #F9F5F4 */
-    --foreground: 62 10% 8%; /* JSON textPrimary #12120D */
+    --background: 84 22% 96%; /* paper #F4F6F1 */
+    --foreground: 156 56% 11%; /* ink #0C2A1E */
     --card: 0 0% 100%; /* JSON surface */
-    --card-foreground: 62 10% 8%;
+    --card-foreground: 156 56% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 62 10% 8%;
-    --primary: 215 27.9% 16.9%; /* Dark Slate #1E293B */
+    --popover-foreground: 156 56% 11%;
+    --primary: 156 56% 11%; /* ink #0C2A1E */
     --primary-foreground: 0 0% 100%;
-    --secondary: 23 100% 50%; /* Warm Orange #EA580C */
+    --secondary: 146 65% 34%; /* leaf #1E8E4E */
     --secondary-foreground: 0 0% 100%;
-    --muted: 48 44% 94%; /* JSON accentSoft */
-    --muted-foreground: 0 0% 43%; /* JSON textSecondary */
-    --accent: 44 34% 70%; /* JSON accent */
-    --accent-foreground: 62 10% 8%;
+    --muted: 96 18% 92%;
+    --muted-foreground: 146 8% 39%;
+    --accent: 108 22% 91%; /* soft leaf tint */
+    --accent-foreground: 156 56% 11%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 0 0% 90%; /* JSON border */
-    --input: 0 0% 90%;
-    --ring: 215 27.9% 16.9%;
+    --border: 107 14% 87%;
+    --input: 107 14% 84%;
+    --ring: 146 65% 34%;
+    --beacon: 45 90% 57%; /* survey-peg yellow #F4C430 */
     --radius: 0.75rem; /* Close to JSON lg 20px */
 
     /* JSON Colors - Direct */
@@ -70,8 +71,9 @@
     --grid-gap: 24px;
 
     /* JSON Typography */
-    --font-heading: 'Playfair Display', serif;
-    --font-body: 'Inter', sans-serif;
+    --font-heading: 'Bricolage Grotesque', system-ui, sans-serif;
+    --font-body: 'Figtree', system-ui, sans-serif;
+    --font-mono: 'DM Mono', ui-monospace, monospace;
     --font-weight-regular: 400;
     --font-weight-medium: 500;
     --font-weight-semibold: 600;
@@ -98,11 +100,11 @@
     --fade-in: opacity 0.5s ease-in;
 
     /* Legacy/Trust/Nigeria colors - modern real estate palette */
-    --trust: 215 27.9% 16.9%;
+    --trust: 146 65% 34%;
     --trust-foreground: 0 0% 100%;
-    --nigeria-green: 215 27.9% 16.9%;
+    --nigeria-green: 146 65% 34%;
     --nigeria-white: 0 0% 100%;
-    --hero-dark: 215 27.9% 10%; /* Adjusted for hero bg */
+    --hero-dark: 156 56% 8%;
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -167,4 +169,80 @@
   .font-heading {
     font-family: var(--font-heading);
   }
+}
+
+/* ---- Find a Space identity layer ---- */
+@layer base {
+  h1, h2, h3 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.02em;
+  }
+
+  ::selection {
+    background-color: hsl(var(--beacon) / 0.55);
+    color: hsl(var(--foreground));
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Small-caps data label, used for locations, plot data and section tags */
+  .plot-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  /* Survey-plan corner beacons: add <PlotCorners /> inside a relative parent */
+  .plot-corner {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-color: hsl(var(--beacon));
+    border-style: solid;
+    border-width: 0;
+    pointer-events: none;
+  }
+  .plot-corner::after {
+    content: "";
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: hsl(var(--beacon));
+  }
+  .plot-corner-tl { top: -7px; left: -7px; border-top-width: 2px; border-left-width: 2px; }
+  .plot-corner-tl::after { top: -4px; left: -4px; }
+  .plot-corner-tr { top: -7px; right: -7px; border-top-width: 2px; border-right-width: 2px; }
+  .plot-corner-tr::after { top: -4px; right: -4px; }
+  .plot-corner-bl { bottom: -7px; left: -7px; border-bottom-width: 2px; border-left-width: 2px; }
+  .plot-corner-bl::after { bottom: -4px; left: -4px; }
+  .plot-corner-br { bottom: -7px; right: -7px; border-bottom-width: 2px; border-right-width: 2px; }
+  .plot-corner-br::after { bottom: -4px; right: -4px; }
+
+  /* Faint survey grid for dark panels */
+  .survey-grid {
+    background-image:
+      linear-gradient(hsl(0 0% 100% / 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(0 0% 100% / 0.045) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.rise-in { animation: rise-in 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.rise-in-2 { animation-delay: 0.08s; }
+.rise-in-3 { animation-delay: 0.16s; }
+.rise-in-4 { animation-delay: 0.26s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rise-in { animation: none; }
+  * { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
 }

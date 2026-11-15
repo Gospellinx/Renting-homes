@@ -92,7 +92,7 @@ const UpgradeAccount = () => {
           <Button
             asChild
             variant="outline"
-            className="rounded-full border-[#d7daf0] bg-white/85 px-4 text-[#241f66] shadow-[0_10px_25px_rgba(31,26,84,0.08)] backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:border-[#bfc6f5] hover:bg-white"
+            className="rounded-full border-[#dce3da] bg-white/85 px-4 text-[#0c2a1e] shadow-[0_10px_25px_rgba(12,42,30,0.08)] backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:border-[#bfd1c2] hover:bg-white"
           >
             <Link to="/dashboard/user" className="flex items-center gap-2">
               <ArrowLeft className="h-4 w-4" />
@@ -104,8 +104,8 @@ const UpgradeAccount = () => {
 
       <main className="flex-1 container max-w-4xl py-12">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-[#1f1a54] mb-4">Upgrade Your Account</h1>
-          <p className="text-xl text-[#6f7599] max-w-2xl mx-auto">
+          <h1 className="text-4xl font-bold text-[#0c2a1e] mb-4">Upgrade Your Account</h1>
+          <p className="text-xl text-[#5b6b62] max-w-2xl mx-auto">
             Unlock the ability to list properties by upgrading to a professional account type. It's free and takes just a second.
           </p>
         </div>
@@ -120,21 +120,21 @@ const UpgradeAccount = () => {
                 key={option.value}
                 className={`cursor-pointer transition-all duration-300 ${
                   isSelected 
-                    ? "ring-2 ring-[#26225f] shadow-lg scale-105 bg-[#f8f9ff] border-[#b8c1fb]" 
-                    : "hover:shadow-md hover:border-[#d7daf0] border-transparent"
+                    ? "ring-2 ring-[#0f3d2a] shadow-lg scale-105 bg-[#f7f9f5] border-[#bfd1c2]" 
+                    : "hover:shadow-md hover:border-[#dce3da] border-transparent"
                 }`}
                 onClick={() => setSelectedRole(option.value)}
               >
                 <CardHeader className="text-center pb-2">
                   <div className={`mx-auto w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-colors ${
-                    isSelected ? "bg-[#26225f] text-white" : "bg-[#f0f2fb] text-[#26225f]"
+                    isSelected ? "bg-[#0f3d2a] text-white" : "bg-[#e8efe6] text-[#0f3d2a]"
                   }`}>
                     <Icon className="h-8 w-8" />
                   </div>
                   <CardTitle className="text-xl">{option.label}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-center text-[#6f7599] mb-6 h-10">
+                  <p className="text-sm text-center text-[#5b6b62] mb-6 h-10">
                     {option.description}
                   </p>
                   <ul className="space-y-3">
@@ -154,7 +154,7 @@ const UpgradeAccount = () => {
         <div className="flex justify-center">
           <Button 
             size="lg"
-            className="w-full max-w-md h-14 text-lg rounded-2xl bg-[#26225f] text-white shadow-[0_16px_32px_rgba(38,34,95,0.18)] hover:bg-[#1f1b50]"
+            className="w-full max-w-md h-14 text-lg rounded-2xl bg-[#0f3d2a] text-white shadow-[0_16px_32px_rgba(15,61,42,0.18)] hover:bg-[#0a2e1f]"
             disabled={!selectedRole || isUpgrading}
             onClick={handleUpgrade}
           >

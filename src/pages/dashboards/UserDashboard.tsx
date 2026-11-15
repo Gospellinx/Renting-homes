@@ -41,7 +41,7 @@ const UserDashboard = () => {
             <p className="text-gray-500 mt-1">Manage your account details and saved properties.</p>
           </div>
           
-          <Button asChild className="bg-[#1f1a54] text-white hover:bg-[#15113d] shadow-md">
+          <Button asChild className="bg-[#0c2a1e] text-white hover:bg-[#0c2a1e] shadow-md">
             <Link to="/upload-property">
               <PlusCircle className="mr-2 h-4 w-4" />
               Upgrade to List Properties

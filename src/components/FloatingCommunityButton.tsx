@@ -49,7 +49,7 @@ const FloatingCommunityButton = () => {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className="bg-white text-[#26225f] px-4 py-2 rounded-full font-semibold text-sm shadow-lg"
+          className="bg-white text-[#0f3d2a] px-4 py-2 rounded-full font-semibold text-sm shadow-lg"
         >
           Community
         </motion.div>

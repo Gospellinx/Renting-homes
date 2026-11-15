@@ -86,15 +86,15 @@ const SectionHeading = ({
   icon: React.ComponentType<{ className?: string }>;
 }) => (
   <div className="flex items-start gap-4">
-    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eef1ff] text-[#26225f]">
+    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e8efe6] text-[#0f3d2a]">
       <Icon className="h-5 w-5" />
     </div>
     <div className="space-y-1">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7b82a8]">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#74837a]">
         Step {number}
       </p>
-      <h3 className="text-xl font-semibold text-[#1f1a54]">{title}</h3>
-      <p className="text-sm leading-6 text-[#6d7599]">{description}</p>
+      <h3 className="text-xl font-semibold text-[#0c2a1e]">{title}</h3>
+      <p className="text-sm leading-6 text-[#5b6b62]">{description}</p>
     </div>
   </div>
 );
@@ -417,18 +417,18 @@ export default function CampaignWizard({
   if (isPaymentInitiated) {
     return (
       <div className="mx-auto flex max-w-lg flex-col items-center justify-center gap-6 py-24 text-center">
-        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#eef1ff] shadow-[0_0_0_10px_rgba(101,93,202,0.08)]">
-          <Loader2 className="h-9 w-9 animate-spin text-[#26225f]" />
+        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#e8efe6] shadow-[0_0_0_10px_rgba(101,93,202,0.08)]">
+          <Loader2 className="h-9 w-9 animate-spin text-[#0f3d2a]" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold text-[#1f1a54]">Opening Paystack…</h2>
-          <p className="text-sm leading-6 text-[#6d7599]">
+          <h2 className="text-2xl font-bold text-[#0c2a1e]">Opening Paystack…</h2>
+          <p className="text-sm leading-6 text-[#5b6b62]">
             Your campaign has been saved. We are redirecting you to the secure Paystack checkout to
             complete payment for your ad budget. Please do not close this tab.
           </p>
         </div>
-        <div className="mt-2 rounded-2xl border border-[#dbe0f4] bg-white/80 px-6 py-4 text-sm text-[#5c637f]">
-          <span className="font-semibold text-[#1f1a54]">Total budget: </span>
+        <div className="mt-2 rounded-2xl border border-[#dce3da] bg-white/80 px-6 py-4 text-sm text-[#5c637f]">
+          <span className="font-semibold text-[#0c2a1e]">Total budget: </span>
           NGN {Number(totalBudget || 0).toLocaleString()}
         </div>
       </div>
@@ -437,7 +437,7 @@ export default function CampaignWizard({
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div className="overflow-hidden rounded-[32px] border border-[#dbe0f4] bg-[linear-gradient(135deg,#1f1a54_0%,#2d2873_58%,#6e62ca_100%)] text-white shadow-[0_28px_60px_rgba(31,26,84,0.18)]">
+      <div className="overflow-hidden rounded-[32px] border border-[#dce3da] bg-[linear-gradient(135deg,#1f1a54_0%,#2d2873_58%,#6e62ca_100%)] text-white shadow-[0_28px_60px_rgba(12,42,30,0.18)]">
         <div className="grid gap-6 px-6 py-6 lg:grid-cols-[1.35fr_0.65fr] lg:px-8 lg:py-8">
           <div className="space-y-5">
             <button
@@ -501,7 +501,7 @@ export default function CampaignWizard({
 
       <div className="grid gap-6 lg:grid-cols-[1.35fr_0.72fr]">
         <div className="space-y-6">
-          <Card className="border-[#dbe0f4] bg-white/95 shadow-[0_18px_45px_rgba(31,26,84,0.06)]">
+          <Card className="border-[#dce3da] bg-white/95 shadow-[0_18px_45px_rgba(12,42,30,0.06)]">
             <CardHeader className="pb-2">
               <SectionHeading
                 number="01"
@@ -621,7 +621,7 @@ export default function CampaignWizard({
             </CardContent>
           </Card>
 
-          <Card className="border-[#dbe0f4] bg-white/95 shadow-[0_18px_45px_rgba(31,26,84,0.06)]">
+          <Card className="border-[#dce3da] bg-white/95 shadow-[0_18px_45px_rgba(12,42,30,0.06)]">
             <CardHeader className="pb-2">
               <SectionHeading
                 number="02"
@@ -760,7 +760,7 @@ export default function CampaignWizard({
             </CardContent>
           </Card>
 
-          <Card className="border-[#dbe0f4] bg-white/95 shadow-[0_18px_45px_rgba(31,26,84,0.06)]">
+          <Card className="border-[#dce3da] bg-white/95 shadow-[0_18px_45px_rgba(12,42,30,0.06)]">
             <CardHeader className="pb-2">
               <SectionHeading
                 number="03"
@@ -816,7 +816,7 @@ export default function CampaignWizard({
                   }}
                   placeholder="Highlight the property's value, location, and strongest features."
                   className={cn(
-                    "min-h-[140px] rounded-[24px] border-[#dbe0f4] bg-[#fbfbfe] p-4",
+                    "min-h-[140px] rounded-[24px] border-[#dce3da] bg-[#f7f9f5] p-4",
                     fieldErrors.creative && "border-red-400 focus-visible:ring-red-200"
                   )}
                 />
@@ -862,7 +862,7 @@ export default function CampaignWizard({
                     disabled={isUploadingImage}
                     className="flex-1"
                   />
-                  {isUploadingImage && <Loader2 className="h-5 w-5 animate-spin text-[#6d62c8]" />}
+                  {isUploadingImage && <Loader2 className="h-5 w-5 animate-spin text-[#1e8e4e]" />}
                 </div>
                 {imageUrl && (
                   <p className="text-xs text-muted-foreground mt-2">
@@ -895,9 +895,9 @@ export default function CampaignWizard({
         </div>
 
         <div className="space-y-6 lg:sticky lg:top-6 lg:self-start">
-          <Card className="overflow-hidden border-0 bg-[linear-gradient(160deg,#ffffff_0%,#f6f7fd_100%)] shadow-[0_18px_45px_rgba(31,26,84,0.08)]">
+          <Card className="overflow-hidden border-0 bg-[linear-gradient(160deg,#ffffff_0%,#f6f7fd_100%)] shadow-[0_18px_45px_rgba(12,42,30,0.08)]">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-[#1f1a54]">
+              <CardTitle className="flex items-center gap-2 text-[#0c2a1e]">
                 <Layers3 className="h-5 w-5 text-primary" />
                 Campaign Summary
               </CardTitle>
@@ -906,28 +906,28 @@ export default function CampaignWizard({
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="rounded-[24px] border border-[#e3e7f7] bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#7b82a8]">
+              <div className="rounded-[24px] border border-[#dce3da] bg-white p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#74837a]">
                   Campaign overview
                 </p>
-                <h4 className="mt-2 text-xl font-semibold text-[#1f1a54]">
+                <h4 className="mt-2 text-xl font-semibold text-[#0c2a1e]">
                   {campaignName || "Untitled campaign"}
                 </h4>
-                <p className="mt-1 text-sm text-[#6d7599] capitalize">
+                <p className="mt-1 text-sm text-[#5b6b62] capitalize">
                   {objective} • {adType} ad
                 </p>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-[#e3e7f7] bg-white p-4">
-                  <p className="text-xs uppercase tracking-[0.16em] text-[#7b82a8]">Budget</p>
-                  <p className="mt-1 text-lg font-semibold text-[#1f1a54]">
+                <div className="rounded-2xl border border-[#dce3da] bg-white p-4">
+                  <p className="text-xs uppercase tracking-[0.16em] text-[#74837a]">Budget</p>
+                  <p className="mt-1 text-lg font-semibold text-[#0c2a1e]">
                     NGN {Number(totalBudget || 0).toLocaleString()}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-[#e3e7f7] bg-white p-4">
-                  <p className="text-xs uppercase tracking-[0.16em] text-[#7b82a8]">Locations</p>
-                  <p className="mt-1 text-lg font-semibold text-[#1f1a54]">{mergedLocations.length}</p>
+                <div className="rounded-2xl border border-[#dce3da] bg-white p-4">
+                  <p className="text-xs uppercase tracking-[0.16em] text-[#74837a]">Locations</p>
+                  <p className="mt-1 text-lg font-semibold text-[#0c2a1e]">{mergedLocations.length}</p>
                 </div>
               </div>
 
@@ -941,7 +941,7 @@ export default function CampaignWizard({
                 ].map((item) => (
                   <div
                     key={item.label}
-                    className="flex items-center justify-between rounded-2xl border border-[#e3e7f7] bg-white px-4 py-3"
+                    className="flex items-center justify-between rounded-2xl border border-[#dce3da] bg-white px-4 py-3"
                   >
                     <span className="text-sm text-[#5f678a]">{item.label}</span>
                     <span
@@ -958,9 +958,9 @@ export default function CampaignWizard({
             </CardContent>
           </Card>
 
-          <Card className="border-[#dbe0f4] bg-white/95 shadow-[0_18px_45px_rgba(31,26,84,0.06)]">
+          <Card className="border-[#dce3da] bg-white/95 shadow-[0_18px_45px_rgba(12,42,30,0.06)]">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-[#1f1a54]">
+              <CardTitle className="flex items-center gap-2 text-[#0c2a1e]">
                 <Globe2 className="h-5 w-5 text-primary" />
                 Live Preview
               </CardTitle>
@@ -969,8 +969,8 @@ export default function CampaignWizard({
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="overflow-hidden rounded-[28px] border border-[#dbe0f4] bg-[#f7f8ff]">
-                <div className="relative h-48 bg-[#edf1ff]">
+              <div className="overflow-hidden rounded-[28px] border border-[#dce3da] bg-[#f7f9f5]">
+                <div className="relative h-48 bg-[#e8efe6]">
                   {imageUrl ? (
                     <img src={imageUrl} alt={headline || "Ad preview"} className="h-full w-full object-cover" />
                   ) : (
@@ -986,7 +986,7 @@ export default function CampaignWizard({
                 </div>
                 <div className="space-y-3 p-5">
                   <div>
-                    <h4 className="text-lg font-semibold text-[#1f1a54]">
+                    <h4 className="text-lg font-semibold text-[#0c2a1e]">
                       {headline || "Your ad headline preview"}
                     </h4>
                     <p className="mt-2 text-sm leading-6 text-[#6b7397]">
@@ -995,19 +995,19 @@ export default function CampaignWizard({
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-semibold text-[#1f1a54]">
+                      <p className="text-sm font-semibold text-[#0c2a1e]">
                         {price || "Price not set"}
                       </p>
                       <p className="text-xs text-[#7f86ab]">{location || "Location not set"}</p>
                     </div>
-                    <div className="rounded-full bg-[#26225f] px-4 py-2 text-sm font-medium text-white">
+                    <div className="rounded-full bg-[#0f3d2a] px-4 py-2 text-sm font-medium text-white">
                       {ctaText || "View Details"}
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-dashed border-[#dbe0f4] bg-[#fafbff] p-4 text-sm text-[#687091]">
+              <div className="rounded-2xl border border-dashed border-[#dce3da] bg-[#f7f9f5] p-4 text-sm text-[#687091]">
                 Strong campaigns usually combine a clear headline, a compelling image, and a tight location match.
               </div>
             </CardContent>
@@ -1051,7 +1051,7 @@ export default function CampaignWizard({
             </Button>
             <Button
               type="button"
-              className="w-full gap-2 rounded-full bg-[#26225f] text-white hover:bg-[#1f1b50]"
+              className="w-full gap-2 rounded-full bg-[#0f3d2a] text-white hover:bg-[#0a2e1f]"
               onClick={() => handleSave("pending_review")}
               disabled={isSubmitting}
             >
