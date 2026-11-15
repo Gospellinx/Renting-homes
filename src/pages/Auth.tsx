@@ -57,6 +57,15 @@ const inlineNoticeStyles: Record<InlineNotice["tone"], string> = {
     "border-[#c8ead6] bg-[linear-gradient(135deg,rgba(240,253,244,0.98),rgba(255,255,255,0.94))] text-[#166534] [&>svg]:text-[#16a34a]",
 };
 
+const CONNECTION_PROBLEM =
+  "We couldn't reach our servers. Check your internet connection and try again in a moment.";
+
+/** Turns network-level failures ("Failed to fetch") into a message people can act on. */
+const describeAuthError = (message?: string) =>
+  !message || /failed to fetch|network|load failed|fetch failed/i.test(message)
+    ? CONNECTION_PROBLEM
+    : message;
+
 const Auth = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -233,7 +242,7 @@ const Auth = () => {
         } else {
           setInlineNotice({
             title: "We couldn't sign you in",
-            description: error.message,
+            description: describeAuthError(error.message),
             tone: "error",
           });
         }
@@ -244,7 +253,7 @@ const Auth = () => {
       console.error("Sign in error:", error);
       setInlineNotice({
         title: "We couldn't sign you in",
-        description: "An unexpected error occurred. Please try again.",
+        description: describeAuthError(error instanceof Error ? error.message : undefined),
         tone: "error",
       });
     } finally {
@@ -281,7 +290,7 @@ const Auth = () => {
         } else {
           setInlineNotice({
             title: "We couldn't create your account",
-            description: error.message,
+            description: describeAuthError(error.message),
             tone: "error",
           });
         }
@@ -321,7 +330,7 @@ const Auth = () => {
       console.error("Sign up error:", error);
       setInlineNotice({
         title: "We couldn't create your account",
-        description: "An unexpected error occurred. Please try again.",
+        description: describeAuthError(error instanceof Error ? error.message : undefined),
         tone: "error",
       });
     } finally {
@@ -343,7 +352,7 @@ const Auth = () => {
         console.error("Google OAuth error:", error);
         setInlineNotice({
           title: "Google sign-in didn't start",
-          description: error.message || "An error occurred.",
+          description: describeAuthError(error.message),
           tone: "error",
         });
       }
@@ -351,7 +360,7 @@ const Auth = () => {
       console.error("Google sign in error:", error);
       setInlineNotice({
         title: "Google sign-in didn't start",
-        description: "An unexpected error occurred. Please try again.",
+        description: describeAuthError(error instanceof Error ? error.message : undefined),
         tone: "error",
       });
     } finally {
