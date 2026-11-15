@@ -37,6 +37,7 @@ import Favorites from "./pages/dashboards/Favorites";
 import FloatingQuickActions from "./components/FloatingQuickActions";
 import FloatingCommunityButton from "./components/FloatingCommunityButton";
 import UpgradeAccount from "./pages/UpgradeAccount";
+import JVPromoPopup from "./components/JVPromoPopup";
 
 const queryClient = new QueryClient();
 
@@ -163,6 +164,7 @@ const App = () => (
           </Routes>
           <FloatingQuickActions />
           <FloatingCommunityButton />
+          <JVPromoPopup />
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>
